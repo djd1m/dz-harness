@@ -1,0 +1,87 @@
+{
+  "schema": "dz-scenario-questions/1",
+  "authoredBeforeCards": true,
+  "frozenAt": "2026-11-09T21:53:39.113501+00:00",
+  "authoringNote": "Шесть новых вопросов зафиксированы до чтения обогащённых карточек и новой сериализации кандидатов. Автор знаком с предыдущими результатами; это малый разработческий набор после выявленных проблем, не независимый публичный benchmark.",
+  "scope": "Те же 12 пакетов; expectedPackages составных задач обозначают подтверждённую часть, не полное выполнение. Метки конкретных наборов сценариев будут определены отдельно.",
+  "cases": [
+    {
+      "id": "v3-q01",
+      "query": "Пока ничего не запускай в базе. Подготовь план перехода поля суммы с целого числа на десятичное: порядок изменений, совместимость версий приложения и варианты отката.",
+      "expectedPackages": [
+        "@dzhechkov/skills-devops"
+      ],
+      "expectedSkillIds": [
+        "database-migration"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Запрошен именно план изменения схемы и отката, без выполнения миграции; исходник описывает типы изменений, expand-contract и rollback.",
+      "sourcePaths": [
+        "packages/skills-devops/database-migration/SKILL.md"
+      ]
+    },
+    {
+      "id": "v3-q02",
+      "query": "В команде спорят, помещается ли подготовленный набор задач в следующую неделю. Есть оценки, прошлые скорости и список дежурств; составь реалистичный план с резервом и порядком зависимых задач.",
+      "expectedPackages": [
+        "@dzhechkov/skills-pm"
+      ],
+      "expectedSkillIds": [
+        "sprint-plan"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Ёмкость, доступность, историческая скорость, буфер и зависимости прямо входят в планирование спринта.",
+      "sourcePaths": [
+        "packages/skills-pm/sprint-plan/SKILL.md"
+      ]
+    },
+    {
+      "id": "v3-q03",
+      "query": "Сделай презентацию нашего решения для технического комитета с проверенными аргументами и речью докладчика, затем смонтируй из неё готовый видеоролик с озвучкой и титрами.",
+      "expectedPackages": [
+        "@dzhechkov/skills-presentation-storyteller"
+      ],
+      "expectedSkillIds": [
+        "presentation-storyteller"
+      ],
+      "expectedDecision": "clarify",
+      "rationale": "Содержание и сценарий речи подтверждены, монтаж озвученного видео с титрами не подтверждён; требуется явно отделить непокрытый результат.",
+      "sourcePaths": [
+        "packages/skills-presentation-storyteller/README.md"
+      ]
+    },
+    {
+      "id": "v3-q04",
+      "query": "Нужен автономный учебный сайт по нашему пакету с упражнениями, а ещё оформление платной подписки для учеников и автоматические возвраты платежей.",
+      "expectedPackages": [
+        "@dzhechkov/skills-tutorial-factory"
+      ],
+      "expectedSkillIds": [
+        "package-tutorial-factory"
+      ],
+      "expectedDecision": "clarify",
+      "rationale": "Курс по пакету документирован, платёжная подписка и автоматические возвраты не входят в фабрику курса. Общая разработка функциональности не доказывает наличие готового такого сценария.",
+      "sourcePaths": [
+        "packages/skills-tutorial-factory/README.md"
+      ]
+    },
+    {
+      "id": "v3-q05",
+      "query": "Подготовь материал для команды. Какой инструмент мне взять?",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "clarify",
+      "rationale": "Неизвестны тема, цель, формат и ожидаемый результат материала; невозможно выбрать конкретную процедуру.",
+      "sourcePaths": []
+    },
+    {
+      "id": "v3-q06",
+      "query": "Построй выкройку вечернего платья по моим меркам и рассчитай припуски для раскроя ткани.",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "no-match",
+      "rationale": "Конструирование одежды и расчёт выкройки не документированы выбранными пакетами.",
+      "sourcePaths": []
+    }
+  ]
+}

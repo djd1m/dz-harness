@@ -1,0 +1,153 @@
+{
+  "schema": "dz-scenario-questions/1",
+  "authoredBeforeCards": true,
+  "frozenAt": "2026-11-09T21:46:20.616562+00:00",
+  "authoringNote": "Вопросы v2 зафиксированы до просмотра part-c и новых изменений реализации. Автор знает результаты v1, поэтому это новый разработческий набор после пилота, не статистически независимый публичный benchmark. Содержимое part-c и новая реализация при авторинге не читались.",
+  "scope": "Двенадцать исходных пакетов пилота. Для составных задач expectedPackages указывает подтверждённую часть, а clarify требует явно отделить непокрытый результат; это не подтверждение выполнения всей задачи. Семантическое покрытие карточками будет отдельно установлено после заморозки.",
+  "cases": [
+    {
+      "id": "v2-q01",
+      "query": "Нужна стратегия. Возьмёшься?",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "clarify",
+      "rationale": "Не указан объект, цель и результат: стратегия продукта, тестирования, цены или исследования требуют разных процедур.",
+      "sourcePaths": []
+    },
+    {
+      "id": "v2-q02",
+      "query": "Посмотри мою историю и объясни, что там изменилось.",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "clarify",
+      "rationale": "Неясно, имеется в виду история кода, переписки, событий или другой объект; нельзя подменять её Git по умолчанию.",
+      "sourcePaths": []
+    },
+    {
+      "id": "v2-q03",
+      "query": "Хочу проверить качество перед запуском.",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "clarify",
+      "rationale": "Не определены объект запуска и критерии качества: сервис, учебный курс, инструкция агента или презентация.",
+      "sourcePaths": []
+    },
+    {
+      "id": "v2-q04",
+      "query": "Собери свежие изменения в правилах нашей отрасли со ссылками, а затем разверни на сервере постоянного бота, который будет сам присылать новые события каждое утро.",
+      "expectedPackages": [
+        "@dzhechkov/skills-news"
+      ],
+      "expectedSkillIds": [
+        "news-monitor"
+      ],
+      "expectedDecision": "clarify",
+      "rationale": "Проверка изменений документирована, но развёрнутый бот и его расписание прямо вынесены за область навыка; рекомендация только первой части без обозначения остатка недостаточна. Нужно согласовать разделение задачи.",
+      "sourcePaths": [
+        "packages/skills-news/news-monitor/SKILL.md"
+      ]
+    },
+    {
+      "id": "v2-q05",
+      "query": "Подготовь убедительное выступление для партнёров с подтверждёнными цифрами и текстом к слайдам, а затем озвучь его и отдай готовую запись MP3.",
+      "expectedPackages": [
+        "@dzhechkov/skills-presentation-storyteller"
+      ],
+      "expectedSkillIds": [
+        "presentation-storyteller"
+      ],
+      "expectedDecision": "clarify",
+      "rationale": "Документированы содержание и сценарий выступления, но не синтез речи и экспорт аудио; требуется обозначить непокрытую часть.",
+      "sourcePaths": [
+        "packages/skills-presentation-storyteller/README.md"
+      ]
+    },
+    {
+      "id": "v2-q06",
+      "query": "Преврати документацию нашей библиотеки в учебный сайт с заданиями и подключи передачу оценок каждого ученика в Moodle.",
+      "expectedPackages": [
+        "@dzhechkov/skills-tutorial-factory"
+      ],
+      "expectedSkillIds": [
+        "package-tutorial-factory"
+      ],
+      "expectedDecision": "clarify",
+      "rationale": "Курс по пакету документирован; интеграция результатов с внешней LMS не подтверждена исходниками фабрики. Нужно разделить обязательства.",
+      "sourcePaths": [
+        "packages/skills-tutorial-factory/README.md"
+      ]
+    },
+    {
+      "id": "v2-q07",
+      "query": "Забронируй мне столик в ресторане на завтра на четверых, у окна.",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "no-match",
+      "rationale": "В этих двенадцати пакетах не подтверждён сценарий бронирования ресторанов.",
+      "sourcePaths": []
+    },
+    {
+      "id": "v2-q08",
+      "query": "Переведи приложенную аудиозапись в нотную партитуру для фортепиано.",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "no-match",
+      "rationale": "Распознавание музыки и создание нот не представлены в документации пилотных пакетов.",
+      "sourcePaths": []
+    },
+    {
+      "id": "v2-q09",
+      "query": "Покажи, какой из двух приложенных рентгеновских снимков имеет признаки перелома.",
+      "expectedPackages": [],
+      "expectedSkillIds": [],
+      "expectedDecision": "no-match",
+      "rationale": "Пилотные пакеты не документируют интерпретацию медицинских снимков; общий исследовательский процесс не делает такой сценарий подтверждённым.",
+      "sourcePaths": []
+    },
+    {
+      "id": "v2-q10",
+      "query": "В репозитории на GitHub сборка стартует для любого изменения, секреты доступны слишком широко, а сторонние действия не закреплены. Проверь YAML процесса и предложи исправления.",
+      "expectedPackages": [
+        "@dzhechkov/skills-devops"
+      ],
+      "expectedSkillIds": [
+        "github-actions"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Документировано ревью workflow по triggers, permissions, secrets и закреплению зависимостей; это конфигурация CI, не исправление тестовой логики.",
+      "sourcePaths": [
+        "packages/skills-devops/github-actions/SKILL.md"
+      ]
+    },
+    {
+      "id": "v2-q11",
+      "query": "В отчёте lcov осталось много непокрытых веток. Помоги выбрать, какие проверять первыми, учитывая важность платежей и то, какие файлы чаще меняются.",
+      "expectedPackages": [
+        "@dzhechkov/skills-qe"
+      ],
+      "expectedSkillIds": [
+        "qe-coverage-analysis"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Приоритизация пробелов покрытия по критичности и частоте изменений прямо присутствует в источнике; автоматизация требует отдельного runtime.",
+      "sourcePaths": [
+        "packages/skills-qe/qe-coverage-analysis/SKILL.md"
+      ]
+    },
+    {
+      "id": "v2-q12",
+      "query": "Команда уходит в отпуска, а на следующую двухнедельную итерацию уже есть упорядоченный список задач. Рассчитай посильный объём, расставь зависимости и покажи риски.",
+      "expectedPackages": [
+        "@dzhechkov/skills-pm"
+      ],
+      "expectedSkillIds": [
+        "sprint-plan"
+      ],
+      "expectedDecision": "recommend",
+      "rationale": "Планирование итерации по доступности команды, приоритетному бэклогу, зависимостям и рискам соответствует источнику.",
+      "sourcePaths": [
+        "packages/skills-pm/sprint-plan/SKILL.md"
+      ]
+    }
+  ]
+}

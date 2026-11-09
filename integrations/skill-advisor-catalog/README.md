@@ -7,17 +7,17 @@ Optional host-side experiment. This directory is not installed by `dz init`, is 
 ```sh
 node integrations/skill-advisor-catalog/cli.mjs build
 node integrations/skill-advisor-catalog/cli.mjs search 'Развернуть приложение на Cloud.ru'
-node --test integrations/skill-advisor-catalog/catalog.test.mjs
-node integrations/skill-advisor-catalog/evaluate.mjs
+node --test integrations/skill-advisor-catalog/*.test.mjs
+node integrations/skill-advisor-catalog/evaluate.mjs --suite regression --output my-regression-retrieval.json
 ```
 
 The last command is retrieval-only and makes no provider calls. An explicit paid trial uses a securely supplied `OPENROUTER_API_KEY` environment variable:
 
 ```sh
-node integrations/skill-advisor-catalog/evaluate.mjs --model anthropic/claude-haiku-5.5
+node integrations/skill-advisor-catalog/evaluate.mjs --suite fresh --model anthropic/claude-haiku-5.5 --output my-fresh-picker.json
 ```
 
-Evaluation overwrites its own report; preserve prior reports before experiments. No retries; each provider request has a 60-second timeout. Do not commit credentials.
+Evaluation refuses existing report names and writes exclusively. Choose a new simple JSON filename for each run. Questions and independent coverage labels must have matching hashes. No retries; each provider request has a 60-second timeout and a 1200-token total output budget, including provider reasoning. Failed completions preserve usage when available. Do not commit credentials.
 
 ## Trust and update flow
 
@@ -25,6 +25,8 @@ Authors prepare source-backed records; an independent reviewer approves each exa
 
 The CLI search prints candidates, not a completed recommendation. The host retains these candidates, lets a model select only IDs, then calls `materialize` to copy approved text. Model-generated prose is discarded. Course links are a separately verified mapping and are not injected by the model. No install commands are generated.
 
-A source change requires regenerating affected drafts and independent approval, then rebuilding. This is local invalidation, not an installed scheduled updater. Hash validation cannot establish semantic correctness or execution capability. Empty search currently bypasses the model, which can incorrectly reject ambiguous requests. Partial matches can also be misselected. Do not promote this pilot to production on the basis of syntactic validity.
+A source change requires regenerating affected drafts and independent approval, then rebuilding. This is local invalidation, not an installed scheduled updater. Hash validation cannot establish semantic correctness or execution capability. Only blank input bypasses the model. Nonblank empty search still allows semantic clarification. The selector is instructed to cover all essential outcomes or abstain; this remains probabilistic. Independent evaluation labels define complete acceptable ID sets, so a useful partial choice is not scored as full. Do not promote this pilot to production on the basis of syntactic validity.
 
-[Results, limitations and verified course links](../../docs/proposals/skill-advisor-scenarios/REPORT.md) · [Scenario table](../../docs/proposals/skill-advisor-scenarios/SCENARIOS.md)
+[First-iteration results and verified course links](../../docs/proposals/skill-advisor-scenarios/REPORT.md) · [Scenario table](../../docs/proposals/skill-advisor-scenarios/SCENARIOS.md)
+
+[Iteration 2 results](../../docs/proposals/skill-advisor-scenarios/ITERATION-2.md) include expanded coverage, original failed runs and a bounded output-budget repair.

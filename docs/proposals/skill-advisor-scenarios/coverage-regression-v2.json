@@ -1,0 +1,282 @@
+{
+  "schema": "dz-scenario-coverage/1",
+  "questionFile": "evaluation-questions.json",
+  "questionSha256": "85929e3e405fbe2bf672dd9315d5a11e036c786ad97f33cf038dda58e8954591",
+  "catalogParts": [
+    "part-a.json",
+    "part-b.json",
+    "part-c.json"
+  ],
+  "approvedScenarioCount": 32,
+  "method": "Оценка конкретных сценариев, не общего пакета. acceptableScenarioSets перечисляет полные допустимые наборы ID (порядок несущественен); лишние и недостающие ID не принимаются. Для full relevantScenarioIds — объединение допустимых наборов. Для partial это только полезные части, и полного допустимого набора нет. Для partial консервативная политика принимает clarify или no-match как scoped abstention, отдельно считая useful clarify; это не меняет замороженный expectedDecision. Более двух необходимых сценариев означает partial из-за лимита host=2. Одобрение карточек подтверждает документацию снимка, не фактическое исполнение. Положительные сценарии оцениваются по явной области и результату; конкретные методические детали могут подтверждаться цитируемым исходником.",
+  "cases": [
+    {
+      "id": "q01",
+      "relevantScenarioIds": [
+        "meta-capture-adr"
+      ],
+      "coverage": "full",
+      "reason": "Карточка непосредственно фиксирует уже принятое решение с причинами и последствиями.",
+      "acceptableScenarioSets": [
+        [
+          "meta-capture-adr"
+        ]
+      ]
+    },
+    {
+      "id": "q02",
+      "relevantScenarioIds": [
+        "meta-knowledge-harvest"
+      ],
+      "coverage": "full",
+      "reason": "Документировано извлечение команд, шаблонов и правил завершённого проекта с проверкой находок.",
+      "acceptableScenarioSets": [
+        [
+          "meta-knowledge-harvest"
+        ]
+      ]
+    },
+    {
+      "id": "q03",
+      "relevantScenarioIds": [
+        "devops-database-migration"
+      ],
+      "coverage": "partial",
+      "reason": "Пользователь хочет переименовать колонку без простоя и сохранить совместимость; карточка обещает только план изменения и отката. План полезен, но выполнение изменения этой карточкой не покрыто.",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "q04",
+      "relevantScenarioIds": [
+        "devops-observability"
+      ],
+      "coverage": "partial",
+      "reason": "Пользователь хочет связать запросы трассировкой и получить дашборд; карточка ограничена проектом сигналов, дашбордов и SLO, а не их внедрением и созданием артефактов.",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "q05",
+      "relevantScenarioIds": [
+        "mcp-gmail-search"
+      ],
+      "coverage": "partial",
+      "reason": "Поиск писем покрыт, но обязательное присвоение отдельного ярлыка отсутствует в карточке. Нельзя расширять сценарий до всего набора возможностей навыка.",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "q06",
+      "relevantScenarioIds": [
+        "mcp-context7-docs"
+      ],
+      "coverage": "full",
+      "reason": "Поиск библиотечной документации и примеров соответствует основной задаче; конкретная библиотека и её доступность уточняются при исполнении.",
+      "acceptableScenarioSets": [
+        [
+          "mcp-context7-docs"
+        ]
+      ]
+    },
+    {
+      "id": "q07",
+      "relevantScenarioIds": [
+        "qe-chaos-latency"
+      ],
+      "coverage": "full",
+      "reason": "Контролируемая задержка и проверка восстановления соответствуют эксперименту; проверка circuit breaker подтверждена исходным workflow.",
+      "acceptableScenarioSets": [
+        [
+          "qe-chaos-latency"
+        ]
+      ]
+    },
+    {
+      "id": "q08",
+      "relevantScenarioIds": [
+        "news-period-digest"
+      ],
+      "coverage": "full",
+      "reason": "Полный тематический обзор за указанный период с источниками и аудитом покрытия.",
+      "acceptableScenarioSets": [
+        [
+          "news-period-digest"
+        ]
+      ]
+    },
+    {
+      "id": "q09",
+      "relevantScenarioIds": [
+        "news-monitor-delta"
+      ],
+      "coverage": "full",
+      "reason": "Дельта относительно сохранённой отметки с исключением виденного и дублей.",
+      "acceptableScenarioSets": [
+        [
+          "news-monitor-delta"
+        ]
+      ]
+    },
+    {
+      "id": "q10",
+      "relevantScenarioIds": [
+        "pm-feature-priority"
+      ],
+      "coverage": "full",
+      "reason": "Выбор пяти идей по влиянию, трудоёмкости, риску и продуктовой цели.",
+      "acceptableScenarioSets": [
+        [
+          "pm-feature-priority"
+        ]
+      ]
+    },
+    {
+      "id": "q11",
+      "relevantScenarioIds": [
+        "pm-ab-test-analysis"
+      ],
+      "coverage": "full",
+      "reason": "Анализ эксперимента, достаточность выборки, доверительные интервалы и решение покрыты; проверка SRM входит в исходную валидацию условий.",
+      "acceptableScenarioSets": [
+        [
+          "pm-ab-test-analysis"
+        ]
+      ]
+    },
+    {
+      "id": "q12",
+      "relevantScenarioIds": [
+        "bto-evaluate"
+      ],
+      "coverage": "partial",
+      "reason": "Оценка по эталонам и стабильность входят в benchmark, но карточка не охватывает последующую оптимизацию формулировок с повторной оценкой. bto-build создаёт новый артефакт, а не заменяет этот недостающий этап.",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "q13",
+      "relevantScenarioIds": [
+        "reasoning-diagnose"
+      ],
+      "coverage": "full",
+      "reason": "Диагностика и документ с доказательствами без изменений кода соответствуют ограничениям запроса.",
+      "acceptableScenarioSets": [
+        [
+          "reasoning-diagnose"
+        ]
+      ]
+    },
+    {
+      "id": "q14",
+      "relevantScenarioIds": [
+        "reasoning-agents-md"
+      ],
+      "coverage": "full",
+      "reason": "Карточка прямо охватывает архитектурные инструкции каждого репозитория и общий индекс.",
+      "acceptableScenarioSets": [
+        [
+          "reasoning-agents-md"
+        ]
+      ]
+    },
+    {
+      "id": "q15",
+      "relevantScenarioIds": [
+        "reverse-business"
+      ],
+      "coverage": "full",
+      "reason": "Анализ компании, клиентов, рынка, экономики и план запуска; визуальная копия интерфейса не требуется.",
+      "acceptableScenarioSets": [
+        [
+          "reverse-business"
+        ]
+      ]
+    },
+    {
+      "id": "q16",
+      "relevantScenarioIds": [
+        "tutorial-create"
+      ],
+      "coverage": "full",
+      "reason": "Создание интерактивного курса по одному пакету соответствует сценарию; автономный HTML и упражнения подтверждены исходником навыка, хотя краткая карточка не перечисляет все свойства рендера.",
+      "acceptableScenarioSets": [
+        [
+          "tutorial-create"
+        ]
+      ]
+    },
+    {
+      "id": "q17",
+      "relevantScenarioIds": [
+        "website-clone-page"
+      ],
+      "coverage": "full",
+      "reason": "Визуальное воспроизведение страницы и взаимодействий; каркас и браузерная автоматизация заданы, настоящая серверная часть не требуется.",
+      "acceptableScenarioSets": [
+        [
+          "website-clone-page"
+        ]
+      ]
+    },
+    {
+      "id": "q18",
+      "relevantScenarioIds": [
+        "presentation-sales",
+        "presentation-speaker"
+      ],
+      "coverage": "full",
+      "reason": "Обе карточки охватывают создание презентации с источниками и связным выступлением; задача допускает документированный Markdown-результат.",
+      "acceptableScenarioSets": [
+        [
+          "presentation-sales"
+        ],
+        [
+          "presentation-speaker"
+        ],
+        [
+          "presentation-sales",
+          "presentation-speaker"
+        ]
+      ]
+    },
+    {
+      "id": "q19",
+      "relevantScenarioIds": [],
+      "coverage": "clarify",
+      "reason": "Нужно уточнить ожидаемый результат: анализ бизнеса или воспроизведение интерфейса. До ответа конкретный сценарий не установлен.",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "q20",
+      "relevantScenarioIds": [],
+      "coverage": "clarify",
+      "reason": "Не указан объект тестирования; тесты кода, оценка инструкции и продуктовый эксперимент требуют разных сценариев.",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "q21",
+      "relevantScenarioIds": [],
+      "coverage": "clarify",
+      "reason": "Нужно уточнить объект мониторинга: новости, состояние сервиса или продуктовые показатели.",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "q22",
+      "relevantScenarioIds": [],
+      "coverage": "no-match",
+      "reason": "Поздравительная поэзия не представлена в пилотном каталоге.",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "q23",
+      "relevantScenarioIds": [],
+      "coverage": "no-match",
+      "reason": "Заказ еды не представлен в пилотном каталоге.",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "q24",
+      "relevantScenarioIds": [],
+      "coverage": "no-match",
+      "reason": "Монтаж аудио не представлен в пилотном каталоге.",
+      "acceptableScenarioSets": []
+    }
+  ]
+}

@@ -22,14 +22,14 @@
       "whenNotToUse": [
         "Нужно только оценить готовый артефакт."
       ],
-      "outcome": "Планируется генерация и самопроверка артефакта.",
+      "outcome": "Предусмотрен артефакт с выбранной структурой, справочными материалами и примером, прошедший самопроверку.",
       "prerequisites": [
         "Описание задачи и ожидаемого результата."
       ],
       "steps": [
-        "Уточнить требования.",
-        "Выбрать шаблон и сгенерировать артефакт.",
-        "Проверить полноту и ссылки."
+        "Уточнить тип артефакта, контекст, входы, выходы и критерии качества.",
+        "Выбрать структуру навыка, команды, правила или шаблона агента.",
+        "Сгенерировать артефакт со справкой и примером; проверить полноту и ссылки."
       ],
       "limitations": [
         "Документ описывает процесс, а не подтверждает качество конкретного результата."
@@ -52,6 +52,14 @@
         {
           "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
           "quote": "Check against quality checklist (Layer 0)"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Input/output expectations"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Include at least one reference and one example"
         }
       ],
       "courseUrl": null
@@ -77,13 +85,13 @@
       "whenNotToUse": [
         "Нужно лишь создать новый артефакт по описанию."
       ],
-      "outcome": "Предусмотрены benchmark и оценка коллегией судей.",
+      "outcome": "Предусмотрены сравнение структуры с эталонами и отчёт коллегии с оценками и предложениями по улучшению.",
       "prerequisites": [
         "Путь к артефакту, эталонные примеры и среда с доступными моделями и многоагентным запуском."
       ],
       "steps": [
-        "Проверить доступность этапов и сравнить артефакт с эталонами.",
-        "При разрешающем результате benchmark перейти к оценке коллегией.",
+        "Проверить доступность этапов; сравнить разделы, порядок и глубину с эталонами.",
+        "При разрешающем результате benchmark передать его контекст коллегии судей.",
         "При BLOCK исправить недостатки; при ABORT или INCONCLUSIVE сообщить о незавершённой оценке."
       ],
       "limitations": [
@@ -127,6 +135,14 @@
         {
           "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
           "quote": "| < 0.50 | BLOCK — Do not proceed to TEST. Fix structural issues first. |"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Structural similarity score (section presence, ordering, depth)"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Provide: score per dimension, brief justification, top 3 improvement suggestions."
         }
       ],
       "courseUrl": null
@@ -152,14 +168,14 @@
       "whenNotToUse": [
         "Требуется сразу внести исправление."
       ],
-      "outcome": "Диагноз с симптомом, причиной, доказательствами и трассировкой.",
+      "outcome": "Диагноз описывает симптом, причину, доказательства, путь данных и затронутую область без изменения кода.",
       "prerequisites": [
         "Симптом, ожидаемое поведение и доступные логи."
       ],
       "steps": [
-        "Попытаться воспроизвести сбой.",
-        "Проследить данные от симптома к причине.",
-        "Описать доказательства и границы вывода."
+        "Собрать наблюдения, ожидаемое поведение и логи; попытаться воспроизвести сбой.",
+        "Проследить данные через границы компонентов от симптома к первопричине.",
+        "Описать доказательства, сопутствующие факторы и возможную область влияния."
       ],
       "limitations": [
         "Воспроизведение может не удаться; попытки и причину следует записать."
@@ -182,6 +198,14 @@
         {
           "path": "packages/skills-reasoning/investigate/SKILL.md",
           "quote": "If you cannot reproduce — document what you tried and why it didn't work."
+        },
+        {
+          "path": "packages/skills-reasoning/investigate/SKILL.md",
+          "quote": "For each component in the chain:"
+        },
+        {
+          "path": "packages/skills-reasoning/investigate/SKILL.md",
+          "quote": "What else might be affected by the same root cause."
         }
       ],
       "courseUrl": null
@@ -207,14 +231,14 @@
       "whenNotToUse": [
         "Нужна только диагностика без изменения кода."
       ],
-      "outcome": "Процесс red-green-refactor и проверка ответственности компонентов.",
+      "outcome": "Предусмотрен цикл тестирования и рефакторинга с проверкой ответственности и зависимостей компонентов.",
       "prerequisites": [
         "Доступ к коду и возможность проверять поведение тестами."
       ],
       "steps": [
-        "Описать поведение падающим тестом.",
-        "Добиться прохождения простым кодом.",
-        "Рефакторить и проверить ответственность компонентов."
+        "Описать поведение минимальным падающим тестом.",
+        "Добиться прохождения простейшим кодом.",
+        "Рефакторить и проверить единственную ответственность и зависимость от абстракций."
       ],
       "limitations": [
         "Навык предписывает TDD; сам по себе он не доказывает прохождение тестов."
@@ -237,6 +261,14 @@
         {
           "path": "packages/skills-reasoning/solid/SKILL.md",
           "quote": "Single Responsibility"
+        },
+        {
+          "path": "packages/skills-reasoning/solid/SKILL.md",
+          "quote": "Write a failing test that describes the behavior"
+        },
+        {
+          "path": "packages/skills-reasoning/solid/SKILL.md",
+          "quote": "Do high-level modules depend on abstractions?"
         }
       ],
       "courseUrl": null
@@ -262,14 +294,14 @@
       "whenNotToUse": [
         "Задача ограничена копированием внешнего вида сайта."
       ],
-      "outcome": "Предусмотрен план запуска с анализом компании и контрольными точками.",
+      "outcome": "Предусмотрены фактологическая сводка, анализ клиентов и экономики и итоговый план запуска на 90 дней.",
       "prerequisites": [
         "Название компании, сайт, отрасль и география."
       ],
       "steps": [
-        "Собрать факты о компании.",
-        "Изучить клиентов, рынок и экономику.",
-        "Свести выводы в план запуска."
+        "Собрать сведения о компании и подготовить сводку фактов.",
+        "Изучить задачи клиентов, сегменты, рынок, конкурентов и экономику.",
+        "Свести выводы модулей и план запуска, проходя контрольные точки."
       ],
       "limitations": [
         "Глубина и состав анализа зависят от выбранного режима."
@@ -292,6 +324,14 @@
         {
           "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
           "quote": "90-Day Plan + BS-check"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "01-intelligence.md            → Verified Fact Sheet"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "04-business-finance.md        → Unit Economics + P&L + Sensitivity"
         }
       ],
       "courseUrl": null
@@ -317,14 +357,14 @@
       "whenNotToUse": [
         "Нужна только копия визуального оформления сайта."
       ],
-      "outcome": "В режиме DEEP процесс предусматривает три гипотезы CJM и интерактивный прототип.",
+      "outcome": "В режиме DEEP предусмотрен React-прототип для сравнения трёх гипотез пути клиента и выбора варианта для следующих модулей.",
       "prerequisites": [
         "Компания и контекст анализа; режим DEEP и доступный внешний навык frontend-design."
       ],
       "steps": [
-        "Исследовать продукт и клиентов.",
-        "Подготовить и сравнить три гипотезы CJM в прототипе.",
-        "Зафиксировать выбранный вариант для дальнейшего анализа."
+        "Извлечь элементы пути из анализа продукта и клиентов.",
+        "Сформировать три гипотезы с разными моментами ценности, входа и оплаты и собрать переключаемый прототип.",
+        "Сравнить и настроить варианты, зафиксировав выбор для дальнейшего анализа."
       ],
       "limitations": [
         "Варианты CJM являются гипотезами, а прототип сам по себе не подтверждает поведение клиентов.",
@@ -368,6 +408,14 @@
         {
           "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
           "quote": "| `frontend-design` | M2.5 (DEEP) | Production-grade CJM prototype design |"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "Write .jsx with variant switcher, comparison, builder, scoring"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "User explores → customizes → locks winning CJM"
         }
       ],
       "courseUrl": null
@@ -393,17 +441,18 @@
       "whenNotToUse": [
         "Нужна только ссылка на существующую инструкцию."
       ],
-      "outcome": "Процесс предусматривает извлечение понятий, авторинг и создание сайта.",
+      "outcome": "По умолчанию предусмотрен автономный однофайловый HTML-курс с упражнениями, викторинами по разделам, итоговым тестом и сохранением прогресса.",
       "prerequisites": [
         "Доступ к целевому пакету и его материалам."
       ],
       "steps": [
-        "Извлечь понятия из пакета.",
-        "Согласовать темы и подготовить материал.",
-        "Проверить и сформировать сайт."
+        "Извлечь понятия из материалов пакета и согласовать темы.",
+        "Подготовить данные курса, указав для каждого раздела паттерн методики.",
+        "Пройти структурный контроль и семантическое ревью, затем сформировать и проверить автономный сайт с упражнениями и тестами."
       ],
       "limitations": [
-        "При недостаточной учебной поверхности процесс должен остановиться."
+        "При недостаточной учебной поверхности процесс должен остановиться.",
+        "React/Vite-сайт и главы Markdown выбираются отдельно; Markdown не сохраняет интерактивность."
       ],
       "sources": [
         {
@@ -413,6 +462,10 @@
         {
           "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
           "sha256": "f655c9899d6b9dd722a6c46287ca71f7d377e1c7fb2e920eb5334a6a0aa20a18"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/modules/05-render.md",
+          "sha256": "cfb2110d4ab998d511f43bb96269f4dffe0cfe6dd32246ee28d0977a82536c4f"
         }
       ],
       "evidence": [
@@ -423,6 +476,26 @@
         {
           "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
           "quote": "if\n   `insufficient-surface`, STOP and report — never ship a 1-topic course."
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "Produce the course object; cite a pattern per section."
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "**Checkpoint `confirm-topics`.**"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/modules/05-render.md",
+          "quote": "One dependency-free HTML file (opens over file://, zero network) with the full edu-site primitive\nset: sections in order, the 6 exercise types, per-section quiz, achievements, final test with pass\nthreshold, FAQ, persisted progress."
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/modules/05-render.md",
+          "quote": "When the caller explicitly wants the React/Vite gamified site"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/modules/05-render.md",
+          "quote": "interactivity (recorded as a medium limitation, not faked)."
         }
       ],
       "courseUrl": null
@@ -448,14 +521,14 @@
       "whenNotToUse": [
         "Нужна только статическая ссылка на инструкцию."
       ],
-      "outcome": "Предусмотрены структурная проверка, проверка заимствований и работа сайта.",
+      "outcome": "Предусмотрена передача курса после структурного контроля, проверки заимствований, семантического ревью и проверки работающего сайта.",
       "prerequisites": [
         "Данные курса, инструменты фабрики, доверенный HTML и доступ к свежему рецензенту другой модели."
       ],
       "steps": [
-        "Запустить структурную проверку и проверку заимствований.",
+        "Запустить структурный контроль и проверку заимствований; подтвердить доступность базы методики.",
         "Провести семантическое ревью другой моделью по базе методики.",
-        "Проверить создание и работу доверенного сайта."
+        "Сформировать и проверить доверенный сайт, затем повторить контроль перед передачей."
       ],
       "limitations": [
         "Структурная проверка не оценивает тон, неожиданность и сюжет; пустое ревью не считается чистым проходом.",
@@ -500,6 +573,10 @@
         {
           "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
           "quote": "only tone/surprise/story go to the cross-model review (layer 3)"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "the KB resolved and no corpus path shipped"
         }
       ],
       "courseUrl": null
@@ -525,14 +602,15 @@
       "whenNotToUse": [
         "Требуется реализация настоящей авторизации или серверной части."
       ],
-      "outcome": "Предусмотрены изучение страницы, сборка и визуальное сравнение.",
+      "outcome": "Предусмотрена сборка видимой страницы с компонентами и взаимодействиями и визуальное сравнение результата с адаптацией к размерам экрана.",
       "prerequisites": [
         "Браузерная автоматизация и готовый каркас Next.js, shadcn/ui и Tailwind."
       ],
       "steps": [
-        "Проверить адрес и доступность страницы.",
-        "Изучить оформление и взаимодействия.",
-        "Собрать страницу и сравнить визуально."
+        "Проверить адрес, браузерную автоматизацию и сборку каркаса.",
+        "Извлечь текст, изображения, стили и состояния взаимодействий.",
+        "Проверить изменения раскладки на ширинах компьютера, планшета и телефона и отметить точки перехода.",
+        "Подготовить основу и компоненты, собрать страницу и сравнить визуально."
       ],
       "limitations": [
         "Настоящие сервер, авторизация и аудит доступности исключены из области навыка."
@@ -555,6 +633,22 @@
         {
           "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
           "quote": "Real backend / database, authentication, real-time features, SEO optimization, accessibility audit"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "Extract the actual text, images, videos, and SVGs from the live site."
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "For every element, extract its **appearance**"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "**In scope:** Visual layout and styling, component structure and interactions, responsive design, mock data for demo purposes"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "At each width, note which sections change layout (column → stack, sidebar disappears, etc.) and at approximately which breakpoint the change occurs."
         }
       ],
       "courseUrl": null
@@ -580,14 +674,15 @@
       "whenNotToUse": [
         "Нужно исследовать бизнес-модель компании."
       ],
-      "outcome": "Процесс предусматривает отдельные материалы для каждого сайта.",
+      "outcome": "Предусмотрены раздельные материалы исследования и сборка интерфейсов по нескольким адресам с визуальной проверкой с адаптацией к размерам экрана.",
       "prerequisites": [
         "Браузерная автоматизация, доступные адреса и готовый каркас Next.js, shadcn/ui и Tailwind v4."
       ],
       "steps": [
-        "Проверить каждый адрес.",
-        "Изолировать материалы исследования по сайтам.",
-        "Собрать интерфейсы и провести визуальную проверку."
+        "Проверить каждый адрес и доступность через браузерную автоматизацию.",
+        "Изолировать материалы каждого сайта и извлечь его оформление и взаимодействия.",
+        "Проверить изменения раскладки на ширинах компьютера, планшета и телефона и отметить точки перехода.",
+        "Подготовить основу, собрать страницы и сравнить их визуально; параллельность согласовать по ресурсам."
       ],
       "limitations": [
         "При нескольких сайтах параллельность зависит от доступных ресурсов.",
@@ -619,6 +714,22 @@
         {
           "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
           "quote": "Real backend / database, authentication, real-time features, SEO optimization, accessibility audit"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "keeping each site's extraction artifacts isolated in dedicated folders"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "Phase 5** Visual QA Diff"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "**In scope:** Visual layout and styling, component structure and interactions, responsive design, mock data for demo purposes"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "At each width, note which sections change layout (column → stack, sidebar disappears, etc.) and at approximately which breakpoint the change occurs."
         }
       ],
       "courseUrl": null
@@ -644,14 +755,14 @@
       "whenNotToUse": [
         "Нужна только копия визуального оформления сайта."
       ],
-      "outcome": "Предусмотрены план, содержание с источниками и сценарий выступления.",
+      "outcome": "Предусмотрены план с тезисами, слайды с источниками и сценарии выступления в трёх Markdown-файлах.",
       "prerequisites": [
         "Тема презентации и сведения об аудитории и цели."
       ],
       "steps": [
-        "Согласовать бриф.",
-        "Исследовать источники и выбрать сюжетную структуру.",
-        "Подготовить слайды и сценарии."
+        "Согласовать бриф с аудиторией, целью и ограничениями.",
+        "Исследовать источники и выбрать сюжетную структуру для цели продажи.",
+        "Согласовать план, подготовить слайды с источниками и текст выступления."
       ],
       "limitations": [
         "Подтверждение источников и структуры предусмотрено контрольными точками."
@@ -674,6 +785,18 @@
         {
           "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
           "quote": "**Sell product** | AIDA"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "presentation-outline.md      # План с тезисами"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "presentation-full.md         # Полная презентация"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "sources-index.md            # Индекс всех источников"
         }
       ],
       "courseUrl": null
@@ -699,14 +822,14 @@
       "whenNotToUse": [
         "Нужна только диагностика ошибки в коде."
       ],
-      "outcome": "Предусмотрены сценарии «Как рассказывать?» и индекс источников.",
+      "outcome": "Предусмотрены содержание слайдов, связанные сценарии выступления и индекс источников в Markdown.",
       "prerequisites": [
         "Тема, аудитория, цель и длительность выступления."
       ],
       "steps": [
-        "Уточнить контекст и хронометраж.",
-        "Согласовать структуру и источники.",
-        "Подготовить содержание и текст выступления."
+        "Уточнить аудиторию, цель, контекст и хронометраж.",
+        "Согласовать исследование и структуру с тезисами.",
+        "Подготовить специфичный для содержания текст выступления к каждому слайду с учётом времени."
       ],
       "limitations": [
         "Сценарий должен соответствовать содержанию и хронометражу."
@@ -729,6 +852,14 @@
         {
           "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
           "quote": "Время скрипта соответствует хронометражу"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "**Speaker scripts** — «Как рассказывать?» для каждого слайда"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "скрипт должен быть специфичен к контенту"
         }
       ],
       "courseUrl": null

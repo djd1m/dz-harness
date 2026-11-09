@@ -9,8 +9,9 @@ const root = fileURLToPath(new URL('../../', import.meta.url));
 const directory = resolve(root, 'docs/proposals/skill-advisor-scenarios');
 const read = path => JSON.parse(readFileSync(resolve(directory, path), 'utf8'));
 export function currentCatalog() {
-  const records = ['a', 'b'].flatMap(part => read(`catalog/part-${part}.json`).records);
-  return compileCatalog(records, read('catalog/reviews.json').reviews, root);
+  const records = ['a', 'b', 'c'].flatMap(part => read(`catalog/part-${part}.json`).records);
+  const receipts = ['catalog/reviews.json', 'catalog/reviews-c.json'].flatMap(path => read(path).reviews);
+  return compileCatalog(records, receipts, root);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

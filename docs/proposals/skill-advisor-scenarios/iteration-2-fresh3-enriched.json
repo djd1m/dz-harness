@@ -1,0 +1,352 @@
+{
+  "scope": "fresh3 development questions; documentation snapshot; no native runtime test",
+  "suite": "fresh3",
+  "createdAt": "2026-11-09T21:56:37.425Z",
+  "model": "anthropic/claude-haiku-5.5",
+  "inputs": {
+    "questionFile": "evaluation-questions-v3.json",
+    "questionsSha256": "ecc900d7f08112807eb9b70cc28af9a9eae8f2031fb49ad63b1c04e03fb5ff93",
+    "coverageFile": "coverage-v3.json",
+    "coverageSha256": "db8541bc39fbfa9d307c654f40e57534e5a4f03ec49e50014a5ab26138ea0a51",
+    "promptSha256": "b4be7e7dc807a9a11cdc5cd33411e5269db95615ab966ffbe8a555c6bce94275",
+    "sourceHashes": {
+      "evaluate.mjs": "4c8d6f02cbc002be8756e94be87798b1c11414f986063b816993ace3e7e24c26",
+      "search.mjs": "33ceabf849721756bdfd50ef72a83b8ca229837adbd16ab3decb79828be1b8d7",
+      "selector.mjs": "4d8897db0298b35d89e44ea9f083aeb13715c4a5ab84470902b85369ac804945",
+      "scoring.mjs": "37953e4bf63ddab543a39a56fc3a5662e80f92a9a6ae1679a733589be2535185",
+      "catalog.mjs": "8818c8876aae870be1e35ec3b7ad0a4b5f2368f9e6c32081dda8cf6c27e99103",
+      "cli.mjs": "0e7357ad60fa1201c7e1971f2e960874a8ff19c16fdf73aecddf653fe1654845"
+    }
+  },
+  "catalogRevision": "298c5b2030cd139553fdddc21cc008ae7c68b03db1fecba380d487d01e80fda2",
+  "approvedRecords": 32,
+  "excluded": [],
+  "rows": [
+    {
+      "id": "v3-q01",
+      "query": "Пока ничего не запускай в базе. Подготовь план перехода поля суммы с целого числа на десятичное: порядок изменений, совместимость версий приложения и варианты отката.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "devops-database-migration"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "devops-database-migration"
+        ]
+      ],
+      "retrievedIds": [
+        "devops-database-migration",
+        "reasoning-diagnose",
+        "meta-explore-product",
+        "pm-sprint-plan",
+        "presentation-sales"
+      ],
+      "retrievalMs": 22.880612999999997,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 4564,
+        "completion_tokens": 252,
+        "total_tokens": 4816,
+        "cost": 0.000576576,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0005824,
+          "upstream_inference_prompt_cost": 0.0004564,
+          "upstream_inference_completions_cost": 0.000126
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 222,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "recommend",
+        "scenarioIds": [
+          "devops-database-migration"
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 2338.26766
+    },
+    {
+      "id": "v3-q02",
+      "query": "В команде спорят, помещается ли подготовленный набор задач в следующую неделю. Есть оценки, прошлые скорости и список дежурств; составь реалистичный план с резервом и порядком зависимых задач.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "pm-sprint-plan"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "pm-sprint-plan"
+        ]
+      ],
+      "retrievedIds": [
+        "pm-sprint-plan",
+        "bto-evaluate",
+        "news-monitor-delta",
+        "bto-build",
+        "pm-feature-priority"
+      ],
+      "retrievalMs": 2.732833999999997,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 5006,
+        "completion_tokens": 163,
+        "total_tokens": 5169,
+        "cost": 0.000576279,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0005821,
+          "upstream_inference_prompt_cost": 0.0005006,
+          "upstream_inference_completions_cost": 0.0000815
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 131,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "recommend",
+        "scenarioIds": [
+          "pm-sprint-plan"
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 2249.1977629999997
+    },
+    {
+      "id": "v3-q03",
+      "query": "Сделай презентацию нашего решения для технического комитета с проверенными аргументами и речью докладчика, затем смонтируй из неё готовый видеоролик с озвучкой и титрами.",
+      "coverage": "partial",
+      "relevantScenarioIds": [
+        "presentation-speaker"
+      ],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [
+        "presentation-speaker",
+        "presentation-sales",
+        "bto-evaluate",
+        "meta-capture-adr",
+        "meta-feature-adr"
+      ],
+      "retrievalMs": 2.7691540000000145,
+      "retrievedRelevant": true,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 4342,
+        "completion_tokens": 268,
+        "total_tokens": 4610,
+        "cost": 0.000562518,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0005682,
+          "upstream_inference_prompt_cost": 0.0004342,
+          "upstream_inference_completions_cost": 0.000134
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 246,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "no-match",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": false,
+      "responseMs": 1935.608515
+    },
+    {
+      "id": "v3-q04",
+      "query": "Нужен автономный учебный сайт по нашему пакету с упражнениями, а ещё оформление платной подписки для учеников и автоматические возвраты платежей.",
+      "coverage": "partial",
+      "relevantScenarioIds": [
+        "tutorial-create"
+      ],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [
+        "tutorial-create",
+        "tutorial-check",
+        "website-clone-multiple",
+        "reasoning-agents-md"
+      ],
+      "retrievalMs": 4.978977000000015,
+      "retrievedRelevant": true,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 4381,
+        "completion_tokens": 138,
+        "total_tokens": 4519,
+        "cost": 0.000502029,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0005071,
+          "upstream_inference_prompt_cost": 0.0004381,
+          "upstream_inference_completions_cost": 0.000069
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 116,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "no-match",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": false,
+      "responseMs": 1488.675407
+    },
+    {
+      "id": "v3-q05",
+      "query": "Подготовь материал для команды. Какой инструмент мне взять?",
+      "coverage": "clarify",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [
+        "bto-build",
+        "news-period-digest",
+        "pm-sprint-plan",
+        "meta-knowledge-harvest",
+        "tutorial-check"
+      ],
+      "retrievalMs": 2.5203740000001744,
+      "retrievedRelevant": false,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 5015,
+        "completion_tokens": 146,
+        "total_tokens": 5161,
+        "cost": 0.000568755,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0005745,
+          "upstream_inference_prompt_cost": 0.0005015,
+          "upstream_inference_completions_cost": 0.000073
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 124,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "clarify",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 1298.0156439999996
+    },
+    {
+      "id": "v3-q06",
+      "query": "Построй выкройку вечернего платья по моим меркам и рассчитай припуски для раскроя ткани.",
+      "coverage": "no-match",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [],
+      "retrievalMs": 2.634212999999818,
+      "retrievedRelevant": false,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 521,
+        "completion_tokens": 22,
+        "total_tokens": 543,
+        "cost": 0.000062469,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0000631,
+          "upstream_inference_prompt_cost": 0.0000521,
+          "upstream_inference_completions_cost": 0.000011
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "clarify",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": false,
+      "matchesRequestedDecision": false,
+      "responseMs": 1083.114837
+    }
+  ],
+  "summary": {
+    "fullCoverage": 2,
+    "fullCoverageRetrieved": 2,
+    "correct": 5,
+    "total": 6,
+    "modelAttempts": 6
+  }
+}

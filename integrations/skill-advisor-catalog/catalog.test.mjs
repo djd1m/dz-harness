@@ -86,6 +86,8 @@ test('picker cannot introduce unseen cards, fabricated prose or mutate retained 
   answer.records[0].outcome = 'tampered'; assert.equal(result.candidates[0].record.outcome, record.outcome);
   assert.equal(materialize(result, { decision: 'clarify', scenarioIds: [] }).records.length, 0);
   assert.equal(pickerInput(result).candidates[0].id, record.id);
+  assert.deepEqual(pickerInput(result).candidates[0].steps, record.steps);
+  assert.deepEqual(pickerInput(result).candidates[0].evidence, record.evidence);
 });
 
 test('a skill from another package cannot be relabeled as the selected package', t => {

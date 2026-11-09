@@ -22,13 +22,14 @@
       "whenNotToUse": [
         "Нужна немедленная реализация без этапа уточнения."
       ],
-      "outcome": "Постановка с критериями успеха.",
+      "outcome": "Постановка задачи с целью, контекстом, критериями успеха, ограничениями, ресурсами и допущениями.",
       "prerequisites": [
         "Описание идеи от пользователя."
       ],
       "steps": [
-        "Определить тип задачи и выбрать измерения для уточнения.",
-        "Уточнить пользователей, результат, ограничения и критерии успеха."
+        "Определить тип задачи и выбрать 3–5 измерений для уточнения.",
+        "Уточнить пользователей, цель, ограничения и критерии успеха.",
+        "Составить постановку, согласовать её с пользователем и передать в работу или сохранить."
       ],
       "limitations": [
         "Навык сначала исследует задачу и не предлагает решение до завершения исследования."
@@ -67,6 +68,18 @@
         {
           "path": "packages/skills-meta/package.json",
           "quote": "  \"version\": \"0.9.75\","
+        },
+        {
+          "path": "packages/skills-meta/explore/SKILL.md",
+          "quote": "After sufficient exploration, synthesize into a **Task Brief**:"
+        },
+        {
+          "path": "packages/skills-meta/explore/SKILL.md",
+          "quote": "**Key Assumptions:** [Things we're assuming that could change the approach]"
+        },
+        {
+          "path": "packages/skills-meta/explore/SKILL.md",
+          "quote": "Ask user: \"Does this capture what you need? Anything to add or correct?\""
         }
       ],
       "courseUrl": null
@@ -92,13 +105,14 @@
       "whenNotToUse": [
         "Нужно только уточнить неясную идею без разработки."
       ],
-      "outcome": "Артефакты разработки и проверки по выбранному масштабу.",
+      "outcome": "Артефакты требований, плана, реализации и проверки; архитектурные этапы зависят от масштаба.",
       "prerequisites": [
         "Описание функциональности или путь к задаче."
       ],
       "steps": [
         "Определить масштаб и активные этапы.",
-        "Выполнить предусмотренные масштабом этапы разработки и проверки."
+        "Уточнить требования; при соответствующем масштабе исследовать варианты и подготовить архитектурные решения.",
+        "Составить план, реализовать функциональность и провести проверку с устранением найденных пробелов."
       ],
       "limitations": [
         "Этапы зависят от сложности; Direct-режимы имеют отдельные настройки."
@@ -137,6 +151,18 @@
         {
           "path": "packages/skills-meta/package.json",
           "quote": "  \"version\": \"0.9.75\","
+        },
+        {
+          "path": "packages/skills-meta/feature-adr/SKILL.md",
+          "quote": "ROUTER   →  REQUIREMENTS  →  RESEARCH  →   ADR         →  QCSD SWARM"
+        },
+        {
+          "path": "packages/skills-meta/feature-adr/SKILL.md",
+          "quote": "                                           QE + BRUTAL REVIEW"
+        },
+        {
+          "path": "packages/skills-meta/feature-adr/SKILL.md",
+          "quote": "- All mandatory artifacts exist per tier"
         }
       ],
       "courseUrl": null
@@ -162,14 +188,14 @@
       "whenNotToUse": [
         "Нужен Kubernetes, serverless или другой провайдер."
       ],
-      "outcome": "Приложение на ВМ с адресом подключения после проверки.",
+      "outcome": "Приложение на ВМ с публичным адресом или честный отчёт о проблеме проверки.",
       "prerequisites": [
         "Ссылка на репозиторий; необходимые данные Cloud.ru; внешний CLI cloudru-vm."
       ],
       "steps": [
-        "Изучить репозиторий и подготовить Compose.",
-        "Собрать недостающие данные и передать развёртывание внешнему CLI.",
-        "Проверить работоспособность и сообщить адрес подключения."
+        "Проанализировать репозиторий и существующий Compose; при создании показать его пользователю до развёртывания.",
+        "Запросить недостающие данные и передать развёртывание внешнему CLI.",
+        "Проверить работоспособность и сообщить адрес подключения и способ доступа."
       ],
       "limitations": [
         "Навык использует внешний CLI; проверку доступности нужно выполнить после развёртывания."
@@ -216,6 +242,10 @@
         {
           "path": "packages/skills-devops/package.json",
           "quote": "  \"version\": \"0.3.18\","
+        },
+        {
+          "path": "packages/skills-devops/deploy-on-cloudru-vm/SKILL.md",
+          "quote": "invent credentials. If you synthesized anything, show it to the user before deploying."
         }
       ],
       "courseUrl": null
@@ -241,13 +271,14 @@
       "whenNotToUse": [
         "Проблема относится к другой CI-платформе или логике тестов."
       ],
-      "outcome": "Предложения по структуре и защите workflow.",
+      "outcome": "Предложения по событиям и заданиям workflow, зависимостям, кешированию и защите секретов.",
       "prerequisites": [
         "Файлы workflow и контекст проекта."
       ],
       "steps": [
-        "Определить события, задания и исполнители.",
-        "Проверить настройки безопасности и корректность workflow."
+        "Определить события, задания, исполнители и зависимости.",
+        "Проверить матрицы сборки и кеширование, если они нужны проекту.",
+        "Проверить секреты и права workflow, предложить исправления."
       ],
       "limitations": [
         "Рассматривается конфигурация GitHub Actions, а не логика тестов."
@@ -290,6 +321,22 @@
         {
           "path": "packages/skills-devops/package.json",
           "quote": "  \"version\": \"0.3.18\","
+        },
+        {
+          "path": "packages/skills-devops/github-actions/SKILL.md",
+          "quote": "- User needs matrix builds for cross-platform or multi-version testing"
+        },
+        {
+          "path": "packages/skills-devops/github-actions/SKILL.md",
+          "quote": "- User wants to set up caching for faster builds (npm, pnpm, pip, Gradle, etc.)"
+        },
+        {
+          "path": "packages/skills-devops/github-actions/SKILL.md",
+          "quote": "- User needs to configure secrets, environments, or OIDC-based cloud authentication"
+        },
+        {
+          "path": "packages/skills-devops/github-actions/SKILL.md",
+          "quote": "- User asks about security hardening (pinning actions, least-privilege permissions, supply chain)"
         }
       ],
       "courseUrl": null
@@ -315,13 +362,14 @@
       "whenNotToUse": [
         "Нужен обзор документации библиотеки по API."
       ],
-      "outcome": "История файла и выбранные различия.",
+      "outcome": "История выбранного файла и различия между ветками, коммитами или рабочим деревом.",
       "prerequisites": [
         "Доступен MCP-сервер @cyanheads/git-mcp-server; URL репозитория и путь к файлу."
       ],
       "steps": [
-        "Клонировать репозиторий через MCP при необходимости.",
-        "Изучить историю файла и различия."
+        "При необходимости клонировать репозиторий через MCP.",
+        "Проверить состояние рабочей копии и получить историю выбранного файла.",
+        "Изучить нужные различия между состояниями."
       ],
       "limitations": [
         "Для удалённого доступа могут потребоваться системные Git credentials."
@@ -364,6 +412,10 @@
         {
           "path": "packages/skills-mcp/package.json",
           "quote": "  \"version\": \"0.3.11\","
+        },
+        {
+          "path": "packages/skills-mcp/git-mcp/SKILL.md",
+          "quote": "1. **Connect to repo** — verify repository path with `git_status` to confirm the working tree state"
         }
       ],
       "courseUrl": null
@@ -384,21 +436,24 @@
       ],
       "intent": "Получить документацию и примеры для библиотеки.",
       "whenToUse": [
-        "Нужны документация и примеры API."
+        "Нужны актуальные индексированные справка API и примеры библиотеки, в том числе документация её последней версии."
       ],
       "whenNotToUse": [
         "Нужно исследовать локальную историю коммитов."
       ],
-      "outcome": "Подборка документации и примеров.",
+      "outcome": "Доступные индексированные фрагменты документации библиотеки по теме, справка API и примеры кода.",
       "prerequisites": [
         "Доступен MCP-сервер Context7; название библиотеки."
       ],
       "steps": [
-        "Найти библиотеку в Context7.",
-        "Получить документацию по нужной теме."
+        "Определить идентификатор библиотеки в Context7.",
+        "Получить документацию по нужной теме и примеры API.",
+        "При необходимости сравнить документацию нескольких библиотек."
       ],
       "limitations": [
-        "Навык обращается к внешнему MCP-серверу."
+        "Навык обращается к внешнему MCP-серверу; охват и глубина зависят от индекса Context7.",
+        "Новые или узкоспециализированные библиотеки могут отсутствовать в индексе; частная и внутренняя документация не поддерживается.",
+        "Результаты — неинтерактивные фрагменты документации только для чтения."
       ],
       "sources": [
         {
@@ -434,6 +489,42 @@
         {
           "path": "packages/skills-mcp/package.json",
           "quote": "  \"version\": \"0.3.11\","
+        },
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "quote": "1. **Resolve**: Use `resolve_library` to find the Context7 identifier for a library (e.g., \"react\" -> `/facebook/react`)"
+        },
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "quote": "2. **Fetch**: Use `get_library_docs` with a topic to get relevant documentation sections"
+        },
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "quote": "- **Cross-library search**: Find how different libraries handle the same concept"
+        },
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "quote": "- Documentation depth varies by library (some have full API docs, others have guides only)"
+        },
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "quote": "- **Version-specific docs**: Get documentation for the latest version of a library"
+        },
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "quote": "- Coverage depends on Context7's indexing (most popular libraries are covered)"
+        },
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "quote": "- Very new or niche libraries may not be indexed yet"
+        },
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "quote": "- No support for private or internal documentation"
+        },
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "quote": "- Results are read-only documentation snippets, not interactive"
         }
       ],
       "courseUrl": null
@@ -459,14 +550,14 @@
       "whenNotToUse": [
         "Нужно только оценить существующий отчёт покрытия."
       ],
-      "outcome": "Набор тестов для выбранного кода.",
+      "outcome": "Тесты выбранного кода с проверками ветвей, граничных условий и ошибок.",
       "prerequisites": [
         "Исходный код и подходящий тестовый фреймворк; для автоматического пути — доступный внешний runtime AQE и инициализированный fleet."
       ],
       "steps": [
-        "Проанализировать код и ветви.",
-        "Подготовить тесты с ошибками и крайними случаями вручную по инструкциям или через доступный AQE.",
-        "Запустить и проверить полученные тесты."
+        "Проанализировать публичные методы, ветви, зависимости и ошибки.",
+        "Подготовить тесты вручную по инструкциям или через доступный AQE, учитывая установленный фреймворк.",
+        "Запустить тесты и проверить содержательные утверждения и изоляцию."
       ],
       "limitations": [
         "Пакет навыков сам по себе не обеспечивает запуск AQE; сгенерированные тесты необходимо запускать и проверять."
@@ -513,6 +604,30 @@
         {
           "path": "packages/skills-qe/qe-test-generation/SKILL.md",
           "quote": "- Completion theater: agent may claim \"comprehensive tests generated\" but leave stubs or hardcoded values — always run the generated tests before accepting"
+        },
+        {
+          "path": "packages/skills-qe/qe-test-generation/SKILL.md",
+          "quote": "  - Happy path tests for all public methods"
+        },
+        {
+          "path": "packages/skills-qe/qe-test-generation/SKILL.md",
+          "quote": "  - Edge cases and boundary conditions"
+        },
+        {
+          "path": "packages/skills-qe/qe-test-generation/SKILL.md",
+          "quote": "  - Error handling scenarios"
+        },
+        {
+          "path": "packages/skills-qe/qe-test-generation/SKILL.md",
+          "quote": "- When generating tests for a new codebase, check which framework is installed (jest vs vitest vs mocha) — they have different mock APIs and Claude will use the wrong one"
+        },
+        {
+          "path": "packages/skills-qe/qe-test-generation/SKILL.md",
+          "quote": "    meaningful: true"
+        },
+        {
+          "path": "packages/skills-qe/qe-test-generation/SKILL.md",
+          "quote": "    no_shared_state: true"
         }
       ],
       "courseUrl": null
@@ -538,13 +653,14 @@
       "whenNotToUse": [
         "Нужно только создать новые тесты без анализа покрытия."
       ],
-      "outcome": "Приоритетный список пробелов покрытия.",
+      "outcome": "Список непокрытых строк, ветвей или функций с приоритетами по риску.",
       "prerequisites": [
         "Отчёт покрытия и исходный код; для автоматического пути — доступный внешний runtime AQE."
       ],
       "steps": [
-        "Проанализировать покрытие и найти пробелы вручную по отчёту или через доступный AQE.",
-        "Расставить приоритеты с учётом риска."
+        "Проанализировать отчёт и найти пробелы вручную или через доступный AQE.",
+        "Оценить критичность, сложность, историю дефектов и частоту изменений для приоритизации.",
+        "Предложить тесты для наиболее значимых пробелов."
       ],
       "limitations": [
         "Пакет навыков сам по себе не обеспечивает запуск AQE; при сбое используйте ручные инструменты покрытия.",
@@ -588,6 +704,26 @@
         {
           "path": "packages/skills-qe/qe-coverage-analysis/SKILL.md",
           "quote": "- coverage-analysis domain has 86% success rate — 14% of runs fail on initialization. Always verify results and have fallback plan (e.g. manual coverage tools)"
+        },
+        {
+          "path": "packages/skills-qe/qe-coverage-analysis/SKILL.md",
+          "quote": "  - Business criticality (payment, auth, data)"
+        },
+        {
+          "path": "packages/skills-qe/qe-coverage-analysis/SKILL.md",
+          "quote": "  - Code complexity (cyclomatic > 10)"
+        },
+        {
+          "path": "packages/skills-qe/qe-coverage-analysis/SKILL.md",
+          "quote": "  - Recent bug history"
+        },
+        {
+          "path": "packages/skills-qe/qe-coverage-analysis/SKILL.md",
+          "quote": "  - Change frequency"
+        },
+        {
+          "path": "packages/skills-qe/qe-coverage-analysis/SKILL.md",
+          "quote": "  - Recommend tests to write for maximum coverage impact"
         }
       ],
       "courseUrl": null
@@ -613,14 +749,14 @@
       "whenNotToUse": [
         "Нужна только короткая проверка изменений с прошлого запуска."
       ],
-      "outcome": "Дайджест в Markdown со ссылками и индексом источников.",
+      "outcome": "Дайджест в Markdown с кратким обзором, тематическими разделами, ссылками и индексом источников; DOCX по запросу.",
       "prerequisites": [
         "Тема и период; доступ к обязательному backend goap-research-ed25519."
       ],
       "steps": [
-        "Определить тему, период и профиль.",
-        "Собрать материалы через исследовательский backend и проверить покрытие.",
-        "Составить обзор со ссылками и индексом источников."
+        "Определить тему, период, профиль и аудиторию.",
+        "Собрать материалы через обязательный исследовательский backend, оценить источники и полноту охвата.",
+        "Составить обзор со ссылками и индексом источников; при необходимости подготовить DOCX."
       ],
       "limitations": [
         "Материалы без проверенного подписанного источника не включаются."
@@ -659,6 +795,22 @@
         {
           "path": "packages/skills-news/package.json",
           "quote": "  \"version\": \"0.1.17\","
+        },
+        {
+          "path": "packages/skills-news/news-digest/SKILL.md",
+          "quote": "1. **Phase 0 — Inputs:** resolve topic, profile, period, mode, audience, output formats; validate."
+        },
+        {
+          "path": "packages/skills-news/news-digest/SKILL.md",
+          "quote": "2. **Phase 1 — Research:** load profile → changelog sweep → broad sweep → run streams → tier & audit sources → Checkpoint 1."
+        },
+        {
+          "path": "packages/skills-news/news-digest/SKILL.md",
+          "quote": "3. **Phase 2 — Synthesis:** compile sources → adaptive sections → executive summary → comparison table → Checkpoint 2."
+        },
+        {
+          "path": "packages/skills-news/news-digest/SKILL.md",
+          "quote": "4. **Phase 3 — Output:** write Markdown (always) + optional `.docx`, each with inline citations and a source index."
         }
       ],
       "courseUrl": null
@@ -684,14 +836,14 @@
       "whenNotToUse": [
         "Нужен полный обзор за период."
       ],
-      "outcome": "Краткий отчёт со ссылками и обновлённой отметкой предыдущего запуска.",
+      "outcome": "Краткий отчёт по новым событиям с датами и ссылками и обновлённой отметкой предыдущего запуска.",
       "prerequisites": [
         "Тема; доступ к обязательному backend goap-research-ed25519."
       ],
       "steps": [
         "Прочитать сохранённую отметку или использовать начальный период.",
-        "Проверить источники и исключить уже увиденное.",
-        "Подготовить отчёт и обновить отметку."
+        "Проверить профиль и целевые источники через обязательный backend, исключить увиденное и дубликаты.",
+        "Сгруппировать новые события по направлениям, указать даты и источники, обновить отметку."
       ],
       "limitations": [
         "При первом запуске по умолчанию используется период в 14 дней."
@@ -738,6 +890,10 @@
         {
           "path": "packages/skills-news/package.json",
           "quote": "  \"version\": \"0.1.17\","
+        },
+        {
+          "path": "packages/skills-news/news-monitor/SKILL.md",
+          "quote": "5. **Report** the new items, grouped by stream, newest first, each with an inline citation + date."
         }
       ],
       "courseUrl": null
@@ -763,14 +919,14 @@
       "whenNotToUse": [
         "Нужно сначала ранжировать идеи продукта."
       ],
-      "outcome": "План спринта с зависимостями и рисками.",
+      "outcome": "План спринта с целью, выбранными задачами, ёмкостью, зависимостями и рисками.",
       "prerequisites": [
         "Бэклог, доступность команды и данные о скорости при наличии."
       ],
       "steps": [
-        "Оценить ёмкость команды.",
-        "Выбрать готовые задачи в пределах ёмкости.",
-        "Указать зависимости и риски."
+        "Оценить доступность и скорость команды с резервом на непредвиденные работы.",
+        "Выбрать готовые приоритетные задачи в пределах ёмкости.",
+        "Указать зависимости, риски и меры снижения; сформулировать цель спринта."
       ],
       "limitations": [
         "Оценки зависят от данных о доступности и скорости команды."
@@ -813,6 +969,26 @@
         {
           "path": "packages/skills-pm/package.json",
           "quote": "  \"version\": \"0.1.6\","
+        },
+        {
+          "path": "packages/skills-pm/sprint-plan/SKILL.md",
+          "quote": "   - Capacity buffer: reserve 15-20% for unexpected work, bugs, and tech debt"
+        },
+        {
+          "path": "packages/skills-pm/sprint-plan/SKILL.md",
+          "quote": "   - Verify each story meets the Definition of Ready (clear AC, estimated, no blockers)"
+        },
+        {
+          "path": "packages/skills-pm/sprint-plan/SKILL.md",
+          "quote": "   - Identify the critical path"
+        },
+        {
+          "path": "packages/skills-pm/sprint-plan/SKILL.md",
+          "quote": "   - Suggest mitigations for each risk"
+        },
+        {
+          "path": "packages/skills-pm/sprint-plan/SKILL.md",
+          "quote": "6. **Define the sprint goal**: A single, clear sentence that captures the sprint's primary value delivery."
         }
       ],
       "courseUrl": null
@@ -838,14 +1014,14 @@
       "whenNotToUse": [
         "Нужно распределить уже выбранные задачи по ёмкости спринта."
       ],
-      "outcome": "Ранжированный список до пяти функций с причинами и компромиссами.",
+      "outcome": "До пяти приоритетных функций с ранжированием, обоснованием, компромиссами и причинами отложенных идей.",
       "prerequisites": [
         "Цель продукта, метрики и список идей."
       ],
       "steps": [
-        "Уточнить цель и метрики успеха.",
-        "Оценить влияние, трудоёмкость, риск и стратегическое соответствие.",
-        "Представить приоритеты и причины отложенных решений."
+        "Уточнить цель продукта и метрики успеха.",
+        "Оценить каждую идею по влиянию, трудоёмкости, риску и стратегическому соответствию.",
+        "Представить ранжирование и объяснить отложенные решения; при необходимости использовать таблицу."
       ],
       "limitations": [
         "Оценки зависят от предоставленных данных и предположений."
@@ -896,6 +1072,18 @@
         {
           "path": "packages/skills-pm/package.json",
           "quote": "  \"version\": \"0.1.6\","
+        },
+        {
+          "path": "packages/skills-pm/prioritize-features/SKILL.md",
+          "quote": "2. **Evaluate each feature** against:"
+        },
+        {
+          "path": "packages/skills-pm/prioritize-features/SKILL.md",
+          "quote": "3. **Recommend the top 5 features** with:"
+        },
+        {
+          "path": "packages/skills-pm/prioritize-features/SKILL.md",
+          "quote": "4. **Present as a prioritization table** if helpful."
         }
       ],
       "courseUrl": null

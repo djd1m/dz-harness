@@ -1,0 +1,66 @@
+{
+  "schema": "dz-scenario-coverage/1",
+  "questionFile": "evaluation-questions-v3.json",
+  "questionSha256": "ecc900d7f08112807eb9b70cc28af9a9eae8f2031fb49ad63b1c04e03fb5ff93",
+  "method": "Наборы ID оцениваются целиком и без лишних рекомендаций. full означает соответствие задачи сценарию с подтверждённой методикой, не исполнение. partial допускает scoped abstention (clarify/no-match); useful clarify измеряется отдельно. Не более двух обязательных сценариев. Вопросы зафиксированы до чтения обогащённых карточек; набор разработческий, не независимый публичный benchmark.",
+  "cases": [
+    {
+      "id": "v3-q01",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "devops-database-migration"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "devops-database-migration"
+        ]
+      ],
+      "reason": "Запрос прямо ограничен планом: изменение типа, координация совместимости приложения и откат подтверждены сценарием и источником; исполнения не требуется."
+    },
+    {
+      "id": "v3-q02",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "pm-sprint-plan"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "pm-sprint-plan"
+        ]
+      ],
+      "reason": "План ёмкости с исторической скоростью, дежурствами, резервом и зависимостями соответствует карточке."
+    },
+    {
+      "id": "v3-q03",
+      "coverage": "partial",
+      "relevantScenarioIds": [
+        "presentation-speaker"
+      ],
+      "acceptableScenarioSets": [],
+      "reason": "Сценарий выступления для технической аудитории покрыт; монтаж озвученного видео с титрами не входит в презентационный сценарий."
+    },
+    {
+      "id": "v3-q04",
+      "coverage": "partial",
+      "relevantScenarioIds": [
+        "tutorial-create"
+      ],
+      "acceptableScenarioSets": [],
+      "reason": "Учебный сайт покрыт; платёжная подписка и возвраты не подтверждены. Общая карточка feature development не заменяет отсутствующий конкретный сценарий платёжной интеграции."
+    },
+    {
+      "id": "v3-q05",
+      "coverage": "clarify",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "reason": "Тема, назначение и формат материала неизвестны."
+    },
+    {
+      "id": "v3-q06",
+      "coverage": "no-match",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "reason": "Конструирование одежды и выкройки отсутствуют в каталоге."
+    }
+  ]
+}
