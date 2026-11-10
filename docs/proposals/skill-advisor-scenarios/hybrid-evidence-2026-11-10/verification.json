@@ -1,0 +1,1 @@
+{"freshProcessRoundtrips":128,"negativeControls":["stale-revision","bad-dimension","paid-rerun"],"searchEvidenceSha256":"ee350094f9d495239a7613d75ed1a7b8ffafaffd15d09d96673b6c9f1f5bd249","dependencyProfile":"linux-x64-gnu, omit optional with explicit native addon"}
