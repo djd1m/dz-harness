@@ -1,0 +1,3 @@
+NOTE  C9: twin scan over 4 target(s), 0 on disk, 0 unlisted twins (byte-identical only; drifted copies need identity tests)
+NOTE  C8: all 13 requirement ids referenced
+K2 plan-completeness: PASS (0 failure(s), 0 warning(s), 0 skip(s)) over 1 ADRs, tier L, in /home/dz-user/dz-harness-health-restore-lab/features/hermes-recognized-restore-lab
