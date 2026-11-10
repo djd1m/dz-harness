@@ -251,6 +251,22 @@ def semantic(files, dirs, descriptor, key):
         need(type(row["entry_id"]) is str and SNAP.fullmatch(row["entry_id"]) and type(row["sha256"]) is str and HEX.fullmatch(row["sha256"]) and type(row["bytes"]) is int and 0 <= row["bytes"] <= 32*1024*1024, "source_invalid")
         need(type(row["path"]) is str and type(row["stored_at"]) is str and row["stored_at"].startswith("sources/raw/"), "source_invalid")
         exact(row["source"], ["kind", "url_redacted", "url_sha256", "local_path", "digest_source"], "source_invalid")
+        need(type(row["media_type"]) is str and 1 <= len(row["media_type"]) <= 255, "source_invalid")
+        need(type(row["ingested_at"]) is str and STAMP.fullmatch(row["ingested_at"]), "source_invalid")
+        try:
+            datetime.datetime.strptime(row["ingested_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
+        except ValueError:
+            raise Refusal("source_invalid") from None
+        archive = row["archive_id"]
+        need(type(archive) is str and archive.startswith("sha256:") and HEX.fullmatch(archive[7:]) and row["stored_at"] == "sources/raw/sha256-" + archive[7:] + "/" + row["path"], "source_invalid")
+        source = row["source"]
+        kind = source["kind"]
+        if kind == "local-file":
+            need(source["url_redacted"] is None and source["url_sha256"] is None and type(source["local_path"]) is str and 1 <= len(source["local_path"]) <= 255 and "/" not in source["local_path"] and "\\" not in source["local_path"] and source["digest_source"] in ("caller", "local-stream"), "source_invalid")
+        elif kind == "url":
+            need(type(source["url_redacted"]) is str and 1 <= len(source["url_redacted"]) <= 4096 and not any(c in source["url_redacted"] for c in "?#@") and type(source["url_sha256"]) is str and HEX.fullmatch(source["url_sha256"]) and source["local_path"] is None and source["digest_source"] == "caller", "source_invalid")
+        else:
+            raise Refusal("source_invalid")
         safe_path(row["path"]); safe_path(row["stored_at"])
         derived = sha(enc([row["path"], row["sha256"]]))[:32]
         need(derived == row["entry_id"] and row["entry_id"] not in rows and row["stored_at"] not in raw_paths and row["path"] not in logical_paths, "source_invalid")
@@ -266,6 +282,7 @@ def semantic(files, dirs, descriptor, key):
     for mp in metadata:
         ident = mp.split("/")[-2]
         need(OP.fullmatch(ident), "state_invalid")
+        need(mp == "workspace/recognized/.machine-unverified/operations/" + ident + "/metadata.json", "inventory_membership")
         ap = mp[:-len("metadata.json")] + "artifact.md"
         rp = "recognized-state/" + ident + ".recognized.json"
         need(ap in files and rp in files, "state_invalid")
@@ -294,6 +311,8 @@ def semantic(files, dirs, descriptor, key):
         need(type(env["mac"]) is str and HEX.fullmatch(env["mac"]), "receipt_invalid")
         need(hmac.compare_digest(hmac.new(key, enc(payload, sorted_keys=True), hashlib.sha256).hexdigest(), env["mac"]), "receipt_integrity")
         exact(payload, ["schema", "proposal_id", "operation_id", "owner", "workspace", "runtime", "sidecar", "created", "expires", "state", "artifact_observed"], "receipt_invalid")
+        exact(payload["workspace"], ["path", "dev", "ino"], "receipt_invalid")
+        need(type(payload["workspace"]["path"]) is str and all(type(payload["workspace"][k]) is int and 0 <= payload["workspace"][k] <= 9007199254740991 for k in ("dev", "ino")), "receipt_invalid")
         need(payload["schema"] == "hermes-health-recognized-confirm-1" and payload["proposal_id"] == ident and payload["operation_id"] == ident and payload["state"] == "saved_unverified" and payload["artifact_observed"] is True, "state_invalid")
         need(payload["owner"] == descriptor["expected_owner"] and payload["runtime"] == descriptor["expected_runtime"], "receipt_binding")
         need(all(type(payload[k]) in (int, float) for k in ("created", "expires")), "receipt_invalid")
@@ -328,7 +347,10 @@ def verify(snapshot, descriptor_path, key_path):
     try:
         root, root_chain = open_abs(snapshot, directory=True)
         desc_fd, desc_chain = open_abs(descriptor_path, private_parent=True)
-        key_fd, key_chain = open_abs(key_path, private_parent=True)
+        try:
+            key_fd, key_chain = open_abs(key_path, private_parent=True)
+        except FileNotFoundError:
+            raise Refusal("key_missing") from None
         need((os.fstat(root).st_dev, os.fstat(root).st_ino) not in desc_chain + key_chain and (os.fstat(desc_fd).st_dev, os.fstat(desc_fd).st_ino) != (os.fstat(key_fd).st_dev, os.fstat(key_fd).st_ino), "unsafe_path")
         desc = strict_json(read_fd(desc_fd, 65536), 65536)
         descriptor_check(desc)

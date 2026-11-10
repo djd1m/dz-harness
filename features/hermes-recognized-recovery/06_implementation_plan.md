@@ -29,7 +29,16 @@ Fixture generator создаёт **реальные** core metadata encoding и 
 
 2026-11-10: внесены B1–B4 уточнения из upstream independent challenge и текущего K2 design review. Это не заявление, что QE или implementation согласованы.
 
-После первичной QE: targeted regression по QE-1 — invalid manifest `media_type/ingested_at/archive_id/source.*` после reseal; QE-2 — receipt workspace `float/bool` после re-HMAC/reseal; QE-3 — inventory mode `448.0` с обновлённым descriptor digest; QE-4 — повторные unsafe-root вызовы и `/proc/self/fd` без роста; QE-5 — отсутствующий key даёт отдельный `key_missing`; QE-6 — README на русском. Обход каталога заменить bounded `os.scandir(fd)` с ранним счётчиком. После исправлений повторить unit suite и actual installed-format integration; затем независимая QE новой версии.
+После первичной QE замечания сохраняются в 08_qe_report.md. Целевые проверки:
+
+- AM-1: QE-1: строгие manifest значения → test `test_manifest_values_after_reinventory` in `integrations/hermes-health/experiments/recognized-recovery/test_recovery_verifier.py`.
+- AM-2: QE-2: точные типы workspace → test `test_payload_workspace_float_and_bool_after_resign` in `integrations/hermes-health/experiments/recognized-recovery/test_recovery_verifier.py`.
+- AM-3: QE-3: целочисленный mode → test `test_inventory_mode_float` in `integrations/hermes-health/experiments/recognized-recovery/test_recovery_verifier.py`.
+- AM-4: QE-4: отсутствие утечки fd при отказе → test `test_unsafe_root_fd_no_leak` in `integrations/hermes-health/experiments/recognized-recovery/test_recovery_verifier.py`.
+- AM-5: QE-5: отдельный отказ отсутствующего ключа → test `test_missing_key` in `integrations/hermes-health/experiments/recognized-recovery/test_recovery_verifier.py`.
+- AM-6: QE-7: exact canonical operation path; вложенные `operations/unexpected/<id>/{metadata.json,artifact.md}` с переизданным inventory дают `inventory_membership` → test `test_nested_operation_path_after_reinventory` in `integrations/hermes-health/experiments/recognized-recovery/test_recovery_verifier.py`.
+
+QE-6: README переведён на русский, проверяется независимым reviewer. Обход каталога ограничен os.scandir; byte limits до JSON parsing, depth проверяется после ограниченного parsing.
 
 EXPECTED_CODE_TARGETS:
 - integrations/hermes-health/experiments/recognized-recovery/recovery_verifier.py

@@ -44,7 +44,7 @@ def make(base: Path):
     logical = "report.txt"
     entry = sha(encode([logical, sha(raw)]))[:32]
     stored = "sources/raw/sha256-" + "e" * 64 + "/report.txt"
-    row = {"entry_id": entry, "path": logical, "stored_at": stored, "sha256": sha(raw), "bytes": len(raw), "media_type": "text/plain", "ingested_at": "2026-01-01T00:00:00.000Z", "archive_id": "sha256:" + "e" * 64, "source": {"kind": "local", "url_redacted": None, "url_sha256": None, "local_path": None, "digest_source": "synthetic"}}
+    row = {"entry_id": entry, "path": logical, "stored_at": stored, "sha256": sha(raw), "bytes": len(raw), "media_type": "text/plain", "ingested_at": "2026-01-01T00:00:00.000Z", "archive_id": "sha256:" + "e" * 64, "source": {"kind": "local-file", "url_redacted": None, "url_sha256": None, "local_path": "report.txt", "digest_source": "local-stream"}}
     put(snap / "workspace/sources/manifest.json", encode({"schema": "ha-intake-manifest-1", "entries": [row]}))
     put(snap / "workspace" / stored, raw)
     workspace = {"path": "/old/synthetic/workspace", "dev": 11, "ino": 22}

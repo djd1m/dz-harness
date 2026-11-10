@@ -89,6 +89,15 @@ class RecoveryVerifierTest(unittest.TestCase):
         f.seal(self.snapshot, self.descriptor, self.key)
         self.check("inventory_membership")
 
+    def test_nested_operation_path_after_reinventory(self):
+        opdir = self.meta_path().parent
+        nested = opdir.parent / "unexpected" / f.OP
+        nested.parent.mkdir(mode=0o700)
+        os.chmod(nested.parent, 0o700)
+        shutil.move(str(opdir), str(nested))
+        f.seal(self.snapshot, self.descriptor, self.key)
+        self.check("inventory_membership")
+
     def test_bool_byte_count_after_resign(self):
         self.mutate_receipt(lambda env: env["payload"]["sidecar"]["source"].__setitem__("bytes", True))
         self.check("receipt_invalid")
@@ -112,7 +121,54 @@ class RecoveryVerifierTest(unittest.TestCase):
 
     def test_missing_key(self):
         self.key.unlink()
-        self.check("input_invalid")
+        self.check("key_missing")
+
+    def test_manifest_values_after_reinventory(self):
+        path = self.snapshot / "workspace/sources/manifest.json"
+        bads = [
+            ("media_type", {}), ("ingested_at", False), ("archive_id", 17),
+            ("source.kind", []), ("source.url_redacted", []),
+            ("source.url_sha256", []), ("source.local_path", []),
+            ("source.digest_source", []),
+        ]
+        original = json.loads(path.read_bytes())
+        for field, value in bads:
+            with self.subTest(field=field):
+                changed = json.loads(json.dumps(original))
+                row = changed["entries"][0]
+                if field.startswith("source."):
+                    row["source"][field.split(".")[1]] = value
+                else:
+                    row[field] = value
+                f.put(path, f.encode(changed))
+                f.seal(self.snapshot, self.descriptor, self.key)
+                self.check("source_invalid")
+
+    def test_payload_workspace_float_and_bool_after_resign(self):
+        for value in (11.0, True):
+            with self.subTest(value=value):
+                self.mutate_receipt(lambda env, n=value: env["payload"]["workspace"].__setitem__("dev", n))
+                self.check("receipt_invalid")
+
+    def test_inventory_mode_float(self):
+        inv = self.snapshot / "inventory.json"
+        value = json.loads(inv.read_bytes())
+        value["entries"][0]["mode"] = 448.0
+        f.put(inv, f.encode(value))
+        desc = json.loads(self.descriptor.read_bytes())
+        desc["inventory_sha256"] = f.sha(inv.read_bytes())
+        f.put(self.descriptor, f.encode(desc))
+        self.check("inventory_invalid")
+
+    def test_unsafe_root_fd_no_leak(self):
+        if not Path("/proc/self/fd").exists():
+            self.skipTest("Linux /proc/self/fd required")
+        before = len(list(Path("/proc/self/fd").iterdir()))
+        os.chmod(self.snapshot, 0o755)
+        for _ in range(20):
+            self.check("unsafe_path")
+        after = len(list(Path("/proc/self/fd").iterdir()))
+        self.assertEqual(before, after)
 
     def test_state_matrix_after_resign(self):
         for state in ("prepared", "committing", "reconciliation_required", "expired", "cancelled"):
