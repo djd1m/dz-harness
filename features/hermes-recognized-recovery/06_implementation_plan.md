@@ -1,7 +1,7 @@
 # План реализации после K2/design review
 
 Статус: design only; runtime implementation не начата. 
-Inputs read: upstream ADR-003 и challenge B1–B5, actual `recognized-store.js`, `recognized_confirm.py`, 01_requirements.md, 03_adr/001-offline-verifier.md и 05_architecture.md. Реализация разрешена владельцем; до кода требуется успешный K2 и проверка дизайна ведущим. Только четыре declared files ниже; без commit/push, writer, production, секретов и иных repo.
+Inputs read: upstream ADR-003 и challenge B1–B5, actual `recognized-store.js`, `recognized_confirm.py`, 01_requirements.md, 03_adr/001-offline-verifier.md и 05_architecture.md. Реализация разрешена владельцем; до кода требуется успешный K2 и проверка дизайна ведущим. Только declared files ниже; без commit/push, writer, production, секретов и иных repo.
 
 ## T1 — закрытый вход и безопасное чтение (ADR-001, FR-1, FR-2, NFR-1, B1/3/4)
 
@@ -19,6 +19,8 @@ Fixture generator создаёт **реальные** core metadata encoding и 
 
 Запустить targeted tests без live Hermes/core save. Независимый QE другой моделью после реализации, затем только релевантный rerun. Документировать воспроизводимую команду и ограничения. K1 `dz name-check` сейчас **NOT ESTABLISHED**: workspace scanner не инспектирует Python; manual `rg` по текущим runtime именам дал notfound, что не заменяет K1. Повторить manual name check по итоговым четырём файлам и честно оставить K1 статус, если scanner всё ещё не поддерживает Python. B5, target ownership и whole-store freeze не входят в этот этап.
 
+- T5 / FR-5 / AC-1: Проверить экспорт из настоящего synthetic adapter→core в pinned Docker image с отключённой сетью; integration script `integrations/hermes-health/experiments/recognized-recovery/integration_actual.py`. Это проверка совместимости форматов, не production restore.
+
 ## Assessment
 
 Доказательство ограничено input validation на synthetic offline fixture. Runtime hash в receipt фиксирует историческую строку, но не доступность старого runtime. Inventory completeness ограничена описанным export profile и доверенным descriptor; она не доказывает момент freeze или историческое human approval. Никакого нового provenance и применения результата нет.
@@ -27,8 +29,11 @@ Fixture generator создаёт **реальные** core metadata encoding и 
 
 2026-11-10: внесены B1–B4 уточнения из upstream independent challenge и текущего K2 design review. Это не заявление, что QE или implementation согласованы.
 
+После первичной QE: targeted regression по QE-1 — invalid manifest `media_type/ingested_at/archive_id/source.*` после reseal; QE-2 — receipt workspace `float/bool` после re-HMAC/reseal; QE-3 — inventory mode `448.0` с обновлённым descriptor digest; QE-4 — повторные unsafe-root вызовы и `/proc/self/fd` без роста; QE-5 — отсутствующий key даёт отдельный `key_missing`; QE-6 — README на русском. Обход каталога заменить bounded `os.scandir(fd)` с ранним счётчиком. После исправлений повторить unit suite и actual installed-format integration; затем независимая QE новой версии.
+
 EXPECTED_CODE_TARGETS:
 - integrations/hermes-health/experiments/recognized-recovery/recovery_verifier.py
 - integrations/hermes-health/experiments/recognized-recovery/test_recovery_verifier.py
 - integrations/hermes-health/experiments/recognized-recovery/fixtures.py
 - integrations/hermes-health/experiments/recognized-recovery/README.md
+- integrations/hermes-health/experiments/recognized-recovery/integration_actual.py
