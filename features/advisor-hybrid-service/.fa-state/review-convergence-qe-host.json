@@ -1,0 +1,140 @@
+{
+  "schema": "fa-review-convergence-1",
+  "phase": "qe",
+  "reviewers": [
+    {
+      "id": "qe-primary",
+      "family": "owner-exception"
+    }
+  ],
+  "snapshot": {
+    "nonce": "3c594569-6e03-4898-8c21-1cc6722f406e",
+    "revision": "6632822fd26f78295c93d02e5450deea248e8268aef745a1883068ca54726290",
+    "manifest": [
+      {
+        "path": "docs/proposals/skill-advisor-scenarios/catalog/approved.json",
+        "digest": "52c90b65267dabced481ea5d74546bf3966c69c7df99b7bebd2725c13bf8ae8e"
+      },
+      {
+        "path": "docs/proposals/skill-advisor-scenarios/catalog/part-c.json",
+        "digest": "580ab785c8eb63bc6fc5ccd97ad95e1da7d1f40c8940473ac3e23d7433798e16"
+      },
+      {
+        "path": "docs/proposals/skill-advisor-scenarios/catalog/reviews-c.json",
+        "digest": "4233fa19b17e653800b3da3b8dce8eb2f77bc3bbeb4e436e6e564651f8fcbf14"
+      },
+      {
+        "path": "docs/proposals/skill-advisor-scenarios/presentation-reviews.json",
+        "digest": "afc0e07aabffd1c94c92ea1bb9858e3c0482b56dec497d0dc4a664fea86883d1"
+      },
+      {
+        "path": "docs/proposals/skill-advisor-scenarios/presentation.json",
+        "digest": "5355dc4a27a633dc15b7125b9b69c80a05b6b34f186364dc16be833f768acc9c"
+      },
+      {
+        "path": "features/advisor-hybrid-service/00_complexity_assessment.md",
+        "digest": "543f03aae1edd30af5bfcdc2132c0d694a62d5bc3424bc96adc45d4bd2e96175"
+      },
+      {
+        "path": "features/advisor-hybrid-service/01_requirements.md",
+        "digest": "0d3b10c373317a8b476421a59e606399458ee9a4e87b2f4d3f572a39f4bea7fa"
+      },
+      {
+        "path": "features/advisor-hybrid-service/03.5_ideation_report.md",
+        "digest": "430e233d769280bb45df123a95b03dcca7add21d3274e53f19ee520eba5bc936"
+      },
+      {
+        "path": "features/advisor-hybrid-service/03_adr/001-modular-search.md",
+        "digest": "23373b50cea455209461980cd476b0524fe42cfb45d694140308ee193081a342"
+      },
+      {
+        "path": "features/advisor-hybrid-service/03_adr/002-container-isolation.md",
+        "digest": "6642b10b2e6e7a7923289492f25bba22b04554f1c7c7c939004ddc5c7ee09d4c"
+      },
+      {
+        "path": "features/advisor-hybrid-service/03_adr/003-selection-context.md",
+        "digest": "9049754a42725ac952fb6e001b5d3b3b5eaf2166c14d5749af82a5c84e87d437"
+      },
+      {
+        "path": "features/advisor-hybrid-service/05_architecture.md",
+        "digest": "f9001ffe5c348c24893871c032b0fb38aa8081ea0d579cf97b15ceebdf2179c1"
+      },
+      {
+        "path": "features/advisor-hybrid-service/06_implementation_plan.md",
+        "digest": "ef75dbc7319023d4997bf4ed1b6a3351c2cea416c34ce6033fc66af58034f334"
+      },
+      {
+        "path": "integrations/hybrid-retrieval/.gitignore",
+        "digest": "ba79bbc25fa8951489e77f28f1561c2e9388115cb33f1c606424f8e08169f96b"
+      },
+      {
+        "path": "integrations/hybrid-retrieval/.npmrc",
+        "digest": "4afddb3b717898468cfc68f97a3732ed2abf16df5de65925de4bc471a0f6780f"
+      },
+      {
+        "path": "integrations/hybrid-retrieval/README.md",
+        "digest": "b235b1dbb721d9f5ee4b3972130ce5894bc599d13e82adcdd927ba042777c203"
+      },
+      {
+        "path": "integrations/hybrid-retrieval/index.mjs",
+        "digest": "9d81f45a055882e5eef689f315f31c7e558d27b5e7694aa50650d6da7cac9d50"
+      },
+      {
+        "path": "integrations/hybrid-retrieval/openrouter.mjs",
+        "digest": "c369a7bc7ae02a4ea0bb49ee31a1bd6e776855a94ee83334d56e07185a042d25"
+      },
+      {
+        "path": "integrations/hybrid-retrieval/package-lock.json",
+        "digest": "ae121307aa21abec8fb4edf46730c36d8964599e521dc9fa81902ca654f3418a"
+      },
+      {
+        "path": "integrations/hybrid-retrieval/package.json",
+        "digest": "46025db063754340ead4e49c057582ce2490eedf3fccc02047ca45ea55d9e3ed"
+      },
+      {
+        "path": "integrations/hybrid-retrieval/service.mjs",
+        "digest": "918c6b69051a78f8b887c50591f7234f760ecb54b6c0d418a9b65f16b685fb9d"
+      },
+      {
+        "path": "integrations/hybrid-retrieval/snapshot.test.mjs",
+        "digest": "2e0056fbcb63ad22f4c859f474519a2a07383c50ad6aa1a3b7b47758e28c1eb4"
+      },
+      {
+        "path": "integrations/skill-advisor-catalog/cli.mjs",
+        "digest": "0e7357ad60fa1201c7e1971f2e960874a8ff19c16fdf73aecddf653fe1654845"
+      },
+      {
+        "path": "integrations/skill-advisor-catalog/dialogue.mjs",
+        "digest": "d2da4f024a4d22042564273ca4fbbe17963c3294db38b46a9649960c324e3a6f"
+      },
+      {
+        "path": "integrations/skill-advisor-catalog/hybrid-advisor.mjs",
+        "digest": "30fafbfdafd3a3ed56434335835575674ced89b17e9442dba355dd4104953dce"
+      },
+      {
+        "path": "integrations/skill-advisor-catalog/hybrid-advisor.test.mjs",
+        "digest": "ec6db178fc9ba61d3ae81fa4b5ae7492eb6d69ddb6a566b6d5769732155cf50e"
+      },
+      {
+        "path": "integrations/skill-advisor-catalog/preview-server.mjs",
+        "digest": "7c8b9addca69f81c108e9e17ea77dcf51f27e83c700a793770d43562d8a74097"
+      },
+      {
+        "path": "openspec/changes/advisor-hybrid-service/proposal.md",
+        "digest": "0d3b10c373317a8b476421a59e606399458ee9a4e87b2f4d3f572a39f4bea7fa"
+      },
+      {
+        "path": "openspec/changes/advisor-hybrid-service/specs/advisor-hybrid/spec.md",
+        "digest": "1f6247303f4497b54937486b414ba9c6cef2c1dd2b02f416dc430bebf3884485"
+      },
+      {
+        "path": "openspec/changes/advisor-hybrid-service/tasks.md",
+        "digest": "5a3cface842f869a9d7a15d18c00d2b9883eda3ec12c46a562476a8e9ac672a1"
+      }
+    ]
+  },
+  "conditions": [],
+  "reviewSeen": true,
+  "rework": false,
+  "changedPaths": []
+}

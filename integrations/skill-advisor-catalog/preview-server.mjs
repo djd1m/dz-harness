@@ -48,13 +48,14 @@ export function createPreview({answer,fontsDirectory,requestBudget=30,requestLed
  server.requestTimeout=15000;server.headersTimeout=10000;
  return server;
 }
-export function liveAnswer(apiKey){
- const catalog=currentCatalog();if(catalog.excluded.length)throw Error('Catalog exclusions');
+export function liveAnswer(apiKey,{catalog=currentCatalog(),retriever=null}={}){if(catalog.excluded.length)throw Error('Catalog exclusions');
  const presentation=approvedPresentation(catalog,read('presentation.json'),read('presentation-reviews.json'));
  const contract=dialogueContract(presentation),courses=read('course-map.json');
  return async query=>{
-  const result=await selectScenarios(retrieve(catalog,query),{model:'anthropic/claude-haiku-5.5',apiKey,contract});
-  return renderDialogue(result.output,presentation,courses);
+  const candidates=retriever?await retriever(query):retrieve(catalog,query);
+  const result=await selectScenarios(candidates,{model:'anthropic/claude-haiku-5.5',apiKey,contract});
+  const answer=renderDialogue(result.output,presentation,courses);
+  return candidates.meta?{...answer,retrieval:candidates.meta}:answer;
  };
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){

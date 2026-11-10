@@ -28,7 +28,7 @@
       ],
       "steps": [
         "Убедиться, что значимое архитектурное решение принято.",
-        "Извлечь название, контекст, решение и последствия; недостающие сведения оставить для уточнения.",
+        "Извлечь название, контекст (причины и рассмотренные альтернативы), решение и последствия; недостающие сведения оставить для уточнения.",
         "Создать пронумерованный файл в docs/decisions и сообщить о необходимости проверки."
       ],
       "limitations": [
@@ -76,6 +76,10 @@
         {
           "path": "packages/skills-meta/capture-adr/SKILL.md",
           "quote": "4. Write file: `docs/decisions/{NNNN}-{slug}.md`"
+        },
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "quote": "| **Context** | 1-2 sentences | Why this decision point arose; what alternatives existed |"
         }
       ],
       "courseUrl": null

@@ -1,6 +1,6 @@
 {
   "schema": "dz-scenario-index/1",
-  "revision": "298c5b2030cd139553fdddc21cc008ae7c68b03db1fecba380d487d01e80fda2",
+  "revision": "9ab051f6be0f6ad8d465f2258ce2171b3e06ce6a1a8546341bd4f12bacfe7bd0",
   "records": [
     {
       "id": "meta-explore-product",
@@ -1979,7 +1979,7 @@
       ],
       "steps": [
         "Убедиться, что значимое архитектурное решение принято.",
-        "Извлечь название, контекст, решение и последствия; недостающие сведения оставить для уточнения.",
+        "Извлечь название, контекст (причины и рассмотренные альтернативы), решение и последствия; недостающие сведения оставить для уточнения.",
         "Создать пронумерованный файл в docs/decisions и сообщить о необходимости проверки."
       ],
       "limitations": [
@@ -2027,6 +2027,10 @@
         {
           "path": "packages/skills-meta/capture-adr/SKILL.md",
           "quote": "4. Write file: `docs/decisions/{NNNN}-{slug}.md`"
+        },
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "quote": "| **Context** | 1-2 sentences | Why this decision point arose; what alternatives existed |"
         }
       ],
       "courseUrl": null

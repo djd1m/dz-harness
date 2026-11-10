@@ -1,0 +1,8 @@
+{
+  "source": "prior approved-corpus embedding experiment",
+  "originalCatalogRevision": "298c5b2030cd139553fdddc21cc008ae7c68b03db1fecba380d487d01e80fda2",
+  "newCatalogRevision": "9ab051f6be0f6ad8d465f2258ce2171b3e06ce6a1a8546341bd4f12bacfe7bd0",
+  "documentSha256": "67aa6d1733506b220ff936fc37b357fa41a065eb07cac84c50060a60ce98ad85",
+  "reason": "Only steps/evidence changed. Same32ID/text entries verified byte-for-byte; no change to embedding inputs.",
+  "dimensions": 1024
+}

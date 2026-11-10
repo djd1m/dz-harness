@@ -1,0 +1,29 @@
+{
+  "status": 200,
+  "body": {
+    "decision": "recommend",
+    "lead": "Подходящие сценарии для вашей задачи:",
+    "items": [
+      {
+        "package": "@dzhechkov/skills-meta",
+        "scenarios": [
+          {
+            "summary": "Помогает кратко зафиксировать принятое архитектурное решение, контекст и последствия.",
+            "boundary": "Созданную запись необходимо подтвердить человеку; обсуждаемое решение ещё не фиксируется.",
+            "nextAction": "Укажите принятое решение и его контекст."
+          }
+        ],
+        "courseUrl": null
+      }
+    ],
+    "missingParts": [],
+    "clarificationQuestion": null,
+    "retrieval": {
+      "mode": "hybrid",
+      "revision": "9ab051f6be0f6ad8d465f2258ce2171b3e06ce6a1a8546341bd4f12bacfe7bd0",
+      "model": "baai/bge-m3",
+      "dimensions": 1024,
+      "lexicalizerId": "dz-ru-en-stems-v1"
+    }
+  }
+}
