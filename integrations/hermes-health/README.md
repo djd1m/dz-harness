@@ -143,3 +143,17 @@ The broker contract has exact keys `status`, `engine`, `pages`; engine must be `
 This tool does not send network messages. On an explicit user request to deliver drafts, the existing Hermes `send_file` tool must receive the actual returned paths; never fabricate `sandbox:` links or claim successful delivery without the transport result. This is a candidate change only, not deployment authorization.
 
 Synthetic adapter checks: `python3 -m unittest discover -s integrations/hermes-health/tests -p test_pdf_draft.py -v`.
+
+## Экспериментальный recognized-confirm (только синтетическая среда)
+
+`health_pdf_draft` теперь сохраняет приватный `provenance.json` после MD/HTML fsync. В выдачу artifacts входят только MD/HTML; `draft_id` и SHA Markdown используются в `health_recognized_prepare(draft_id, entry_id, expected_draft_sha256)`. Payload — весь rendered Markdown, включая предупреждения и fences. Старые черновики без sidecar не принимаются. `partial_text` означает неполное извлечение, не медицинскую проверку.
+
+Prepare не пишет карту. Отдельные gateway-команды `health-recognized-confirm`, `health-recognized-cancel`, `health-recognized-status` принимают proposal ID. Они связывают platform/user/chat/profile с ContextVars и не доступны как tools. Реальный transport **не принят**: синтетическая регистрация/dispatch не доказывает доставку человеческой команды. Production включение этой функции не разрешено этим slice.
+
+Default write выключен. Только offline synthetic lab задаёт `HEALTH_RECOGNIZED_SYNTHETIC_WRITE=1`, `HEALTH_RECOGNIZED_STATE` вне Git/карты/drafts/intake, отдельные `HEALTH_INTAKE_STATE` и `HEALTH_DRAFTS`. Все roots должны быть физически раздельны. HMAC key/lock/receipt namespace отдельны от intake. Receipt TTL 30 минут до intent; после intent только status/reconciliation с прежним operation ID, без повторного save. Не удаляйте state для «повторной попытки».
+
+Runtime gate требует standalone recognized capabilities v1 и hash pin Node executable и установленных JS/JSON/native-module файлов runtime (включая transitive lock dependencies). Current source, logical manifest path, stored path, exact MD, engine и workspace identity проверяются заново перед intent. После неоднозначного результата `reconciliation_required` требует наблюдения/operator action; `absent_at_read_time` не доказывает отсутствие прежней записи. Повторное наблюдение persisted artifact не доказывает прежний directory fsync при потере питания.
+
+Все результаты остаются `НЕПРОВЕРЕНО`, `human_verification:not_established`, `content_trust:untrusted_document`, `index_status:not_requested`. Saved не означает indexed/searchable. Dot-path read deny сохранён: `health_source_get`/`health_search` не открывают внутренний recognized namespace. Automatic index отсутствует.
+
+Граница доступа узкая: model tool API плагина не предоставляет confirm. Same-UID shell/terminal adversary находится вне этой модели; это не гарантия, что Hermes в целом не сможет писать карту при доступном shell. Real ContextVars и синтетическая регистрация команды не являются real Mattermost transport acceptance.

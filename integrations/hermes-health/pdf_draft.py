@@ -180,7 +180,7 @@ def draft(tools, args):
               'status': reply['status'], 'entry_id': row['entry_id'], 'sha256': digest,
               'bytes': len(raw), 'engine': reply['engine'], 'draft': True,
               'human_verification': 'not_established', 'content_trust': 'untrusted_document',
-              'ocr_performed': False, 'artifacts': []}
+              'ocr_performed': False, 'index_status': 'not_requested', 'artifacts': []}
     if reply['status'] not in {'ok', 'partial_text'}:
         return result
     contents = render(reply, row['entry_id'], digest)
@@ -227,8 +227,21 @@ def draft(tools, args):
                 os.fsync(stream.fileno())
             result['artifacts'].append({'path': str(root / name / filename),
                                         'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)})
+        info = tools.workspace.stat()
+        provenance = {'schema': 'draft-provenance-1', 'draft_id': name,
+                      'workspace': {'path': str(tools.workspace.resolve()), 'dev': info.st_dev, 'ino': info.st_ino},
+                      'source': {'entry_id': row['entry_id'], 'path': row['stored_at'], 'logical_path': row.get('path'), 'sha256': digest, 'bytes': len(raw)},
+                      'draft': {'sha256': hashlib.sha256(contents['draft.md']).hexdigest(), 'bytes': len(contents['draft.md'])},
+                      'engine': reply['engine'], 'parser_status': reply['status']}
+        fd = os.open('provenance.json', os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600, dir_fd=child_fd)
+        written.append('provenance.json')
+        with os.fdopen(fd, 'wb') as stream:
+            stream.write(json.dumps(provenance, ensure_ascii=False, separators=(',', ':')).encode('utf-8'))
+            stream.flush()
+            os.fsync(stream.fileno())
         os.fsync(child_fd)
         os.fsync(root_fd)
+        result['draft_id'] = name
         result['pages'] = len(reply['pages'])
         return result
     except BaseException:

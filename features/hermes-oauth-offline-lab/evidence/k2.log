@@ -1,0 +1,4 @@
+NOTE  C9: twin scan over 3 target(s), 0 on disk, 0 unlisted twins (byte-identical only; drifted copies need identity tests)
+NOTE  C8: all 6 requirement ids referenced
+WARN  C1: 001-single-owner.md has no ADR-NNN heading — falling back to the filename prefix
+K2 plan-completeness: PASS (0 failure(s), 1 warning(s), 0 skip(s)) over 1 ADRs, tier M, in /home/dz-user/dz-harness-health-plugin/features/hermes-oauth-offline-lab

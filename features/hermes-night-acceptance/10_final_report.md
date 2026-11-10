@@ -1,0 +1,102 @@
+# Отчёт ночной лабораторной итерации Hermes
+
+Статус: тестовый кандидат подготовлен и прошёл независимые компонентные проверки.
+Рабочий Hermes не обновлён, новая запись recognized и индексация в нём не включены.
+Полный формальный feature-adr pipeline не объявлен зелёным: ограничения инструмента
+Python discrimination и исторического порядка шагов перечислены в 09_fleet_qe_assessment.md.
+
+Начало работ: 2026-11-09 22:29 UTC. Согласованное окно: до 2026-11-10 06:29 UTC.
+Лабораторная итерация завершена 2026-11-10 в 00:35 UTC, примерно за 2 часа 6 минут.
+Восьмичасовое окно не потребовалось полностью; это не отчёт о восьми часах работы.
+
+## Результат
+
+| Подсистема | Проверено | Граница |
+| --- | --- | --- |
+| Offsite S3 restore | Snapshot c48c1a01: 123 источника manifest по SHA/размеру, 7 SQLite integrity checks, 2 image archives по SHA | Отдельный root с правами 0700 каталог; без запуска восстановленного gateway и без клинической проверки |
+| Чистая установка candidate | Новый Hermes home, enable/doctor/validate, 7 tools, настоящий synthetic ingest/search | Текущий pinned image, не новый VPS/rebuild; private ContextVars warning остаётся |
+| OAuth | Fake-provider single-owner lab, 17 тестов и независимое QE | Реальные токены и refresh не используются; production broker не установлен |
+| Core recognized | 35 тестов, immutable operation ID, source binding, unverified status, replay/status | Административный API сам не доказывает согласие; dev/inode binding ограничивает restore |
+| Gateway adapter | 109 regression tests, actual installed CLI integration с 5 SIGKILL сценариями | Подтверждение через trusted handler проверено в лаборатории; настоящий Mattermost transport новых команд не принят |
+| Index lab | 15 тестов, 18 фрагментов, реальный поиск, partial retry, conflict/drift probes | Operator-only; строгая SQLite сверка; нет automatic save retry, rollback или vector readiness |
+| Сквозная цепочка | Prepare → confirm → core → отдельный index → repeat no-op → reconcile → search | Один технический источник; parser response подменён техническим текстом, внешняя доставка не проверяется |
+| Чувствительность тестов | 3 baseline PASS и 3 mutant assertion FAIL при отключении отдельных защит | Только выбранные guards; native discrimination остаётся NOT ESTABLISHED |
+
+MEASURED: coverage нового Python adapter — 428/432 statements и 181/186 branches,
+по `fleet-regression-evidence/coverage.json` на git commit `7e52bef`. Измерение
+не распространяется на Node core/OAuth/index и не означает медицинскую точность.
+
+## Где находятся результаты
+
+- Родительская итерация и adapter: https://github.com/djd1m/dz-harness/pull/36
+- Отдельный index experiment: https://github.com/djd1m/dz-harness/pull/37
+- Core recognized: https://github.com/djd1m/dz-harness-hub/pull/126
+- Воспроизводимый запуск: 07_lab_runbook.md.
+- Четыре роли аудита: 09_fleet_qe_assessment.md и fleet-*.md.
+- Восстановленная копия на хабе:
+  `/var/tmp/corp-restore/hermes-night-20261109/srv/hermes-dz-health`.
+  Содержит приватные данные, доступ root с правами 0700; её содержимое не публикуется.
+
+Точные source hashes и команды находятся в компонентных QE reports. Проверенные
+core source bytes сохранены в 1dbdcaed0; последующий 2c5614ea0 исправляет только
+две сгенерированные строки корневого README и добавляет CI evidence.
+Index source 84b8ef9, QE 8faf5b2, machine evidence 5576c35. Adapter source 2172a56;
+дополнительные тесты 7e52bef, runtime source не изменён.
+
+## CI и состояние поставки
+
+Первый общий CI core остановился на устаревшем generated catalog README.
+Это воспроизводилось и на базе PR, и на candidate; package manifests и inventory
+совпадали. Исправлены только version row и membership digest. Изолированный
+канонический generator check после исправления PASS. Повторный GitHub run:
+https://github.com/djd1m/dz-harness-hub/actions/runs/42721354665
+
+Повторный CI завершён успешно 2026-11-10 в 00:33:50 UTC на HEAD
+`2c5614ea08edf81742c1c7d70806555371371247`: полные наборы тестов ядра и CLI,
+typecheck, amendment, claim и whitespace checks прошли. Машинный результат
+сохранён в `evidence/core-ci-final.json`. Все опубликованные checks PR126 прошли,
+кроме mutation-gate, который пропущен по scope и не считается выполненным.
+Для PR36/37 GitHub checks не настроены: их доказательства — сохранённые
+локальные независимые тесты. PR остаются draft, ни один не слит.
+Зависимости от прежних draft PR 33/35 сохранены; цепочку нужно рассмотреть целиком.
+
+## Что сохранено и что не менялось
+
+Рабочая карта, её статусы и frozen исходный VPS не изменялись этой итерацией.
+Рабочие контейнеры не пересоздавались. Установленный health image остаётся
+`sha256:c872058e59ba94c4ee7af4389da04845b4ae029351fbd49da11492ba942e6961`.
+Действующие hermes-me и hermes-dz-health наблюдались запущенными; read-only OAuth
+usage probe вернул HTTP 200 для обоих около 22:45 и повторно в 23:56 UTC. Проверка выполнялась с read_only=True, без принудительного refresh. Это не проверка
+следующего refresh и не гарантия срока действия подписки.
+
+Секреты и медицинские документы не включены в PR. Тесты используют вымышленные
+технические материалы. Проверка настоящего backup ограничивалась hashes,
+размерами и целостностью SQLite внутри закрытого каталога.
+
+Повторный запуск лабораторной проверки из нового закрытого каталога также
+прошёл: 109 тестов и один интеграционный сценарий. Wrapper и требования к его
+локальным зависимостям сохранены в `fleet-regression-evidence/reproduce.sh`
+и `fleet-regression.md`; старые измерения не перезаписывались.
+
+## Следующий этап перед production
+
+1. Спроектировать и проверить recovery/rebind recognized на новом path/inode,
+   включая восстановление private receipt/HMAC state из backup.
+2. Принять новые команды на настоящем Mattermost в отдельной технической среде;
+   проверить identity, доставку, повтор и отказ без записи.
+3. Согласовать способ закрытия Python discrimination gate; текущий инструмент
+   честно вернул CANNOT_ISOLATE, ручные mutants не выдаются за его PASS.
+4. Для использования индекса именно из Hermes отдельно принять интерфейс
+   чтения/поиска непроверенного текста: нынешний operator-only lab не является
+   инструментом бота, общий запрет скрытых путей сохранён.
+5. После review цепочки PR отдельно решить о внедрении. OAuth broker и индексацию
+   не включать автоматически вместе с adapter.
+
+Rollback рабочей системы не требуется: новые изменения в неё не применялись.
+Для тестовой неопределённой операции используется status/reconcile прежнего
+operation ID; квитанции/артефакты не удаляются ради повторного запуска.
+
+Дополнительно подготовлены proposed
+[ADR восстановления](03_adr/003-plan-recognized-recovery.md) и
+[независимый challenge](recognized-recovery-challenge.md). Миграционный writer
+не реализовывался: сначала нужен read-only verifier и закрытие B1–B5.

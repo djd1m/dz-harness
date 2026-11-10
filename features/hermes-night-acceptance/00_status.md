@@ -1,0 +1,47 @@
+# Ночная приёмка и развитие Hermes
+
+Начало: 2026-11-09 22:29 UTC. Плановое окно: до 2026-11-10 06:29 UTC.
+Режим: plain, feature-adr Reference; код Codex, независимое QE другой моделью.
+
+## Границы
+
+Рабочая карта/статусы и frozen source не меняются. Нет merge PR и обновления
+production Hermes. Restore только в отдельную закрытую среду. Новые recognized
+и index операции — технические документы. Секреты и PHI не попадают в Git/логи.
+
+## Этапы
+
+1. Аудит состояния, PR и резервных копий — выполнен; baseline и contract audit сохранены.
+2. Чистая загрузка плагина в закреплённом runtime + restore S3 c48c1a01 — выполнены. 123 источника, 7 SQLite integrity_check; полный rebuild хоста не заявляется.
+3. OAuth ADR и синтетический прототип — выполнены; 17 тестов и независимое QE PASS в ограниченном offline scope. Production не подключён.
+4. Core recognized — 35 тестов и независимое QE PASS в synthetic scope; PR dz-harness-hub#126. Gateway adapter также получил независимый QE: 109 regression и real CLI integration с пятью SIGKILL — PASS; только synthetic scope.
+5. Existing index experiment PASS (5 chunks, repeat/recovery/stale), но hidden namespace недоступна HealthTools. Новый operator-only index lab: независимый QE PASS (15 тестов, 18 chunks, post-ingest conflicts/source drift), PR37.
+6. Все пять срезов имеют scoped QE. Четыре роли общего fleet review завершены волнами из-за лимита concurrency. Сквозной adapter→core→index тест PASS; coverage/remediation PASS. Формальный pipeline NEEDS_REMEDIATION: native Python discrimination NOT ESTABLISHED и исторические process deviations, см.09_fleet_qe_assessment.md.
+7. Документы и draft PR #36 созданы; добавлены runbook, draft PR37 индекса и PR126 ядра. Отчёт 10_final_report.md завершён. Повторный CI core прошёл на 2c5614ea0 после исправления generated README drift из базовой ветки. Лабораторная итерация завершена 2026-11-10 в 00:35 UTC; production acceptance не заявляется.
+
+PR: https://github.com/djd1m/dz-harness/pull/36
+Коммит проверенного OAuth lab и restore evidence: f130128.
+Backlog: не заведено — dz store guard отказал из-за unreadable shared store; отказ записан, shared store не ремонтировали.
+
+План — ориентир, а не свидетельство выполнения. Не завершать этап по времени
+без доказательств. Непройденные проверки отражать явно.
+
+
+## Новые ограничения для deployment
+
+- Core request fingerprint включает realpath/dev/inode: восстановление на новую
+  файловую систему требует отдельного deliberate recovery/rebind. Это блокирует
+  production deployment нового recognized, но не уничтожает исходные байты.
+- `dz recall --all` может вернуть [] при backend failure; index lab переходит на
+  strict readonly SQLite authority с schema/native gate, без JSON fallback.
+- Реальная доставка новых gateway-команд в Mattermost пока не принималась.
+- Оба существующих контейнера hermes-me/hermes-dz-health прошли read-only
+  OpenAI usage probe HTTP200 около 22:45 UTC и повторно в 23:56 UTC; это не проверка следующего refresh.
+
+Core PR: https://github.com/djd1m/dz-harness-hub/pull/126
+Core implementation commit: 68e1eaf7b; evidence/docs: 1dbdcaed0.
+
+Index PR: https://github.com/djd1m/dz-harness/pull/37
+Index implementation: 84b8ef9; QE/docs: 8faf5b2.
+
+Core docs-only CI fix: 2c5614ea0; повторный run 42721354665 — SUCCESS в 00:33:50 UTC. Полные core/CLI suites прошли; mutation-gate пропущен по scope. PR36/37 не имеют настроенных GitHub checks; независимые лабораторные результаты сохранены отдельно.

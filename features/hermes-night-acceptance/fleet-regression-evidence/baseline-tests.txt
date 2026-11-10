@@ -1,0 +1,10 @@
+...................../covlib/coverage/pytracer.py:146: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7c940ce29210>
+  def _trace(
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+............/opt/hermes/gateway/run_inbound.py:1096: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+  if asyncio.iscoroutinefunction(plugin_handler):
+.....................................
+----------------------------------------------------------------------
+Ran 70 tests in 36.812s
+
+OK

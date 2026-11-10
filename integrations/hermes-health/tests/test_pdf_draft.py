@@ -58,6 +58,9 @@ class PdfDraftTests(unittest.TestCase):
         self.assertEqual(len(baseline['artifacts']), 2)
         for artifact in baseline['artifacts']:
             Path(artifact['path']).unlink()
+        sidecar = Path(baseline['artifacts'][0]['path']).parent / 'provenance.json'
+        if sidecar.exists():
+            sidecar.unlink()
         Path(baseline['artifacts'][0]['path']).parent.rmdir()
         (self.drafts / '.draft.lock').unlink()
 
@@ -67,6 +70,18 @@ class PdfDraftTests(unittest.TestCase):
     def call(self, value=None, args=None):
         with patch.object(m, 'broker_request', return_value=reply() if value is None else value):
             return self.tools.call('pdf_draft', {'entry_id': 'synthetic'} if args is None else args)
+
+    def test_sidecar_completion(self):
+        result = self.call()
+        path = Path(result['artifacts'][0]['path']).parent / 'provenance.json'
+        self.assertTrue(path.exists())
+        sidecar = json.loads(path.read_bytes())
+        self.assertEqual(sidecar['schema'], 'draft-provenance-1')
+        self.assertEqual(sidecar['draft_id'], result['draft_id'])
+        self.assertEqual(sidecar['draft']['sha256'], result['artifacts'][0]['sha256'])
+        self.assertEqual(sidecar['source']['path'], self.row['stored_at'])
+        self.assertEqual(len(result['artifacts']), 2)
+        self.assertEqual(path.stat().st_mode & 0o777, 0o600)
 
     def test_safe_artifacts_and_never_overwrite(self):
         hostile = '<script>alert(1)</script>\n```\n[click](https://example.invalid)\n````'
@@ -175,7 +190,7 @@ class PdfDraftTests(unittest.TestCase):
 
     def test_fsync_failures_clean_up_all_artifacts(self):
         real_fsync = m.os.fsync
-        for failure_at in range(1, 5):
+        for failure_at in range(1, 6):
             calls = []
             def fail_at(fd):
                 calls.append(fd)

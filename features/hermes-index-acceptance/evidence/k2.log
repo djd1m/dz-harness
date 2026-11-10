@@ -1,0 +1,6 @@
+NOTE  C9: twin scan over 1 target(s), 1 on disk, 0 unlisted twins (byte-identical only; drifted copies need identity tests)
+NOTE  C8: all 5 requirement ids referenced
+SKIP  C1: no 03_adr/ and the plan claims no ADR work — ADR-coverage check SKIPPED (--tier=S, the legitimate S-tier shape)
+SKIP  C2: no 03_adr/ — Confirmation-test coverage check SKIPPED
+WARN  C5: no "Inputs read:" line (wave-2 seam, WARN only)
+K2 plan-completeness: PASS (0 failure(s), 1 warning(s), 2 skip(s)) over 0 ADRs, tier S, in /home/dz-user/dz-harness-health-plugin/features/hermes-index-acceptance

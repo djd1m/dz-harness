@@ -264,6 +264,10 @@ class HealthTools:
         from .intake_confirm import prepare
         return prepare(self, args)
 
+    def recognized_prepare(self, args):
+        from .recognized_confirm import prepare
+        return prepare(self, args)
+
     def pdf_draft(self, args):
         from .pdf_draft import draft
         return draft(self, args)

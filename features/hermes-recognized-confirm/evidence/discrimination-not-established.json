@@ -1,0 +1,96 @@
+{
+  "plan": {
+    "runnable": true,
+    "verdict": "PENDING",
+    "measurementValid": false,
+    "primaryAction": "none",
+    "baseRef": "5141b6b",
+    "baseRefResolution": {
+      "requestedRef": "5141b6b",
+      "resolvedRef": "5141b6b",
+      "how": "explicit-ref"
+    },
+    "runnerSelection": {
+      "kind": "explicit",
+      "command": "python3 -m unittest",
+      "runnerName": "python3",
+      "how": "explicit-flag"
+    },
+    "packageDir": ".",
+    "targets": [
+      {
+        "file": "integrations/hermes-health/tests/test_recognized_confirm.py"
+      }
+    ],
+    "rejected": [],
+    "commands": [
+      "git worktree add --detach {{WORKTREE}} 5141b6b",
+      "( cd \"{{WORKTREE}}\" && python3 -m unittest 'integrations/hermes-health/tests/test_recognized_confirm.py' )",
+      "git worktree remove --force {{WORKTREE}}"
+    ],
+    "isolation": {
+      "materialization": "full-revision-tree",
+      "revision": "5141b6b",
+      "overlays": []
+    }
+  },
+  "results": [
+    {
+      "file": "integrations/hermes-health/tests/test_recognized_confirm.py",
+      "outcome": "fail",
+      "evidence": {
+        "exitCode": 1,
+        "runner": "unrecognised",
+        "failureKind": "unrecognised",
+        "testsExecuted": null,
+        "targetSeen": true,
+        "evidenceLine": "output matches neither node --test (TAP + # duration_ms) nor vitest (RUN v / Test Files) — no classifier for this runner; structural-vs-behavioural redness cannot be told apart, so the verdict may not be PROVEN"
+      },
+      "tipOutcome": "error",
+      "tipEvidence": {
+        "exitCode": null,
+        "runner": "unrecognised",
+        "failureKind": "unrecognised",
+        "testsExecuted": null,
+        "targetSeen": false
+      }
+    }
+  ],
+  "tipTree": {
+    "headSha": "7e52befcb1fbb3c2544e38eecebff33728a029a7",
+    "dirtyFiles": 3
+  },
+  "perTest": [
+    {
+      "file": "integrations/hermes-health/tests/test_recognized_confirm.py",
+      "verdict": "CANNOT_ISOLATE",
+      "reason": "unrecognised-runner-output"
+    }
+  ],
+  "aggregate": "CANNOT_ISOLATE",
+  "findings": [
+    {
+      "severity": "high",
+      "verdict": "CANNOT_ISOLATE",
+      "files": [
+        "integrations/hermes-health/tests/test_recognized_confirm.py"
+      ],
+      "title": "discrimination could not be established (degraded reading)",
+      "detail": "no ESTABLISHED observation for: integrations/hermes-health/tests/test_recognized_confirm.py [reason: unrecognised-runner-output]. A degraded reading is not a pass and not a failure — it means the instrument did not measure. Action: map-a-test when no test was mapped/ran, otherwise fix-runner-invocation."
+    }
+  ],
+  "measurementValid": false,
+  "primaryAction": "fix-runner-invocation",
+  "finding": {
+    "severity": "high",
+    "verdict": "CANNOT_ISOLATE",
+    "files": [
+      "integrations/hermes-health/tests/test_recognized_confirm.py"
+    ],
+    "title": "discrimination could not be established (degraded reading)",
+    "detail": "no ESTABLISHED observation for: integrations/hermes-health/tests/test_recognized_confirm.py [reason: unrecognised-runner-output]. A degraded reading is not a pass and not a failure — it means the instrument did not measure. Action: map-a-test when no test was mapped/ran, otherwise fix-runner-invocation."
+  },
+  "deprecated": {
+    "finding": "use findings[0]; removed in 0.9.0"
+  }
+}

@@ -1,0 +1,10 @@
+...................../opt/hermes/tools/python-3.14.7+20260901-linux-x64/lib/python3.14/queue.py:277: ResourceWarning: unclosed database in <sqlite3.Connection object at 0x7991a492b1f0>
+  __class_getitem__ = classmethod(types.GenericAlias)
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+............/opt/hermes/gateway/run_inbound.py:1096: DeprecationWarning: 'asyncio.iscoroutinefunction' is deprecated and slated for removal in Python 3.16; use inspect.iscoroutinefunction() instead
+  if asyncio.iscoroutinefunction(plugin_handler):
+..............................................................
+----------------------------------------------------------------------
+Ran 95 tests in 38.508s
+
+OK
