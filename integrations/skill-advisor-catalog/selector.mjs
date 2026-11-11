@@ -1,10 +1,11 @@
+import {readOpenRouterBudgetFailure} from '../hybrid-retrieval/openrouter.mjs';
 import { pickerInput, pickerInstructions, materialize } from './search.mjs';
 
 // The output budget also includes provider reasoning tokens; 400 truncated live JSON.
 export const MAX_OUTPUT_TOKENS = 1200;
 export class SelectorError extends Error {
-  constructor(code, body) {
-    super(code); this.code = code; this.usage = body?.usage; this.actualModel = body?.model;
+  constructor(code, body, httpStatus) {
+    super(code); this.code = code; this.usage = body?.usage; this.actualModel = body?.model; if(Number.isInteger(httpStatus))this.httpStatus=httpStatus;
   }
 }
 
@@ -22,7 +23,7 @@ export async function selectScenarios(retrieval, { model, apiKey, fetchImpl = fe
       messages: [{ role: 'system', content: contract.instructions },
         { role: 'user', content: JSON.stringify(contract.input(retrieval)) }] }),
   });
-  if (!response.ok) throw new SelectorError('provider-http-error');
+  if (!response.ok) { const spend=await readOpenRouterBudgetFailure(response); if(spend)throw new SelectorError(spend.code,undefined,spend.httpStatus);throw new SelectorError('provider-http-error',undefined,response.status); }
   const body = await response.json();
   if (body.choices?.[0]?.finish_reason !== 'stop') throw new SelectorError('incomplete-completion', body);
   const content = body.choices[0].message?.content;
