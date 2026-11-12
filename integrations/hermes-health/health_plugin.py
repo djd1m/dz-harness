@@ -264,6 +264,10 @@ class HealthTools:
         from .intake_confirm import prepare
         return prepare(self, args)
 
+    def pdf_draft(self, args):
+        from .pdf_draft import draft
+        return draft(self, args)
+
     def call(self, operation, args):
         try:
             if not isinstance(args, dict):
