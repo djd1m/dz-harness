@@ -1,0 +1,6 @@
+{"actual_export_verifier": "PASS", "copied_path": "PASS", "input_unchanged": true, "core_old_identity_refuses": true, "executable": false}
+.
+----------------------------------------------------------------------
+Ran 1 test in 4.653s
+
+OK
