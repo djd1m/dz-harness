@@ -1,0 +1,258 @@
+{
+  "schema": "dz-scenario-acceptance-questions/1",
+  "frozenAt": "2026-11-09T22:35:56.024456+00:00",
+  "authoredBeforeFutureImplementation": true,
+  "scope": "24 разработческих случая для утверждённого 8-часового плана. Автор знает текущий каталог и предыдущие пилоты; статистически независимый публичный benchmark не заявляется. Будущие изменения реализации не читались. Три пары уточнений считаются связанными случаями, не независимыми наблюдениями.",
+  "scoringNotes": "acceptableScenarioSets проверяются как точные множества. expectedMissingParts — минимальные смысловые обязательства: допускаются иные точные подстроки исходного query, если они однозначно обозначают тот же непокрытый результат и не включают покрытые обязательства. Точное копирование само по себе не доказывает непокрытость. clarificationTarget задаёт полезный следующий вопрос по имеющемуся контексту.",
+  "cases": [
+    {
+      "id": "h01",
+      "query": "Подготовь порядок добавления обязательного поля customer_id в большую таблицу, включая заполнение старых строк и откат. Сейчас нужен документ для согласования.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "devops-database-migration"
+        ]
+      ]
+    },
+    {
+      "id": "h02",
+      "query": "Добавь обязательное поле customer_id в рабочую таблицу и заполни старые строки; предварительно подготовь порядок действий и откат.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "devops-database-migration"
+        ]
+      ],
+      "expectedMissingParts": [
+        "Добавь обязательное поле customer_id в рабочую таблицу",
+        "заполни старые строки"
+      ]
+    },
+    {
+      "id": "h03",
+      "query": "Сравни варианты сигналов надёжности для сервиса уведомлений и подготовь проект панелей и порогов оповещения.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "devops-observability"
+        ]
+      ]
+    },
+    {
+      "id": "h04",
+      "query": "Внедри сбор метрик в сервис уведомлений и включи оповещения дежурному; сначала предложи проект сигналов.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "devops-observability"
+        ]
+      ],
+      "expectedMissingParts": [
+        "Внедри сбор метрик в сервис уведомлений",
+        "включи оповещения дежурному"
+      ]
+    },
+    {
+      "id": "h05",
+      "query": "Найди в подключённом Gmail переписку с арендодателем за сентябрь и открой содержание последнего сообщения.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "mcp-gmail-search"
+        ]
+      ]
+    },
+    {
+      "id": "h06",
+      "query": "Найди в Gmail переписку с арендодателем и отправь ему ответ с подтверждением даты встречи.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "mcp-gmail-search"
+        ]
+      ],
+      "expectedMissingParts": [
+        "отправь ему ответ с подтверждением даты встречи"
+      ]
+    },
+    {
+      "id": "h07",
+      "query": "По отчёту покрытия выбери самые рискованные непроверенные функции авторизации и объясни очередность добавления тестов.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "qe-coverage-gaps"
+        ]
+      ]
+    },
+    {
+      "id": "h08",
+      "query": "Исследуй, почему уведомления иногда приходят дважды. Нужен документ с воспроизведением и доказательствами; исправлять сейчас нельзя.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "reasoning-diagnose"
+        ]
+      ]
+    },
+    {
+      "id": "h09",
+      "query": "Уже договорились вынести обработку изображений в отдельную очередь. Зафиксируй основания и последствия этого архитектурного решения.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-capture-adr"
+        ]
+      ]
+    },
+    {
+      "id": "h10",
+      "query": "Есть список готовых задач, отпуска и данные прошлых итераций. Выбери объём на десять рабочих дней с резервом и зависимостями.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "pm-sprint-plan"
+        ]
+      ]
+    },
+    {
+      "id": "h11",
+      "query": "Проанализируй результат эксперимента с новым тарифом: размер выборки, эффект, защитные метрики и решение продолжать или остановить.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "pm-ab-test-analysis"
+        ]
+      ]
+    },
+    {
+      "id": "h12",
+      "query": "Собери обзор изменений в облачной инфраструктуре за август с источниками, а затем опубликуй его в нашей корпоративной рассылке.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "news-period-digest"
+        ]
+      ],
+      "expectedMissingParts": [
+        "опубликуй его в нашей корпоративной рассылке"
+      ]
+    },
+    {
+      "id": "h13",
+      "query": "Подготовь презентацию для внутреннего обучения с речью докладчика, а затем переведи речь в аудиофайл.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "presentation-speaker"
+        ]
+      ],
+      "expectedMissingParts": [
+        "переведи речь в аудиофайл"
+      ]
+    },
+    {
+      "id": "h14",
+      "query": "Сделай интерактивный курс по нашей CLI-библиотеке и подключи выгрузку персональных результатов в кадровую систему.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "tutorial-create"
+        ]
+      ],
+      "expectedMissingParts": [
+        "подключи выгрузку персональных результатов в кадровую систему"
+      ]
+    },
+    {
+      "id": "h15",
+      "query": "Воспроизведи интерфейс нашей страницы из браузера и подключи настоящую авторизацию пользователей. Каркас Next.js и браузерная автоматизация готовы.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "website-clone-page"
+        ]
+      ],
+      "expectedMissingParts": [
+        "подключи настоящую авторизацию пользователей"
+      ]
+    },
+    {
+      "id": "h16",
+      "query": "Помоги с письмами.",
+      "expectedDecision": "clarify",
+      "acceptableScenarioSets": [],
+      "clarificationTarget": "outcome"
+    },
+    {
+      "id": "h17",
+      "query": "Помоги с письмами.\nУточнение: найди в Gmail последнее письмо от организатора конференции и покажи его содержание.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "mcp-gmail-search"
+        ]
+      ],
+      "followsCaseId": "h16",
+      "followup": "найди в Gmail последнее письмо от организатора конференции и покажи его содержание."
+    },
+    {
+      "id": "h18",
+      "query": "Нужна проверка нашего продукта.",
+      "expectedDecision": "clarify",
+      "acceptableScenarioSets": [],
+      "clarificationTarget": "outcome"
+    },
+    {
+      "id": "h19",
+      "query": "Нужна проверка нашего продукта.\nУточнение: проанализируй отчёт покрытия кода и составь порядок проверки непокрытых ветвей с учётом риска.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "qe-coverage-gaps"
+        ]
+      ],
+      "followsCaseId": "h18",
+      "followup": "проанализируй отчёт покрытия кода и составь порядок проверки непокрытых ветвей с учётом риска."
+    },
+    {
+      "id": "h20",
+      "query": "Хочу подготовить материалы.",
+      "expectedDecision": "clarify",
+      "acceptableScenarioSets": [],
+      "clarificationTarget": "outcome"
+    },
+    {
+      "id": "h21",
+      "query": "Хочу подготовить материалы.\nУточнение: нужен интерактивный учебный сайт с заданиями по документации одного нашего программного пакета.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "tutorial-create"
+        ]
+      ],
+      "followsCaseId": "h20",
+      "followup": "нужен интерактивный учебный сайт с заданиями по документации одного нашего программного пакета."
+    },
+    {
+      "id": "h22",
+      "query": "Рассчитай траекторию резца и подготовь управляющую программу для пятиосевого станка по этой детали.",
+      "expectedDecision": "no-match",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "h23",
+      "query": "Составь схему вязания кардигана по меркам и выбранной пряже.",
+      "expectedDecision": "no-match",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "h24",
+      "query": "Помоги выбрать инструмент для этого.",
+      "expectedDecision": "clarify",
+      "acceptableScenarioSets": [],
+      "clarificationTarget": "target"
+    }
+  ]
+}

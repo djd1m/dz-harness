@@ -1,0 +1,11 @@
+{
+  "name": "@aicoding/hybrid-retrieval",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {"node": ">=24"},
+  "exports": {".": "./index.mjs", "./service": "./service.mjs", "./openrouter": "./openrouter.mjs"},
+  "files": ["index.mjs", "service.mjs", "openrouter.mjs", "README.md"],
+  "scripts": {"test": "node --test snapshot.test.mjs"},
+  "dependencies": {"@lancedb/lancedb": "0.41.0", "@lancedb/lancedb-linux-x64-gnu": "0.41.0"}
+}

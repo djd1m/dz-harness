@@ -1,0 +1,186 @@
+{
+  "model": "anthropic/claude-haiku-5.5",
+  "reports": [
+    {
+      "id": "feature",
+      "source": "../skill-advisor-opencode/runtime-comparison/claude-smoke.json",
+      "scope": "Historical candidate subset; fresh stateless gateway roles, not native runtime or live catalog integration",
+      "result": {
+        "ok": false,
+        "error": "advice_team_failed",
+        "stage": "review"
+      },
+      "trace": [
+        {
+          "role": "selector",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 11591,
+          "usage": {
+            "prompt_tokens": 30012,
+            "completion_tokens": 2123,
+            "total_tokens": 32135,
+            "cost": 0.004022073,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0040627,
+              "upstream_inference_prompt_cost": 0.0030012,
+              "upstream_inference_completions_cost": 0.0010615
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1569,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Провести новую возможность в действующем приложении от требований через архитектурное решение до проверок и выбрать, какой навык использовать первым.",
+            "recommendations": [
+              {
+                "name": "feature-adr",
+                "type": "skill",
+                "fit": "high",
+                "why": "Источник описывает конвейер разработки фичи: требования (шаг 1), ADR с проверкой тестируемости (шаг 3), план (шаг 6), код (шаг 7), QE и ревью (шаг 8) и для L/XL флот QE (шаг 9). Его Complexity Router подбирает набор шагов под размер задачи. Для существующего приложения подходит, так как работа начинается с требований. Режим agentic-qe требует установки aqe; без неё доступен справочный режим, который описан в источнике."
+              },
+              {
+                "name": "explore",
+                "type": "skill",
+                "fit": "medium",
+                "why": "Источник описывает уточнение расплывчатых запросов через вопросы и итоговое техническое задание без предложения решений. Используйте его перед feature-adr, если требования к новой возможности неясны. Если требования уже сформулированы, шаг 1 feature-adr покрывает эту задачу, и explore не нужен."
+              }
+            ],
+            "gaps": [
+              "Снимок реестра не содержит поля type; тип skill взят из frontmatter источника, и хост должен проверить его по актуальному реестру.",
+              "Источник feature-adr дан фрагментом, поэтому детали шагов 8 и 9 и файлы agentic-qe не проверены полностью."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "source": "../skill-advisor-opencode/runtime-comparison/claude-smoke.json",
+      "scope": "Historical candidate subset; fresh stateless gateway roles, not native runtime or live catalog integration",
+      "result": {
+        "ok": false,
+        "error": "advice_team_failed",
+        "stage": "review"
+      },
+      "trace": [
+        {
+          "role": "selector",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 12520,
+          "usage": {
+            "prompt_tokens": 24383,
+            "completion_tokens": 2323,
+            "total_tokens": 26706,
+            "cost": 0.003563802,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0035998,
+              "upstream_inference_prompt_cost": 0.0024383,
+              "upstream_inference_completions_cost": 0.0011615
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1917,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Исследовать GitHub-проекты и сохранять проверяемые ссылки на источники.",
+            "recommendations": [
+              {
+                "name": "goap-research-ed25519",
+                "type": "skill",
+                "fit": "medium",
+                "why": "Подходит для сохранения проверяемых ссылок: каждый факт требует source URL, fetch_source фиксирует реальный HTTP-ответ (класс FETCH_VERIFIED), а report gate отклоняет утверждения без открытия источника. Ограничения из источника: Ed25519 доказывает только неизменность записи, а не истинность; неизвестные домены получают класс D (0.40); для GitHub источник не описан явно; нужны Python и пакет cryptography."
+              }
+            ],
+            "gaps": [
+              "В снимке реестра у записей указан только id, поэтому тип skill и маршрут установки для OpenCode не подтверждены. git-mcp не рекомендован: по своему описанию это MCP-сервер, а не подтверждённый навык.",
+              "Режимы strict и paranoid недостижимы без реальных подписанных источников и ключей эмитентов. Проверка ограничена доставкой байтов и не оценивает качество или достоверность самих GitHub-проектов."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "cloudru",
+      "source": "../skill-advisor-opencode/runtime-comparison/claude-smoke.json",
+      "scope": "Historical candidate subset; fresh stateless gateway roles, not native runtime or live catalog integration",
+      "result": {
+        "ok": false,
+        "error": "advice_team_failed",
+        "stage": "review"
+      },
+      "trace": [
+        {
+          "role": "selector",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 10170,
+          "usage": {
+            "prompt_tokens": 10801,
+            "completion_tokens": 2107,
+            "total_tokens": 12908,
+            "cost": 0.002112264,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0021336,
+              "upstream_inference_prompt_cost": 0.0010801,
+              "upstream_inference_completions_cost": 0.0010535
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1454,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Развернуть приложение из GitHub на Cloud.ru, настроить проверки после развёртывания и сопровождение.",
+            "recommendations": [
+              {
+                "name": "deploy-on-cloudru-vm",
+                "type": "skill",
+                "fit": "high",
+                "why": "Источник описывает полный путь от ссылки на репозиторий до работающего приложения на ВМ Cloud.ru: анализ репозитория, подготовку docker-compose.yml, сбор учётных данных, развёртывание через CLI cloudru-vm, проверку работоспособности и выдачу публичного IP и строки SSH. Пользователь должен предоставить четыре учётные данные Cloud.ru, а CLI нужно установить отдельно (через go install). Покрытие источника неполное (фрагмент)."
+              },
+              {
+                "name": "canary-watch",
+                "type": "skill",
+                "fit": "medium",
+                "why": "Дополняет развёртывание непрерывной проверкой URL: HTTP-статус, ошибки консоли, производительность, статические ресурсы и SSE-потоки, а также режим наблюдения в течение заданного времени. Нужен только если требуется наблюдение после релиза; skill не привязан к Cloud.ru, а шаг verify из deploy-on-cloudru-vm покрывает базовую проверку. Источник также является фрагментом."
+              }
+            ],
+            "pipeline": [
+              "deploy-on-cloudru-vm",
+              "canary-watch"
+            ],
+            "gaps": [
+              "Снимок реестра содержит только идентификаторы; тип skill и установочные данные здесь не подтверждены реестром.",
+              "Для развёртывания нужны четыре учётные данные Cloud.ru, которые пользователь должен предоставить; canary-watch выполняет только проверки URL и не управляет инфраструктурой Cloud.ru."
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

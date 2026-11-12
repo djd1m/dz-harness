@@ -1,0 +1,145 @@
+{
+  "artifact": "packages/skills-meta/skill-advisor/SKILL.md",
+  "sha256": "0ea11b685d15aa2533121f0556620bd93154602e068066e038e57e5065838e51",
+  "method": "Deterministic measurement of own work, not independent judgment. BTO modules/benchmark.md and references/golden-samples.md skill entry.",
+  "preconditions": {
+    "artifact_readable": true,
+    "golden_skill_entry": true,
+    "dz_version": "0.8.49",
+    "dz_list": {
+      "exit": 0,
+      "skill_count": 21,
+      "skill_present": true
+    },
+    "dz_info": {
+      "exit": 0,
+      "skill_present": true
+    },
+    "B2": "not measured here; separate Haiku probes by coordinator"
+  },
+  "B0": {
+    "applicability": "Golden sample counts seven required items while stating only ## headings are parsed; title and blockquote are not ## headings. Module detail is required by sample but this skill uses a reference-based protocol, not multiple modules. Report observed matches and no synthetic aggregate.",
+    "required_items": {
+      "title": true,
+      "blockquote": true,
+      "overview": true,
+      "quick_start": true,
+      "module_detail_heading": false,
+      "anti_patterns": true,
+      "dependencies": true
+    },
+    "heading_matches": [
+      "Overview",
+      "Quick Start",
+      "Dependencies",
+      "Anti-Patterns"
+    ],
+    "heading_coverage": "4/5 required ##-based sample entries; module detail absent",
+    "ordering": {
+      "inversions": 1,
+      "maximum": 6,
+      "score": 0.8333333333333334
+    },
+    "proportion": {
+      "denominator": "all SKILL.md characters including frontmatter",
+      "section_characters": {
+        "Overview": 795,
+        "Quick Start": 255,
+        "Procedure": 1649,
+        "Output and installation": 1750,
+        "Dependencies": 673,
+        "Anti-Patterns": 542
+      },
+      "matched_deviations": {
+        "Overview": 0,
+        "Quick Start": 0,
+        "Anti-Patterns": 0,
+        "Dependencies": 0.050223380491437083
+      },
+      "score": 0.9874441548771408
+    },
+    "golden_similarity": null,
+    "deviations": [
+      "No modules/ directory: protocol uses references/team-protocol.md.",
+      "Quick Start contains inline invocation rather than a code block."
+    ]
+  },
+  "B1": {
+    "tests": {
+      "SK0": "PASS: frontmatter fence, name and description",
+      "SK1": "PASS: Quick Start invocation",
+      "SK2": "PASS: Detection/Fix table, four rows",
+      "SK3": "PASS: no module references or modules directory (vacuous integrity)",
+      "SK4": "PASS: Output and installation plus linked schema",
+      "SK5": "PASS: examples/first-set.md 741 bytes"
+    },
+    "passed": 6,
+    "executed": 6,
+    "inconclusive": 0,
+    "pass_rate": 1.0
+  },
+  "B2": {
+    "status": "not run in this measurement"
+  },
+  "B3": {
+    "method": "SKILL.md only; formatting approximation counts heading/list prefixes and table pipes; density approximates multi-word headings and bold phrases; repeated five-word windows are a lower-bound proxy and do not apply local weighting. No combined performance score because methodology is underspecified.",
+    "bytes": 6766,
+    "characters": 6715,
+    "section_sizes_chars": {
+      "Overview": 795,
+      "Quick Start": 255,
+      "Procedure": 1649,
+      "Output and installation": 1750,
+      "Dependencies": 673,
+      "Anti-Patterns": 542
+    },
+    "formatting_chars_approx": 58,
+    "content_chars_approx": 6657,
+    "token_efficiency_proxy": 0.9913626209977662,
+    "multiword_heading_and_bold_concepts_proxy": [
+      "a rationale relies on a keyword or excerpt silence",
+      "a repair expands into an exhaustive audit",
+      "a shortlist or pipeline includes redundant or unselected items",
+      "a structural check or self-check is called independent approval",
+      "output and installation",
+      "quick start"
+    ],
+    "density_proxy": 0.3333333333333333,
+    "mean_section_chars": 944.0,
+    "bloat_sections": [],
+    "bloat_ratio": 0.0,
+    "repeated_five_word_windows_at_least_three": {
+      "the team protocol references team-protocol": 3,
+      "team protocol references team-protocol md": 3
+    },
+    "redundancy_score": null,
+    "performance_score": null
+  },
+  "tests": {
+    "command": "node --test packages/skills-meta/skill-advisor/evals/*.test.mjs",
+    "exit": 0,
+    "passed": 34,
+    "failed": 0
+  },
+  "overall_benchmark_score": null,
+  "overall_reason": "B2 separate and B0/B3 aggregate formulas have ambiguous applicability/approximations; no fabricated composite.",
+  "optimization": {
+    "trigger": "Initial live role probes produced fit primary/complement and prose pipeline incompatible with schema.",
+    "change": "Output guidance now requires reading schema, high|medium|low fit and pipeline array of exact recommended IDs; adapter instructions and abort semantics clarified.",
+    "measurement": "This report measures the updated artifact; live probes are reported separately."
+  },
+  "npm_pack_dry_run": {
+    "exit": 0,
+    "package": "@dzhechkov/skills-meta@0.9.75",
+    "required_files": {
+      "skill-advisor/SKILL.md": true,
+      "skill-advisor/references/team-protocol.md": true,
+      "skill-advisor/examples/first-set.md": true,
+      "skill-advisor/scripts/run-advice-team.mjs": true,
+      "skill-advisor/scripts/check-advice-review.mjs": true,
+      "skill-advisor/scripts/check-opencode-advice.mjs": true,
+      "skill-advisor/schemas/output.json": true
+    },
+    "published": false
+  }
+}

@@ -1,0 +1,301 @@
+{
+  "scope": "Deterministic host-only replay, no new model calls. forcedPartial=true identifies original recommend choice before host downgrade. Other choices unchanged.",
+  "originalSha256": "decf4a760e9970f9919562d78f04be51e9789f011c64b1a3bdd404e97fbbc075",
+  "answerCodeSha256": "d382efce7379763498f1957206fb0a0542ed54c95e03e444f20da7b2cedb0052",
+  "rows": [
+    {
+      "id": "a01",
+      "decision": "partial",
+      "scenarioIds": [
+        "devops-database-migration"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Помогает спланировать изменение схемы, откат, тестирование и последовательность развёртывания.",
+                "boundary": "Сценарий охватывает планирование, а не выполнение миграции; отсутствие простоя и потери данных не гарантируется.",
+                "nextAction": "Опишите текущую схему, изменение и используемый стек."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+          }
+        ]
+      }
+    },
+    {
+      "id": "a02",
+      "decision": "recommend",
+      "scenarioIds": [
+        "devops-observability"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Помогает спроектировать метрики, логи, трассировку, дашборды, SLO и оповещения.",
+                "boundary": "Сценарий охватывает проектирование, а не внедрение; набор инструментов зависит от системы.",
+                "nextAction": "Опишите сервисы, имеющиеся сигналы и цели надёжности."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+          }
+        ]
+      }
+    },
+    {
+      "id": "a03",
+      "decision": "partial",
+      "scenarioIds": [
+        "devops-database-migration"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Помогает спланировать изменение схемы, откат, тестирование и последовательность развёртывания.",
+                "boundary": "Сценарий охватывает планирование, а не выполнение миграции; отсутствие простоя и потери данных не гарантируется.",
+                "nextAction": "Опишите текущую схему, изменение и используемый стек."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+          }
+        ]
+      }
+    },
+    {
+      "id": "a04",
+      "decision": "partial",
+      "scenarioIds": [
+        "devops-observability"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Помогает спроектировать метрики, логи, трассировку, дашборды, SLO и оповещения.",
+                "boundary": "Сценарий охватывает проектирование, а не внедрение; набор инструментов зависит от системы.",
+                "nextAction": "Опишите сервисы, имеющиеся сигналы и цели надёжности."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+          }
+        ]
+      }
+    },
+    {
+      "id": "a05",
+      "decision": "partial",
+      "scenarioIds": [
+        "presentation-speaker"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-presentation-storyteller",
+            "scenarios": [
+              {
+                "summary": "Описывает подготовку содержания слайдов, связной речи и индекса источников в Markdown.",
+                "boundary": "Текст речи должен соответствовать слайдам и хронометражу.",
+                "nextAction": "Предоставьте тему, аудиторию и желаемую длительность."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/presentation-storyteller/"
+          }
+        ]
+      }
+    },
+    {
+      "id": "a06",
+      "decision": "partial",
+      "scenarioIds": [
+        "tutorial-create"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-tutorial-factory",
+            "scenarios": [
+              {
+                "summary": "Описывает создание учебного сайта по пакету с упражнениями и проверкой знаний.",
+                "boundary": "При недостатке учебного материала процесс должен остановиться; форматы различаются по интерактивности.",
+                "nextAction": "Укажите пакет и желаемый формат курса."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/tutorial-factory/"
+          }
+        ]
+      }
+    },
+    {
+      "id": "a07",
+      "decision": "recommend",
+      "scenarioIds": [
+        "mcp-gmail-search"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-mcp",
+            "scenarios": [
+              {
+                "summary": "Описывает поиск и чтение писем Gmail через MCP; нужны gogcli и авторизация Gmail.",
+                "boundary": "Сценарий ограничен поиском и чтением писем; изменение меток и другие операции не входят в него.",
+                "nextAction": "Укажите критерии поиска писем."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-mcp/"
+          }
+        ]
+      }
+    },
+    {
+      "id": "a08",
+      "decision": "partial",
+      "scenarioIds": [
+        "mcp-gmail-search"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-mcp",
+            "scenarios": [
+              {
+                "summary": "Описывает поиск и чтение писем Gmail через MCP; нужны gogcli и авторизация Gmail.",
+                "boundary": "Сценарий ограничен поиском и чтением писем; изменение меток и другие операции не входят в него.",
+                "nextAction": "Укажите критерии поиска писем."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-mcp/"
+          }
+        ]
+      }
+    },
+    {
+      "id": "a09",
+      "decision": "recommend",
+      "scenarioIds": [
+        "pm-sprint-plan"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-pm",
+            "scenarios": [
+              {
+                "summary": "Помогает составить план спринта с целью, ёмкостью, задачами, зависимостями и рисками.",
+                "boundary": "Оценка зависит от данных о доступности и скорости команды.",
+                "nextAction": "Предоставьте приоритетный бэклог и данные команды."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-pm/"
+          }
+        ]
+      }
+    },
+    {
+      "id": "a10",
+      "decision": "clarify",
+      "scenarioIds": [],
+      "answer": {
+        "decision": "clarify",
+        "lead": "Какой результат вам нужен: подготовить план, выполнить изменения, разобраться в вопросе или получить учебные материалы?",
+        "items": []
+      }
+    },
+    {
+      "id": "a11",
+      "decision": "clarify",
+      "scenarioIds": [],
+      "answer": {
+        "decision": "clarify",
+        "lead": "Какой результат вам нужен: подготовить план, выполнить изменения, разобраться в вопросе или получить учебные материалы?",
+        "items": []
+      }
+    },
+    {
+      "id": "a12",
+      "decision": "no-match",
+      "scenarioIds": [],
+      "answer": {
+        "decision": "no-match",
+        "lead": "Среди найденных сценариев подходящего пока нет. Можно уточнить задачу или расширить поиск.",
+        "items": []
+      }
+    },
+    {
+      "id": "q03",
+      "decision": "partial",
+      "scenarioIds": [
+        "devops-database-migration"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Помогает спланировать изменение схемы, откат, тестирование и последовательность развёртывания.",
+                "boundary": "Сценарий охватывает планирование, а не выполнение миграции; отсутствие простоя и потери данных не гарантируется.",
+                "nextAction": "Опишите текущую схему, изменение и используемый стек."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+          }
+        ]
+      }
+    },
+    {
+      "id": "q04",
+      "decision": "partial",
+      "scenarioIds": [
+        "devops-observability"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Помогает спроектировать метрики, логи, трассировку, дашборды, SLO и оповещения.",
+                "boundary": "Сценарий охватывает проектирование, а не внедрение; набор инструментов зависит от системы.",
+                "nextAction": "Опишите сервисы, имеющиеся сигналы и цели надёжности."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+          }
+        ]
+      }
+    }
+  ]
+}

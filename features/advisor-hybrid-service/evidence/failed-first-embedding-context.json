@@ -1,0 +1,22 @@
+{
+  "identity": {
+    "revision": "9ab051f6be0f6ad8d465f2258ce2171b3e06ce6a1a8546341bd4f12bacfe7bd0",
+    "model": "baai/bge-m3",
+    "dimensions": 1024,
+    "lexicalizerId": "dz-ru-en-stems-v1"
+  },
+  "model": "anthropic/claude-haiku-5.5",
+  "promptSha256": "121b6774c3a08ecc5ffbb330cc4c9477709b04cfea0ee1f3f8e2bcc234cec9f8",
+  "questionsSha256": "9a5ca24804e5fbe1a1cad00a1cbe683b9352d3d0e632ec18afbdfdfbcc6bc33b",
+  "source": "Historical64 regression + frozen12 new development phrases; two extra known x38 repeats; no independent population claim",
+  "rates": {
+    "input": 1e-7,
+    "output": 5e-7
+  },
+  "code": {
+    "hybrid-advisor.mjs": "91d60d60b85744aaf427972f7b5c8a23bf028fd2a3568df58ae3d61cc7592259",
+    "dialogue.mjs": "d2da4f024a4d22042564273ca4fbbe17963c3294db38b46a9649960c324e3a6f",
+    "selector.mjs": "0bbac23027e551eee069b302644b11b2e1f140acb2ecfbb7c4c96a5cc203c63b",
+    "preview-server.mjs": "7c8b9addca69f81c108e9e17ea77dcf51f27e83c700a793770d43562d8a74097"
+  }
+}

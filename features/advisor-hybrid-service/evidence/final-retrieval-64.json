@@ -1,0 +1,716 @@
+{
+  "identity": {
+    "revision": "9ab051f6be0f6ad8d465f2258ce2171b3e06ce6a1a8546341bd4f12bacfe7bd0",
+    "model": "baai/bge-m3",
+    "dimensions": 1024,
+    "lexicalizerId": "dz-ru-en-stems-v1"
+  },
+  "complete": 54,
+  "labelled": 54,
+  "rows": [
+    {
+      "id": "x01",
+      "ids": [
+        "devops-observability",
+        "qe-chaos-latency",
+        "devops-github-actions",
+        "meta-explore-product",
+        "reverse-cjm"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x02",
+      "ids": [
+        "meta-feature-adr",
+        "qe-generate-tests",
+        "reverse-cjm",
+        "meta-explore-product",
+        "pm-feature-priority"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x03",
+      "ids": [
+        "devops-cloudru-deploy",
+        "mcp-git-research",
+        "website-clone-page",
+        "tutorial-check",
+        "website-clone-multiple"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x04",
+      "ids": [
+        "devops-github-actions",
+        "mcp-git-research",
+        "news-monitor-delta",
+        "devops-cloudru-deploy",
+        "reverse-business"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x05",
+      "ids": [
+        "mcp-git-research",
+        "reverse-cjm",
+        "news-monitor-delta",
+        "mcp-gmail-search",
+        "reasoning-agents-md"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x06",
+      "ids": [
+        "mcp-context7-docs",
+        "bto-evaluate",
+        "meta-knowledge-harvest",
+        "mcp-gmail-search",
+        "news-monitor-delta"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x07",
+      "ids": [
+        "qe-generate-tests",
+        "news-monitor-delta",
+        "qe-chaos-latency",
+        "devops-observability",
+        "tutorial-check"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x08",
+      "ids": [
+        "qe-coverage-gaps",
+        "qe-chaos-latency",
+        "reasoning-diagnose",
+        "meta-knowledge-harvest",
+        "qe-generate-tests"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x09",
+      "ids": [
+        "news-monitor-delta",
+        "news-period-digest",
+        "mcp-context7-docs",
+        "tutorial-create",
+        "qe-chaos-latency"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x10",
+      "ids": [
+        "news-monitor-delta",
+        "qe-generate-tests",
+        "mcp-gmail-search",
+        "reasoning-diagnose",
+        "bto-evaluate"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x11",
+      "ids": [
+        "pm-feature-priority",
+        "pm-sprint-plan",
+        "meta-explore-product",
+        "meta-feature-adr",
+        "bto-build"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x12",
+      "ids": [
+        "pm-feature-priority",
+        "meta-explore-product",
+        "pm-sprint-plan",
+        "bto-build",
+        "reverse-cjm"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x13",
+      "ids": [
+        "bto-build",
+        "bto-evaluate",
+        "devops-database-migration",
+        "meta-knowledge-harvest",
+        "reasoning-agents-md"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x14",
+      "ids": [
+        "bto-evaluate",
+        "pm-ab-test-analysis",
+        "tutorial-check",
+        "meta-capture-adr",
+        "meta-knowledge-harvest"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x15",
+      "ids": [
+        "reasoning-diagnose",
+        "reverse-cjm",
+        "website-clone-multiple",
+        "news-monitor-delta",
+        "pm-feature-priority"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x16",
+      "ids": [
+        "reasoning-refactor",
+        "qe-generate-tests",
+        "tutorial-create",
+        "qe-chaos-latency",
+        "website-clone-multiple"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x17",
+      "ids": [
+        "reverse-business",
+        "reverse-cjm",
+        "news-period-digest",
+        "qe-coverage-gaps",
+        "presentation-sales"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x18",
+      "ids": [
+        "reverse-cjm",
+        "pm-feature-priority",
+        "website-clone-page",
+        "mcp-gmail-search",
+        "website-clone-multiple"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x19",
+      "ids": [
+        "tutorial-create",
+        "mcp-context7-docs",
+        "bto-build",
+        "qe-coverage-gaps",
+        "website-clone-multiple"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x20",
+      "ids": [
+        "tutorial-check",
+        "tutorial-create",
+        "meta-capture-adr",
+        "bto-evaluate",
+        "website-clone-multiple"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x21",
+      "ids": [
+        "website-clone-page",
+        "website-clone-multiple",
+        "qe-generate-tests",
+        "tutorial-create",
+        "presentation-speaker"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x22",
+      "ids": [
+        "website-clone-multiple",
+        "website-clone-page",
+        "reverse-cjm",
+        "tutorial-create",
+        "pm-ab-test-analysis"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x23",
+      "ids": [
+        "presentation-sales",
+        "presentation-speaker",
+        "news-period-digest",
+        "meta-explore-product",
+        "pm-ab-test-analysis"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x24",
+      "ids": [
+        "presentation-speaker",
+        "presentation-sales",
+        "news-period-digest",
+        "pm-sprint-plan",
+        "website-clone-multiple"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x25",
+      "ids": [
+        "meta-capture-adr",
+        "pm-ab-test-analysis",
+        "reasoning-diagnose",
+        "reverse-cjm",
+        "news-monitor-delta"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x26",
+      "ids": [
+        "meta-knowledge-harvest",
+        "news-monitor-delta",
+        "bto-evaluate",
+        "bto-build",
+        "website-clone-multiple"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x27",
+      "ids": [
+        "devops-database-migration",
+        "pm-sprint-plan",
+        "meta-explore-product",
+        "reasoning-diagnose",
+        "news-monitor-delta"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x28",
+      "ids": [
+        "devops-observability",
+        "news-monitor-delta",
+        "news-period-digest",
+        "mcp-context7-docs",
+        "qe-chaos-latency"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x29",
+      "ids": [
+        "mcp-gmail-search",
+        "news-monitor-delta",
+        "mcp-context7-docs",
+        "meta-feature-adr",
+        "reverse-cjm"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x30",
+      "ids": [
+        "qe-chaos-latency",
+        "devops-observability",
+        "qe-coverage-gaps",
+        "reasoning-diagnose",
+        "pm-ab-test-analysis"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x31",
+      "ids": [
+        "pm-ab-test-analysis",
+        "reverse-cjm",
+        "reasoning-refactor",
+        "bto-evaluate",
+        "website-clone-page"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x32",
+      "ids": [
+        "reasoning-agents-md",
+        "bto-build",
+        "reasoning-refactor",
+        "reverse-cjm",
+        "website-clone-multiple"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x33",
+      "ids": [
+        "pm-ab-test-analysis",
+        "reasoning-diagnose",
+        "bto-build",
+        "website-clone-multiple",
+        "news-monitor-delta"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x34",
+      "ids": [
+        "pm-ab-test-analysis",
+        "pm-sprint-plan",
+        "pm-feature-priority",
+        "meta-explore-product",
+        "meta-knowledge-harvest"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x35",
+      "ids": [
+        "tutorial-create",
+        "pm-ab-test-analysis",
+        "meta-knowledge-harvest",
+        "bto-build",
+        "bto-evaluate"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x36",
+      "ids": [
+        "mcp-gmail-search",
+        "news-monitor-delta",
+        "devops-cloudru-deploy",
+        "reverse-cjm",
+        "devops-github-actions"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x37",
+      "ids": [
+        "devops-observability",
+        "mcp-context7-docs",
+        "meta-feature-adr",
+        "reasoning-agents-md",
+        "reasoning-diagnose"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x38",
+      "ids": [
+        "pm-ab-test-analysis",
+        "pm-feature-priority",
+        "meta-capture-adr",
+        "reverse-cjm",
+        "reasoning-diagnose"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x39",
+      "ids": [
+        "qe-coverage-gaps",
+        "reasoning-diagnose",
+        "qe-generate-tests",
+        "pm-ab-test-analysis",
+        "pm-feature-priority"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x40",
+      "ids": [
+        "pm-ab-test-analysis",
+        "qe-chaos-latency",
+        "bto-evaluate",
+        "devops-observability",
+        "reasoning-refactor"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x41",
+      "ids": [
+        "devops-cloudru-deploy",
+        "devops-github-actions",
+        "mcp-git-research",
+        "meta-knowledge-harvest",
+        "reasoning-agents-md"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x42",
+      "ids": [
+        "mcp-context7-docs",
+        "bto-build",
+        "mcp-git-research",
+        "qe-coverage-gaps",
+        "reverse-cjm"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x43",
+      "ids": [
+        "qe-generate-tests",
+        "reasoning-refactor",
+        "meta-knowledge-harvest",
+        "presentation-speaker",
+        "presentation-sales"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x44",
+      "ids": [
+        "bto-build",
+        "meta-capture-adr",
+        "meta-feature-adr",
+        "qe-generate-tests",
+        "meta-knowledge-harvest"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x45",
+      "ids": [
+        "bto-build",
+        "bto-evaluate",
+        "tutorial-create",
+        "meta-knowledge-harvest",
+        "news-monitor-delta"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x46",
+      "ids": [
+        "tutorial-create",
+        "bto-build",
+        "tutorial-check",
+        "meta-explore-product",
+        "website-clone-multiple"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x47",
+      "ids": [
+        "qe-coverage-gaps",
+        "qe-generate-tests",
+        "reasoning-diagnose",
+        "meta-knowledge-harvest",
+        "reasoning-refactor"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x48",
+      "ids": [
+        "pm-feature-priority",
+        "pm-sprint-plan",
+        "qe-coverage-gaps",
+        "reverse-cjm",
+        "meta-feature-adr"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x49",
+      "ids": [
+        "meta-capture-adr",
+        "reasoning-agents-md",
+        "devops-observability",
+        "meta-feature-adr",
+        "website-clone-multiple"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x50",
+      "ids": [
+        "mcp-gmail-search",
+        "meta-explore-product",
+        "pm-feature-priority",
+        "website-clone-multiple",
+        "meta-knowledge-harvest"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x51",
+      "ids": [
+        "mcp-gmail-search",
+        "mcp-context7-docs",
+        "website-clone-page",
+        "mcp-git-research",
+        "website-clone-multiple"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x52",
+      "ids": [
+        "devops-database-migration",
+        "pm-sprint-plan",
+        "news-period-digest",
+        "devops-cloudru-deploy",
+        "mcp-context7-docs"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x53",
+      "ids": [
+        "website-clone-page",
+        "website-clone-multiple",
+        "devops-database-migration",
+        "tutorial-create",
+        "presentation-speaker"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x54",
+      "ids": [
+        "mcp-context7-docs",
+        "news-monitor-delta",
+        "mcp-gmail-search",
+        "meta-explore-product",
+        "meta-knowledge-harvest"
+      ],
+      "complete": true
+    },
+    {
+      "id": "x55",
+      "ids": [
+        "devops-cloudru-deploy",
+        "meta-knowledge-harvest",
+        "meta-explore-product",
+        "qe-chaos-latency",
+        "pm-feature-priority"
+      ],
+      "complete": false
+    },
+    {
+      "id": "x56",
+      "ids": [
+        "pm-ab-test-analysis",
+        "reasoning-diagnose",
+        "website-clone-page",
+        "pm-sprint-plan",
+        "meta-explore-product"
+      ],
+      "complete": false
+    },
+    {
+      "id": "x57",
+      "ids": [
+        "devops-database-migration",
+        "pm-feature-priority",
+        "pm-ab-test-analysis",
+        "website-clone-multiple",
+        "presentation-sales"
+      ],
+      "complete": false
+    },
+    {
+      "id": "x58",
+      "ids": [
+        "meta-explore-product",
+        "pm-sprint-plan",
+        "pm-feature-priority",
+        "qe-chaos-latency",
+        "devops-database-migration"
+      ],
+      "complete": false
+    },
+    {
+      "id": "x59",
+      "ids": [
+        "devops-cloudru-deploy",
+        "meta-explore-product",
+        "reasoning-diagnose",
+        "reasoning-agents-md",
+        "website-clone-page"
+      ],
+      "complete": false
+    },
+    {
+      "id": "x60",
+      "ids": [
+        "reasoning-agents-md",
+        "meta-capture-adr",
+        "mcp-gmail-search",
+        "tutorial-create",
+        "bto-build"
+      ],
+      "complete": false
+    },
+    {
+      "id": "x61",
+      "ids": [
+        "meta-explore-product",
+        "pm-sprint-plan",
+        "website-clone-multiple",
+        "reasoning-diagnose",
+        "reasoning-refactor"
+      ],
+      "complete": false
+    },
+    {
+      "id": "x62",
+      "ids": [
+        "meta-explore-product",
+        "reasoning-diagnose",
+        "pm-feature-priority",
+        "news-monitor-delta",
+        "meta-feature-adr"
+      ],
+      "complete": false
+    },
+    {
+      "id": "x63",
+      "ids": [
+        "tutorial-create",
+        "tutorial-check",
+        "reasoning-agents-md",
+        "website-clone-multiple",
+        "pm-sprint-plan"
+      ],
+      "complete": false
+    },
+    {
+      "id": "x64",
+      "ids": [
+        "news-monitor-delta",
+        "meta-knowledge-harvest",
+        "pm-sprint-plan",
+        "news-period-digest",
+        "bto-evaluate"
+      ],
+      "complete": false
+    }
+  ]
+}

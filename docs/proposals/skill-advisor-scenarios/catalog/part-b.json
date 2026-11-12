@@ -1,0 +1,868 @@
+{
+  "schema": "dz-scenario-catalog/1",
+  "records": [
+    {
+      "id": "bto-build",
+      "package": {
+        "name": "@dzhechkov/skills-bto",
+        "version": "1.4.7",
+        "manifest": "packages/skills-bto/package.json"
+      },
+      "skillIds": [
+        "bto"
+      ],
+      "title": "Создать инструкцию для агента",
+      "queries": [
+        "Создай навык из требований к задаче"
+      ],
+      "intent": "Подготовить навык или команду по требованиям.",
+      "whenToUse": [
+        "Нужно создать артефакт Claude Code."
+      ],
+      "whenNotToUse": [
+        "Нужно только оценить готовый артефакт."
+      ],
+      "outcome": "Предусмотрен артефакт с выбранной структурой, справочными материалами и примером, прошедший самопроверку.",
+      "prerequisites": [
+        "Описание задачи и ожидаемого результата."
+      ],
+      "steps": [
+        "Уточнить тип артефакта, контекст, входы, выходы и критерии качества.",
+        "Выбрать структуру навыка, команды, правила или шаблона агента.",
+        "Сгенерировать артефакт со справкой и примером; проверить полноту и ссылки."
+      ],
+      "limitations": [
+        "Документ описывает процесс, а не подтверждает качество конкретного результата."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-bto/package.json",
+          "sha256": "8deefed20a66b5f8025a217c28adc789004b7691b7214d157342e13fd0094d3b"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "sha256": "cc15a07922126226776d4c48446b3d75fa8caaf16949389f448f42c9787207cb"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Generate skill/command from requirements"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Check against quality checklist (Layer 0)"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Input/output expectations"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Include at least one reference and one example"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "bto-evaluate",
+      "package": {
+        "name": "@dzhechkov/skills-bto",
+        "version": "1.4.7",
+        "manifest": "packages/skills-bto/package.json"
+      },
+      "skillIds": [
+        "bto"
+      ],
+      "title": "Оценить готовый навык",
+      "queries": [
+        "Проверь готовый навык по эталонным примерам"
+      ],
+      "intent": "Сравнить артефакт с эталонами и оценить его.",
+      "whenToUse": [
+        "Есть существующий артефакт и эталонные примеры."
+      ],
+      "whenNotToUse": [
+        "Нужно лишь создать новый артефакт по описанию."
+      ],
+      "outcome": "Предусмотрены сравнение структуры с эталонами и отчёт коллегии с оценками и предложениями по улучшению.",
+      "prerequisites": [
+        "Путь к артефакту, эталонные примеры и среда с доступными моделями и многоагентным запуском."
+      ],
+      "steps": [
+        "Проверить доступность этапов; сравнить разделы, порядок и глубину с эталонами.",
+        "При разрешающем результате benchmark передать его контекст коллегии судей.",
+        "При BLOCK исправить недостатки; при ABORT или INCONCLUSIVE сообщить о незавершённой оценке."
+      ],
+      "limitations": [
+        "При BLOCK переход к TEST запрещён; недоступный обязательный этап отмечается INCONCLUSIVE и не считается пройденным."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-bto/package.json",
+          "sha256": "8deefed20a66b5f8025a217c28adc789004b7691b7214d157342e13fd0094d3b"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "sha256": "cc15a07922126226776d4c48446b3d75fa8caaf16949389f448f42c9787207cb"
+        },
+        {
+          "path": "packages/skills-bto/README.md",
+          "sha256": "418b01d2dd1391d4bb7d2d93580fd0f58346f7828f039e95023088f83132f491"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Deterministic benchmarking against golden samples"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Multi-agent evaluation with judge panel"
+        },
+        {
+          "path": "packages/skills-bto/README.md",
+          "quote": "| Any layer INCONCLUSIVE | **INCONCLUSIVE** — not a pass and not a failure; TEST is not entered |"
+        },
+        {
+          "path": "packages/skills-bto/README.md",
+          "quote": "| **B2** | Minimal (3× haiku) | Consistency probe — 3 parallel agents, agreement measurement |"
+        },
+        {
+          "path": "packages/skills-bto/README.md",
+          "quote": "| B-1 returned ABORT | **ABORT** — no score is emitted at all |"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "| < 0.50 | BLOCK — Do not proceed to TEST. Fix structural issues first. |"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Structural similarity score (section presence, ordering, depth)"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Provide: score per dimension, brief justification, top 3 improvement suggestions."
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "reasoning-diagnose",
+      "package": {
+        "name": "@dzhechkov/skills-reasoning",
+        "version": "0.1.6",
+        "manifest": "packages/skills-reasoning/package.json"
+      },
+      "skillIds": [
+        "investigate"
+      ],
+      "title": "Исследовать причину сбоя",
+      "queries": [
+        "Разберись почему запрос возвращает ошибку, пока ничего не исправляй"
+      ],
+      "intent": "Выяснить причину и собрать доказательства.",
+      "whenToUse": [
+        "Нужна диагностика без изменений кода."
+      ],
+      "whenNotToUse": [
+        "Требуется сразу внести исправление."
+      ],
+      "outcome": "Диагноз описывает симптом, причину, доказательства, путь данных и затронутую область без изменения кода.",
+      "prerequisites": [
+        "Симптом, ожидаемое поведение и доступные логи."
+      ],
+      "steps": [
+        "Собрать наблюдения, ожидаемое поведение и логи; попытаться воспроизвести сбой.",
+        "Проследить данные через границы компонентов от симптома к первопричине.",
+        "Описать доказательства, сопутствующие факторы и возможную область влияния."
+      ],
+      "limitations": [
+        "Воспроизведение может не удаться; попытки и причину следует записать."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-reasoning/package.json",
+          "sha256": "5991fca16c6b4bd12cbe0472d20020ec5e65a7d4b15416ec186568c9587d7f93"
+        },
+        {
+          "path": "packages/skills-reasoning/investigate/SKILL.md",
+          "sha256": "db7432a23ba94a34056844043c0255ccb22e3e16eabfc2ff591574a0c32ec34f"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-reasoning/investigate/SKILL.md",
+          "quote": "INVESTIGATE ONLY. DO NOT MODIFY CODE."
+        },
+        {
+          "path": "packages/skills-reasoning/investigate/SKILL.md",
+          "quote": "If you cannot reproduce — document what you tried and why it didn't work."
+        },
+        {
+          "path": "packages/skills-reasoning/investigate/SKILL.md",
+          "quote": "For each component in the chain:"
+        },
+        {
+          "path": "packages/skills-reasoning/investigate/SKILL.md",
+          "quote": "What else might be affected by the same root cause."
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "reasoning-refactor",
+      "package": {
+        "name": "@dzhechkov/skills-reasoning",
+        "version": "0.1.6",
+        "manifest": "packages/skills-reasoning/package.json"
+      },
+      "skillIds": [
+        "solid"
+      ],
+      "title": "Рефакторинг с тестами",
+      "queries": [
+        "Помоги отрефакторить модуль и сохранить поведение"
+      ],
+      "intent": "Провести рефакторинг с тестами и принципами проектирования.",
+      "whenToUse": [
+        "Нужно менять или проектировать код."
+      ],
+      "whenNotToUse": [
+        "Нужна только диагностика без изменения кода."
+      ],
+      "outcome": "Предусмотрен цикл тестирования и рефакторинга с проверкой ответственности и зависимостей компонентов.",
+      "prerequisites": [
+        "Доступ к коду и возможность проверять поведение тестами."
+      ],
+      "steps": [
+        "Описать поведение минимальным падающим тестом.",
+        "Добиться прохождения простейшим кодом.",
+        "Рефакторить и проверить единственную ответственность и зависимость от абстракций."
+      ],
+      "limitations": [
+        "Навык предписывает TDD; сам по себе он не доказывает прохождение тестов."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-reasoning/package.json",
+          "sha256": "5991fca16c6b4bd12cbe0472d20020ec5e65a7d4b15416ec186568c9587d7f93"
+        },
+        {
+          "path": "packages/skills-reasoning/solid/SKILL.md",
+          "sha256": "5412ae153013ad3ca5cd318b0223c79abc945feea99cd0d12d73f9282aaa82d6"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-reasoning/solid/SKILL.md",
+          "quote": "Red-Green-Refactor is not optional:"
+        },
+        {
+          "path": "packages/skills-reasoning/solid/SKILL.md",
+          "quote": "Single Responsibility"
+        },
+        {
+          "path": "packages/skills-reasoning/solid/SKILL.md",
+          "quote": "Write a failing test that describes the behavior"
+        },
+        {
+          "path": "packages/skills-reasoning/solid/SKILL.md",
+          "quote": "Do high-level modules depend on abstractions?"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "reverse-business",
+      "package": {
+        "name": "@dzhechkov/skills-reverse-engineering",
+        "version": "0.3.5",
+        "manifest": "packages/skills-reverse-engineering/package.json"
+      },
+      "skillIds": [
+        "reverse-engineering-unicorn"
+      ],
+      "title": "Разобрать бизнес-модель компании",
+      "queries": [
+        "Разбери бизнес-модель стартапа для запуска аналога"
+      ],
+      "intent": "Исследовать компанию и подготовить план запуска.",
+      "whenToUse": [
+        "Нужно разобрать продукт, рынок и экономику компании."
+      ],
+      "whenNotToUse": [
+        "Задача ограничена копированием внешнего вида сайта."
+      ],
+      "outcome": "Предусмотрены фактологическая сводка, анализ клиентов и экономики и итоговый план запуска на 90 дней.",
+      "prerequisites": [
+        "Название компании, сайт, отрасль и география."
+      ],
+      "steps": [
+        "Собрать сведения о компании и подготовить сводку фактов.",
+        "Изучить задачи клиентов, сегменты, рынок, конкурентов и экономику.",
+        "Свести выводы модулей и план запуска, проходя контрольные точки."
+      ],
+      "limitations": [
+        "Глубина и состав анализа зависят от выбранного режима."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-reverse-engineering/package.json",
+          "sha256": "9bf4f896f231c8eb8aa30afa8e289aa4c63dc51f42f8e838e8fad2ea07be6d29"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "sha256": "20d6b667971f9749d091c1d47e2f75df957f259647cbb861ac54174280096c71"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "\"разбери бизнес-модель [X]\""
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "90-Day Plan + BS-check"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "01-intelligence.md            → Verified Fact Sheet"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "04-business-finance.md        → Unit Economics + P&L + Sensitivity"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "reverse-cjm",
+      "package": {
+        "name": "@dzhechkov/skills-reverse-engineering",
+        "version": "0.3.5",
+        "manifest": "packages/skills-reverse-engineering/package.json"
+      },
+      "skillIds": [
+        "reverse-engineering-unicorn"
+      ],
+      "title": "Сравнить варианты пути клиента",
+      "queries": [
+        "Изучи путь клиента конкурента и помоги выбрать вариант для нового продукта"
+      ],
+      "intent": "Сравнить варианты CJM при разборе компании.",
+      "whenToUse": [
+        "Нужен выбор пути клиента для дальнейшей стратегии в режиме DEEP."
+      ],
+      "whenNotToUse": [
+        "Нужна только копия визуального оформления сайта."
+      ],
+      "outcome": "В режиме DEEP предусмотрен React-прототип для сравнения трёх гипотез пути клиента и выбора варианта для следующих модулей.",
+      "prerequisites": [
+        "Компания и контекст анализа; режим DEEP и доступный внешний навык frontend-design."
+      ],
+      "steps": [
+        "Извлечь элементы пути из анализа продукта и клиентов.",
+        "Сформировать три гипотезы с разными моментами ценности, входа и оплаты и собрать переключаемый прототип.",
+        "Сравнить и настроить варианты, зафиксировав выбор для дальнейшего анализа."
+      ],
+      "limitations": [
+        "Варианты CJM являются гипотезами, а прототип сам по себе не подтверждает поведение клиентов.",
+        "Навык frontend-design указан как внешняя зависимость и не входит в пакет."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-reverse-engineering/package.json",
+          "sha256": "9bf4f896f231c8eb8aa30afa8e289aa4c63dc51f42f8e838e8fad2ea07be6d29"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "sha256": "20d6b667971f9749d091c1d47e2f75df957f259647cbb861ac54174280096c71"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/README.md",
+          "sha256": "6de618926683204046fc49debe98c02a3546218a3115b50c63f76bccce7f4daa"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "3 CJM variants → clickable React prototype"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "User locks winning CJM (✅) → {CHOSEN_CJM}"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/README.md",
+          "quote": "A few **DEEP / Post-M6** modes reference extra skills that are **not bundled**"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/README.md",
+          "quote": "| `frontend-design` | M2.5 CJM prototype (DEEP)"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "Generate 3 variant hypotheses (different Aha × Entry × Paywall)"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "| `frontend-design` | M2.5 (DEEP) | Production-grade CJM prototype design |"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "Write .jsx with variant switcher, comparison, builder, scoring"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "User explores → customizes → locks winning CJM"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "tutorial-create",
+      "package": {
+        "name": "@dzhechkov/skills-tutorial-factory",
+        "version": "0.7.5",
+        "manifest": "packages/skills-tutorial-factory/package.json"
+      },
+      "skillIds": [
+        "package-tutorial-factory"
+      ],
+      "title": "Создать учебный сайт по пакету",
+      "queries": [
+        "Сделай интерактивный курс по этому пакету навыков"
+      ],
+      "intent": "Превратить материалы одного пакета в учебный сайт.",
+      "whenToUse": [
+        "Есть пакет с достаточным учебным материалом."
+      ],
+      "whenNotToUse": [
+        "Нужна только ссылка на существующую инструкцию."
+      ],
+      "outcome": "По умолчанию предусмотрен автономный однофайловый HTML-курс с упражнениями, викторинами по разделам, итоговым тестом и сохранением прогресса.",
+      "prerequisites": [
+        "Доступ к целевому пакету и его материалам."
+      ],
+      "steps": [
+        "Извлечь понятия из материалов пакета и согласовать темы.",
+        "Подготовить данные курса, указав для каждого раздела паттерн методики.",
+        "Пройти структурный контроль и семантическое ревью, затем сформировать и проверить автономный сайт с упражнениями и тестами."
+      ],
+      "limitations": [
+        "При недостаточной учебной поверхности процесс должен остановиться.",
+        "React/Vite-сайт и главы Markdown выбираются отдельно; Markdown не сохраняет интерактивность."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-tutorial-factory/package.json",
+          "sha256": "c49f4fec0afcb5eb3e07474ec7c7c36e69ef86a547e39f29d88423f06a8f3685"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "sha256": "f655c9899d6b9dd722a6c46287ca71f7d377e1c7fb2e920eb5334a6a0aa20a18"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/modules/05-render.md",
+          "sha256": "cfb2110d4ab998d511f43bb96269f4dffe0cfe6dd32246ee28d0977a82536c4f"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "Skip when: the target has no teachable surface"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "if\n   `insufficient-surface`, STOP and report — never ship a 1-topic course."
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "Produce the course object; cite a pattern per section."
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "**Checkpoint `confirm-topics`.**"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/modules/05-render.md",
+          "quote": "One dependency-free HTML file (opens over file://, zero network) with the full edu-site primitive\nset: sections in order, the 6 exercise types, per-section quiz, achievements, final test with pass\nthreshold, FAQ, persisted progress."
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/modules/05-render.md",
+          "quote": "When the caller explicitly wants the React/Vite gamified site"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/modules/05-render.md",
+          "quote": "interactivity (recorded as a medium limitation, not faked)."
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "tutorial-check",
+      "package": {
+        "name": "@dzhechkov/skills-tutorial-factory",
+        "version": "0.7.5",
+        "manifest": "packages/skills-tutorial-factory/package.json"
+      },
+      "skillIds": [
+        "package-tutorial-factory"
+      ],
+      "title": "Проверить материал курса перед передачей",
+      "queries": [
+        "Проверь курс по пакету перед передачей ученикам"
+      ],
+      "intent": "Провести предусмотренные фабрикой проверки курса.",
+      "whenToUse": [
+        "Подготовлен материал курса по пакету."
+      ],
+      "whenNotToUse": [
+        "Нужна только статическая ссылка на инструкцию."
+      ],
+      "outcome": "Предусмотрена передача курса после структурного контроля, проверки заимствований, семантического ревью и проверки работающего сайта.",
+      "prerequisites": [
+        "Данные курса, инструменты фабрики, доверенный HTML и доступ к свежему рецензенту другой модели."
+      ],
+      "steps": [
+        "Запустить структурный контроль и проверку заимствований; подтвердить доступность базы методики.",
+        "Провести семантическое ревью другой моделью по базе методики.",
+        "Сформировать и проверить доверенный сайт, затем повторить контроль перед передачей."
+      ],
+      "limitations": [
+        "Структурная проверка не оценивает тон, неожиданность и сюжет; пустое ревью не считается чистым проходом.",
+        "Проверка сайта исполняет JavaScript и предназначена для HTML фабрики или иного доверенного ввода.",
+        "Если проверка не проходит после добросовестной доработки, процесс должен остановиться."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-tutorial-factory/package.json",
+          "sha256": "c49f4fec0afcb5eb3e07474ec7c7c36e69ef86a547e39f29d88423f06a8f3685"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "sha256": "f655c9899d6b9dd722a6c46287ca71f7d377e1c7fb2e920eb5334a6a0aa20a18"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/README.md",
+          "sha256": "ffd76fe42b06557209655ab98c727d7068fa4b5b07909d1d3dd300c607ddfd98"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "Re-run the gate + shingling; confirm"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "or the gate\n  cannot pass after honest authoring, STOP and report"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/README.md",
+          "quote": "HTML inside its Node DOM shim. Run it only on HTML produced by this factory or otherwise trusted input;"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/README.md",
+          "quote": "it is a behavioural verifier, not a sandbox for hostile third-party pages."
+        },
+        {
+          "path": "packages/skills-tutorial-factory/README.md",
+          "quote": "prompt for a FRESH cross-model reviewer, and an empty/gradeless answer is a loud fallback, never a"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "only tone/surprise/story go to the cross-model review (layer 3)"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "the KB resolved and no corpus path shipped"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "website-clone-page",
+      "package": {
+        "name": "@dzhechkov/skills-website-cloner",
+        "version": "0.1.6",
+        "manifest": "packages/skills-website-cloner/package.json"
+      },
+      "skillIds": [
+        "clone-website"
+      ],
+      "title": "Воссоздать страницу по адресу",
+      "queries": [
+        "Воссоздай внешний вид и взаимодействия этой страницы"
+      ],
+      "intent": "Воссоздать видимую страницу в проекте.",
+      "whenToUse": [
+        "Есть доступный адрес страницы и задача воспроизвести интерфейс."
+      ],
+      "whenNotToUse": [
+        "Требуется реализация настоящей авторизации или серверной части."
+      ],
+      "outcome": "Предусмотрена сборка видимой страницы с компонентами и взаимодействиями и визуальное сравнение результата с адаптацией к размерам экрана.",
+      "prerequisites": [
+        "Браузерная автоматизация и готовый каркас Next.js, shadcn/ui и Tailwind."
+      ],
+      "steps": [
+        "Проверить адрес, браузерную автоматизацию и сборку каркаса.",
+        "Извлечь текст, изображения, стили и состояния взаимодействий.",
+        "Проверить изменения раскладки на ширинах компьютера, планшета и телефона и отметить точки перехода.",
+        "Подготовить основу и компоненты, собрать страницу и сравнить визуально."
+      ],
+      "limitations": [
+        "Настоящие сервер, авторизация и аудит доступности исключены из области навыка."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-website-cloner/package.json",
+          "sha256": "be4cb7087df0402db97e672d9c19250d73f37ad67e1aebff6fe6fc384356a26c"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "sha256": "b3b4bac20854e18c3d34d6660652a2758c083065818dc00c9c33d1ea8647c00c"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "**Requires** a browser-automation MCP and a Next.js/shadcn/Tailwind scaffold"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "Real backend / database, authentication, real-time features, SEO optimization, accessibility audit"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "Extract the actual text, images, videos, and SVGs from the live site."
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "For every element, extract its **appearance**"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "**In scope:** Visual layout and styling, component structure and interactions, responsive design, mock data for demo purposes"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "At each width, note which sections change layout (column → stack, sidebar disappears, etc.) and at approximately which breakpoint the change occurs."
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "website-clone-multiple",
+      "package": {
+        "name": "@dzhechkov/skills-website-cloner",
+        "version": "0.1.6",
+        "manifest": "packages/skills-website-cloner/package.json"
+      },
+      "skillIds": [
+        "clone-website"
+      ],
+      "title": "Воссоздать несколько сайтов",
+      "queries": [
+        "Воссоздай интерфейсы по этим двум адресам"
+      ],
+      "intent": "Раздельно исследовать и собрать несколько интерфейсов.",
+      "whenToUse": [
+        "Даны несколько доступных адресов для воспроизведения."
+      ],
+      "whenNotToUse": [
+        "Нужно исследовать бизнес-модель компании."
+      ],
+      "outcome": "Предусмотрены раздельные материалы исследования и сборка интерфейсов по нескольким адресам с визуальной проверкой с адаптацией к размерам экрана.",
+      "prerequisites": [
+        "Браузерная автоматизация, доступные адреса и готовый каркас Next.js, shadcn/ui и Tailwind v4."
+      ],
+      "steps": [
+        "Проверить каждый адрес и доступность через браузерную автоматизацию.",
+        "Изолировать материалы каждого сайта и извлечь его оформление и взаимодействия.",
+        "Проверить изменения раскладки на ширинах компьютера, планшета и телефона и отметить точки перехода.",
+        "Подготовить основу, собрать страницы и сравнить их визуально; параллельность согласовать по ресурсам."
+      ],
+      "limitations": [
+        "При нескольких сайтах параллельность зависит от доступных ресурсов.",
+        "Реальные сервер, база данных, авторизация, функции реального времени, SEO и аудит доступности исключены из области навыка."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-website-cloner/package.json",
+          "sha256": "be4cb7087df0402db97e672d9c19250d73f37ad67e1aebff6fe6fc384356a26c"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "sha256": "b3b4bac20854e18c3d34d6660652a2758c083065818dc00c9c33d1ea8647c00c"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "When multiple URLs are provided, process them independently and in parallel where possible"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "optionally confirm whether to run them in parallel"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "The Next.js + shadcn/ui + Tailwind v4 scaffold should already be in place."
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "Real backend / database, authentication, real-time features, SEO optimization, accessibility audit"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "keeping each site's extraction artifacts isolated in dedicated folders"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "Phase 5** Visual QA Diff"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "**In scope:** Visual layout and styling, component structure and interactions, responsive design, mock data for demo purposes"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "At each width, note which sections change layout (column → stack, sidebar disappears, etc.) and at approximately which breakpoint the change occurs."
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "presentation-sales",
+      "package": {
+        "name": "@dzhechkov/skills-presentation-storyteller",
+        "version": "0.1.15",
+        "manifest": "packages/skills-presentation-storyteller/package.json"
+      },
+      "skillIds": [
+        "presentation-storyteller"
+      ],
+      "title": "Подготовить продающую презентацию",
+      "queries": [
+        "Сделай продающую презентацию продукта для клиентов"
+      ],
+      "intent": "Подготовить содержание продающей презентации с источниками.",
+      "whenToUse": [
+        "Известна тема и можно уточнить аудиторию и цель."
+      ],
+      "whenNotToUse": [
+        "Нужна только копия визуального оформления сайта."
+      ],
+      "outcome": "Предусмотрены план с тезисами, слайды с источниками и сценарии выступления в трёх Markdown-файлах.",
+      "prerequisites": [
+        "Тема презентации и сведения об аудитории и цели."
+      ],
+      "steps": [
+        "Согласовать бриф с аудиторией, целью и ограничениями.",
+        "Исследовать источники и выбрать сюжетную структуру для цели продажи.",
+        "Согласовать план, подготовить слайды с источниками и текст выступления."
+      ],
+      "limitations": [
+        "Подтверждение источников и структуры предусмотрено контрольными точками."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-presentation-storyteller/package.json",
+          "sha256": "2da98ce1bd43126dc923051b72febbe2db0e8979475abb7137c5314a1151dd0b"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "sha256": "f6ad6e6020280f17ccc4e7b71b28551310805aa99999b4056ec0ccfead1193d5"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "⏸️ CHECKPOINT 2: Confirm Research"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "**Sell product** | AIDA"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "presentation-outline.md      # План с тезисами"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "presentation-full.md         # Полная презентация"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "sources-index.md            # Индекс всех источников"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "presentation-speaker",
+      "package": {
+        "name": "@dzhechkov/skills-presentation-storyteller",
+        "version": "0.1.15",
+        "manifest": "packages/skills-presentation-storyteller/package.json"
+      },
+      "skillIds": [
+        "presentation-storyteller"
+      ],
+      "title": "Подготовить речь к слайдам",
+      "queries": [
+        "Сделай презентацию для выступления со связным текстом для каждого слайда"
+      ],
+      "intent": "Создать презентацию со сценарием выступления.",
+      "whenToUse": [
+        "Нужен связный рассказ и содержание для каждого слайда."
+      ],
+      "whenNotToUse": [
+        "Нужна только диагностика ошибки в коде."
+      ],
+      "outcome": "Предусмотрены содержание слайдов, связанные сценарии выступления и индекс источников в Markdown.",
+      "prerequisites": [
+        "Тема, аудитория, цель и длительность выступления."
+      ],
+      "steps": [
+        "Уточнить аудиторию, цель, контекст и хронометраж.",
+        "Согласовать исследование и структуру с тезисами.",
+        "Подготовить специфичный для содержания текст выступления к каждому слайду с учётом времени."
+      ],
+      "limitations": [
+        "Сценарий должен соответствовать содержанию и хронометражу."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-presentation-storyteller/package.json",
+          "sha256": "2da98ce1bd43126dc923051b72febbe2db0e8979475abb7137c5314a1151dd0b"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "sha256": "f6ad6e6020280f17ccc4e7b71b28551310805aa99999b4056ec0ccfead1193d5"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "**Storytelling-скриптами** «Как рассказывать?» для каждого слайда"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "Время скрипта соответствует хронометражу"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "**Speaker scripts** — «Как рассказывать?» для каждого слайда"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "скрипт должен быть специфичен к контенту"
+        }
+      ],
+      "courseUrl": null
+    }
+  ]
+}

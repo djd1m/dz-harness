@@ -1,0 +1,19 @@
+✔ durable daily, lifetime, cooldown and active limits survive rollover/restart (280.36992ms)
+✔ missing/corrupt state, rollback and competing process fail closed (110.971498ms)
+✔ reservation persistence failures before and after write poison owner without refund (27.371189ms)
+✔ direct callback shares host/origin/body/admission boundary and unpaid health (152.879048ms)
+✔ disconnected active callback retains admission until settled (30.986334ms)
+✔ socket API has fixed boundary, no static route, private mode, persistent restart (214.081145ms)
+✔ failed startup preserves foreign paths and releases ledger on listen failure (20.35558ms)
+✔ socket shutdown after client disconnect retains ledger until upstream drains (71.393462ms)
+✔ local bridge isolates static files and paid upstream (1241.426323ms)
+✔ real HTTP consumes failed attempt, denies cooldown without upstream and retains reservation on restart (45.009925ms)
+✔ disconnect then shutdown waits for upstream release before closing admission (26.468208ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1547.065679

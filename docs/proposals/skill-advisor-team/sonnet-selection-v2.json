@@ -1,0 +1,919 @@
+{
+  "scope": "Diagnostic fresh Sonnet selection, Sonnet review and conditional edit on historical candidate/source sets. Updated role instructions. Not a paired model-only comparison or native runtime test.",
+  "reports": [
+    {
+      "id": "feature",
+      "elapsedMs": 13323,
+      "result": {
+        "ok": true,
+        "advice": {
+          "task": "Провести новую возможность в действующем приложении от требований через архитектурное решение (ADR) до проверок качества.",
+          "recommendations": [
+            {
+              "name": "feature-adr",
+              "type": "skill",
+              "fit": "high",
+              "why": "Это единственный выбранный навык, который покрывает весь заявленный путь. Он ведёт по шагам: сбор требований, ADR с альтернативами, архитектура, план реализации, код, QE-проверка с ревью. Complexity Router сам определяет масштаб S/M/L/XL и пропускает лишние шаги. Для L/XL добавляется итоговая оценка качества (Fleet QE). Начинайте с него: он включает уточнение требований на первом шаге.",
+              "install": "dz init --target opencode --select feature-adr"
+            }
+          ],
+          "gaps": [
+            "Режим --full-qe работает, только если установлен agentic-qe; без него pipeline идёт в Reference-режиме, с локальными протоколами, без запуска внешнего QE-флота."
+          ],
+          "pipeline": [
+            "feature-adr"
+          ]
+        }
+      },
+      "trace": [
+        {
+          "role": "selector",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 6796,
+          "usage": {
+            "prompt_tokens": 30337,
+            "completion_tokens": 740,
+            "total_tokens": 31077,
+            "cost": 0.06739326,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.068074,
+              "upstream_inference_prompt_cost": 0.060674,
+              "upstream_inference_completions_cost": 0.0074
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 412,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Провести новую возможность в действующем приложении от требований через архитектурное решение (ADR) до проверок качества.",
+            "recommendations": [
+              {
+                "name": "feature-adr",
+                "type": "skill",
+                "fit": "high",
+                "why": "Это единственный выбранный навык, который покрывает весь заявленный путь. Он ведёт по шагам: сбор требований, ADR с альтернативами, архитектура, план реализации, код, QE-проверка с ревью. Complexity Router сам определяет масштаб S/M/L/XL и пропускает лишние шаги. Для L/XL добавляется итоговая оценка качества (Fleet QE). Начинайте с него: он включает уточнение требований на первом шаге."
+              }
+            ],
+            "pipeline": [
+              "feature-adr"
+            ],
+            "gaps": [
+              "Режим --full-qe работает, только если установлен agentic-qe; без него pipeline идёт в Reference-режиме, с локальными протоколами, без запуска внешнего QE-флота."
+            ]
+          }
+        },
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 6512,
+          "usage": {
+            "prompt_tokens": 26395,
+            "completion_tokens": 936,
+            "total_tokens": 27331,
+            "cost": 0.0615285,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.06215,
+              "upstream_inference_prompt_cost": 0.05279,
+              "upstream_inference_completions_cost": 0.00936
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "b54b92705d75c97a9c6af8f19fb10759c9e9096af4ce5afe94c8fb9a70062cbc",
+            "checks": [
+              {
+                "id": "why:feature-adr",
+                "status": "supported",
+                "reason": "Всё утверждение подтверждается источником: шаги конвейера (требования, ADR, архитектура, план, код, QE), Complexity Router с уровнями S/M/L/XL и пропуском шагов, Fleet QE на Step 9 только для L/XL. Требования уточняются на Step 1 (в рекомендации сказано «включает уточнение требований на первом шаге»). Фраза «единственный выбранный навык» верна, так как выбран один навык.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "Complexity Router автоматически определяет масштаб (S/M/L/XL) и пропускает ненужные шаги."
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "| 9  Fleet QE Assessment       | - | - | ✓ | ✓  | sonnet |"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "1  Requirements              | ✓ | ✓ | ✓ | ✓  | sonnet | —"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "| 8  QE + Brutal Honesty       | ✓ | ✓ | ✓ | ✓  | sonnet | brutal-honesty-review  |"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "supported",
+                "reason": "Источник описывает: флаг без установленного agentic-qe даёт предупреждение и откат в Reference-режим. Reference использует закреплённые локальные протоколы без выполнения upstream MCP/fleet.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "If flag present but not installed → WARN and fall back to reference mode"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "Pinned local protocol text for the core QE methods; no upstream MCP/fleet execution is implied"
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "Задача: провести фичу в действующем приложении от требований через архитектурное решение до проверок, и выбрать первым навык. feature-adr покрывает путь от требований и ADR до QE. Единственная рекомендация нерезервная, оговорка про agentic-qe уместна, а для действующего приложения есть исследование паттернов кодовой базы и учёт ограничений.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "11-шаговый pipeline для разработки фич любой сложности."
+                  }
+                ]
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Конвейер из одного навыка согласуется с задачей и рекомендацией; условных выборов нет, порядок не противоречит.",
+                "evidence": []
+              }
+            ],
+            "issues": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "elapsedMs": 45478,
+      "result": {
+        "ok": false,
+        "error": "advice_team_failed",
+        "stage": "second_review"
+      },
+      "trace": [
+        {
+          "role": "selector",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 10695,
+          "usage": {
+            "prompt_tokens": 24708,
+            "completion_tokens": 1442,
+            "total_tokens": 26150,
+            "cost": 0.06319764,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.063836,
+              "upstream_inference_prompt_cost": 0.049416,
+              "upstream_inference_completions_cost": 0.01442
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1031,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Исследовать GitHub-проекты и сохранять проверяемые ссылки на источники.",
+            "recommendations": [
+              {
+                "name": "goap-research-ed25519",
+                "type": "skill",
+                "fit": "high",
+                "why": "Каждое утверждение требует URL источника. fetch_source фиксирует хэш полученного содержимого и дату (FETCH_VERIFIED), а скрипт-гейт отчёта отклоняет утверждения, источник которых не открывали. Подходит для ссылок с прослеживаемым происхождением."
+              },
+              {
+                "name": "git-mcp",
+                "type": "skill",
+                "fit": "low",
+                "why": "Только если нужно изучать код и историю локально: клонирование репозиториев, git_log и git_diff. Для самих ссылок на источники не обязателен."
+              }
+            ],
+            "gaps": [
+              "Ed25519 и FETCH_VERIFIED подтверждают происхождение и целостность, но не истинность. GitHub не отдаёт подписанный контент, поэтому strict/paranoid по умолчанию недостижимы; используйте development или moderate.",
+              "git-mcp: MCP-сервер @cyanheads/git-mcp-server нужно подключить и проверить отдельно, установка навыка его не настраивает."
+            ]
+          }
+        },
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 17582,
+          "usage": {
+            "prompt_tokens": 21027,
+            "completion_tokens": 2417,
+            "total_tokens": 23444,
+            "cost": 0.06556176,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.066224,
+              "upstream_inference_prompt_cost": 0.042054,
+              "upstream_inference_completions_cost": 0.02417
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1097,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "7bda8f39b22ae2960c801c2cab9ba1348ae6eae3226773bfc1a437db9d8b8365",
+            "checks": [
+              {
+                "id": "why:goap-research-ed25519",
+                "status": "supported",
+                "reason": "Все части обоснования подтверждены источником: правило об URL, фиксация хэша и даты при fetch_source, а также скрипт-гейт, который завершается с кодом 1 при ASSERTED-утверждениях.",
+                "evidence": [
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "Every factual claim needs a source URL."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "received a body with this byte hash on this date"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`ASSERTED` claims must not appear in a report at all."
+                  }
+                ]
+              },
+              {
+                "id": "why:git-mcp",
+                "status": "supported",
+                "reason": "Навык git-mcp действительно даёт git_clone, git_log и git_diff для локального изучения кода и истории. Он не создаёт и не проверяет ссылки на источники, так что оценка «не обязателен для ссылок» согласуется с описанием.",
+                "evidence": [
+                  {
+                    "source": "git-mcp",
+                    "quote": "Clone a remote repository."
+                  },
+                  {
+                    "source": "git-mcp",
+                    "quote": "View commit history with optional filtering."
+                  },
+                  {
+                    "source": "git-mcp",
+                    "quote": "Show changes between commits, working tree, and staging area."
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "unsupported",
+                "reason": "Первая часть подтверждена: источник говорит, что Ed25519 и FETCH_VERIFIED не доказывают истинность, а strict/paranoid по умолчанию недостижимы. Утверждение «GitHub не отдаёт подписанный контент» источник не подтверждает: он говорит только о PubMed, PMC, DOI и WHO, про GitHub в нём ничего нет.",
+                "evidence": [
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "Provenance, not truth."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "for this package's real health sources (PubMed, PMC, DOI, WHO) neither"
+                  }
+                ]
+              },
+              {
+                "id": "gap:1",
+                "status": "uncertain",
+                "reason": "Источник показывает, что MCP-сервер подключается отдельной командой или конфигурацией. Что установка навыка через dz его не настраивает, источник прямо не говорит, а поведение dz init не проверено.",
+                "evidence": [
+                  {
+                    "source": "git-mcp",
+                    "quote": "claude mcp add git -- npx @cyanheads/git-mcp-server"
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "uncertain",
+                "reason": "Задача — исследование GitHub-проектов и проверяемые ссылки. goap-research-ed25519 подходит по механизму (URL, хэш, гейт), но он ориентирован на медицинские исследования, и в совете это не оговорено. Fit «high» выглядит завышенным без GitHub-специфичных оговорок. git-mcp корректно помечен как условный и low.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Пайплайн не задан, а задача порядка не требует. Условный характер git-mcp согласуется с рекомендациями.",
+                "evidence": []
+              }
+            ],
+            "issues": [
+              "Не сказано, что goap-research-ed25519 ориентирован на медицинские и health-исследования: все фабрики фактов требуют обязательный study_population, а гейт содержит правила популяционной применимости. Для GitHub-проектов это лишняя нагрузка и неочевидное ограничение.",
+              "Утверждение «GitHub не отдаёт подписанный контент» не опирается на источник: он перечисляет только PubMed, PMC, DOI и WHO.",
+              "Для работы fetch_source и гейта нужны скрипты и Python-зависимость cryptography (venv, pip install). Это существенное предварительное условие, и в совете оно не упомянуто."
+            ]
+          }
+        },
+        {
+          "role": "editor",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 8763,
+          "usage": {
+            "prompt_tokens": 24849,
+            "completion_tokens": 1256,
+            "total_tokens": 26105,
+            "cost": 0.06163542,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.062258,
+              "upstream_inference_prompt_cost": 0.049698,
+              "upstream_inference_completions_cost": 0.01256
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 734,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Исследовать GitHub-проекты и сохранять проверяемые ссылки на источники.",
+            "recommendations": [
+              {
+                "name": "goap-research-ed25519",
+                "type": "skill",
+                "fit": "medium",
+                "why": "Каждое утверждение требует URL источника. fetch_source фиксирует хэш полученного содержимого и дату (FETCH_VERIFIED), а скрипт-гейт отчёта отклоняет утверждения, источник которых не открывали. Подходит для ссылок с прослеживаемым происхождением.",
+                "install": "dz init --target opencode --select goap-research-ed25519"
+              },
+              {
+                "name": "git-mcp",
+                "type": "skill",
+                "fit": "low",
+                "why": "Только если нужно изучать код и историю локально: клонирование репозиториев, git_log и git_diff. Для самих ссылок на источники не обязателен.",
+                "install": "dz init --target opencode --select git-mcp"
+              }
+            ],
+            "gaps": [
+              "goap-research-ed25519 ориентирован на медицинские исследования: каждый факт требует study_population, а гейт проверяет применимость к популяции, что для GitHub-проектов избыточно. Ed25519 и FETCH_VERIFIED подтверждают происхождение, но не истинность. Нужны Python-скрипты и cryptography (venv, pip install).",
+              "git-mcp: MCP-сервер @cyanheads/git-mcp-server подключается отдельной командой или конфигурацией (в источнике: claude mcp add git -- npx @cyanheads/git-mcp-server); готовность не проверена."
+            ]
+          }
+        },
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 8375,
+          "usage": {
+            "prompt_tokens": 21157,
+            "completion_tokens": 1324,
+            "total_tokens": 22481,
+            "cost": 0.05499846,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.055554,
+              "upstream_inference_prompt_cost": 0.042314,
+              "upstream_inference_completions_cost": 0.01324
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "a45bc8d931367562f8c9617a9372db2c1ecc04d7f305ac6270245882fa500f79",
+            "checks": [
+              {
+                "id": "why:goap-research-ed25519",
+                "status": "supported",
+                "reason": "Источник подтверждает все части: каждое утверждение требует URL; fetch_source даёт FETCH_VERIFIED с хэшем байтов и датой; гейт отчёта отклоняет ASSERTED (источник не открывали) с кодом выхода 1. Оценка fit=medium и пригодности для GitHub-ссылок — вывод, а не фактическое утверждение.",
+                "evidence": [
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "Every factual claim needs a source URL."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "this script issued an HTTP request and received a body with this byte hash on this date"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`ASSERTED` claims must not appear in a report at all."
+                  }
+                ]
+              },
+              {
+                "id": "why:git-mcp",
+                "status": "supported",
+                "reason": "Источник описывает клонирование, git_log и git_diff; локальное изучение кода и истории — разумный вывод. Утверждение, что для ссылок на источники навык не обязателен, подтверждается тем, что в нём нет возможностей, связанных с хранением ссылок или проверкой источников.",
+                "evidence": [
+                  {
+                    "source": "git-mcp",
+                    "quote": "Clone a remote repository."
+                  },
+                  {
+                    "source": "git-mcp",
+                    "quote": "View commit history with optional filtering."
+                  },
+                  {
+                    "source": "git-mcp",
+                    "quote": "Show changes between commits, working tree, and staging area."
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "supported",
+                "reason": "Источник подтверждает, что study_population обязателен для каждого нового факта, что гейт проверяет применимость к популяции, что подписи и FETCH_VERIFIED дают происхождение, а не истинность, и что нужна установка cryptography в venv. Медицинская ориентация видна по примерам и профилю пациента; оценка избыточности для GitHub — обоснованный вывод.",
+                "evidence": [
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "Every newly created fact must state who the finding was measured in."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "**population applicability** (`UNMARKED_POPULATION_MISMATCH`"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "Provenance, not truth."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": ".venv/bin/pip install cryptography"
+                  }
+                ]
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "Источник показывает, что MCP-сервер @cyanheads/git-mcp-server подключается отдельной командой или конфигурацией. Фраза о том, что готовность не проверена, отражает оговорку хоста, а не утверждение источника.",
+                "evidence": [
+                  {
+                    "source": "git-mcp",
+                    "quote": "claude mcp add git -- npx @cyanheads/git-mcp-server"
+                  },
+                  {
+                    "source": "git-mcp",
+                    "quote": "\"args\": [\"@cyanheads/git-mcp-server\"]"
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "Задача охватывает исследование GitHub-проектов и сохранение проверяемых ссылок на источники. goap-research-ed25519 с fit=medium подходит для прослеживаемого происхождения и гейта отчёта, хотя ориентирован на медицину, и это отражено в gaps. git-mcp с fit=low корректно помечен как условный и необязательный. Избыточных рекомендаций нет, есть необходимые оговорки.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Порядок выполнения в запросе не требуется. Пайплайн отсутствует, и это допустимо; условность git-mcp согласуется с рекомендациями.",
+                "evidence": []
+              }
+            ],
+            "issues": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "cloudru",
+      "elapsedMs": 32580,
+      "result": {
+        "ok": true,
+        "advice": {
+          "task": "Развернуть приложение из GitHub на Cloud.ru, настроить проверки и сопровождение.",
+          "recommendations": [
+            {
+              "name": "deploy-on-cloudru-vm",
+              "type": "skill",
+              "fit": "high",
+              "why": "Основной выбор. Навык клонирует и анализирует репозиторий, при необходимости создаёт docker-compose, запрашивает недостающие данные Cloud.ru и деплоит через CLI cloudru-vm. Затем проверяет результат командой verify и выдаёт IP, URL и ssh-строку. Для сопровождения есть status, logs и destroy. Подходит для одной ВМ с docker compose.",
+              "install": "dz init --target opencode --select deploy-on-cloudru-vm"
+            },
+            {
+              "name": "canary-watch",
+              "type": "skill",
+              "fit": "medium",
+              "why": "Дополнение после успешного деплоя, если нужны повторные проверки публичного URL. Он проверяет HTTP, статические файлы, ошибки консоли, SSE и производительность. Можно запускать однократно или в окне наблюдения (--interval, --duration).",
+              "install": "dz init --target opencode --select canary-watch"
+            }
+          ],
+          "gaps": [
+            "Перед деплоем нужно отдельно установить CLI cloudru-vm (go install или сборка из исходников). Также нужны ключ IAM, ID проекта, зона и образ ВМ: недостающее навык спросит у вас.",
+            "canary-watch запускается однократно или циклом до остановки либо до конца окна наблюдения (--duration). Уведомления в Slack или Discord опциональны."
+          ],
+          "pipeline": [
+            "deploy-on-cloudru-vm",
+            "canary-watch"
+          ]
+        }
+      },
+      "trace": [
+        {
+          "role": "selector",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 10499,
+          "usage": {
+            "prompt_tokens": 11126,
+            "completion_tokens": 1346,
+            "total_tokens": 12472,
+            "cost": 0.03535488,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.035712,
+              "upstream_inference_prompt_cost": 0.022252,
+              "upstream_inference_completions_cost": 0.01346
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 831,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Развернуть приложение из GitHub на Cloud.ru, настроить проверки и сопровождение.",
+            "recommendations": [
+              {
+                "name": "deploy-on-cloudru-vm",
+                "type": "skill",
+                "fit": "high",
+                "why": "Основной выбор. Навык клонирует и анализирует репозиторий, при необходимости создаёт docker-compose, запрашивает недостающие данные Cloud.ru и деплоит через CLI cloudru-vm. Затем проверяет результат командой verify и выдаёт IP, URL и ssh-строку. Для сопровождения есть status, logs и destroy. Подходит для одной ВМ с docker compose."
+              },
+              {
+                "name": "canary-watch",
+                "type": "skill",
+                "fit": "medium",
+                "why": "Дополнение после успешного деплоя, если нужны повторные проверки публичного URL. Он проверяет HTTP, статические файлы, ошибки консоли, SSE и производительность. Можно запускать однократно или в окне наблюдения (--interval, --duration)."
+              }
+            ],
+            "gaps": [
+              "Перед деплоем нужно отдельно установить CLI cloudru-vm (go install или сборка из исходников). Также нужны ключ IAM, ID проекта, зона и образ ВМ: недостающее навык спросит у вас.",
+              "canary-watch работает только в заданном окне наблюдения и не заменяет постоянный мониторинг. Уведомления в Slack или Discord опциональны."
+            ],
+            "pipeline": [
+              "deploy-on-cloudru-vm",
+              "canary-watch"
+            ]
+          }
+        },
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 8572,
+          "usage": {
+            "prompt_tokens": 7627,
+            "completion_tokens": 1392,
+            "total_tokens": 9019,
+            "cost": 0.02888226,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.029174,
+              "upstream_inference_prompt_cost": 0.015254,
+              "upstream_inference_completions_cost": 0.01392
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "3e6384042bdc4e1e27df6fcddf62a261b525e7fc46a392caca073635a26ea439",
+            "checks": [
+              {
+                "id": "why:deploy-on-cloudru-vm",
+                "status": "supported",
+                "reason": "Все утверждения подтверждены описанием навыка и протоколом: клонирование, анализ, синтез compose, запрос недостающих данных, деплой через cloudru-vm, verify, выдача IP/URL/ssh, status/logs/destroy, одна ВМ с docker compose.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "clone & analyze any GitHub/GitLab"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "cloudru-vm verify          # HTTP health-check of exposed ports"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "Ops:  cloudru-vm status | logs -f | destroy"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "this\n  targets ONE VM running docker compose"
+                  }
+                ]
+              },
+              {
+                "id": "why:canary-watch",
+                "status": "supported",
+                "reason": "Источник подтверждает проверки HTTP, статики, ошибок консоли, SSE, производительности и режимы однократного запуска и устойчивого наблюдения с --interval/--duration. Использование после деплоя для публичного URL соответствует назначению.",
+                "evidence": [
+                  {
+                    "source": "canary-watch",
+                    "quote": "/canary-watch https://myapp.com --interval 5m --duration 2h"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "Static Assets — are JS, CSS, image, and font requests returning 2xx/3xx"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "SSE Streams — do event-stream endpoints connect"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "Console Errors — new errors that weren't there before?"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "supported",
+                "reason": "Prerequisites описывают установку CLI через go install или сборку из исходников; Step 3 перечисляет ключ IAM, project ID, зону и образ и указывает спрашивать недостающее.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "go install github.com/dzhechko/cloudru-vm-cli/cmd/cloudru-vm@latest"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "The CLI requires four values."
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "then **ask the user**"
+                  }
+                ]
+              },
+              {
+                "id": "gap:1",
+                "status": "uncertain",
+                "reason": "Опциональность Slack/Discord подтверждена. Но утверждение, что canary-watch работает только в заданном окне и не заменяет постоянный мониторинг, источником прямо не подтверждено: быстрая проверка однократна, а sustained watch ограничен duration; при этом в описании сказано, что цикл работает до остановки или истечения окна.",
+                "evidence": [
+                  {
+                    "source": "canary-watch",
+                    "quote": "Optional: Slack/Discord webhook"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "Runs in a loop until stopped or until the watch window expires."
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "Задача охватывает деплой из GitHub на Cloud.ru, проверки и сопровождение. deploy-on-cloudru-vm закрывает деплой, verify и операции status/logs/destroy. canary-watch нерыночно дополняет и корректно подан как условный после деплоя. Ограничения (одна ВМ, CLI, учётные данные) указаны.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Порядок deploy, затем canary-watch согласуется с рационалями: canary-watch подан как дополнение после успешного деплоя.",
+                "evidence": []
+              }
+            ],
+            "issues": [
+              "Формулировка gap:1 о том, что canary-watch работает только в заданном окне наблюдения, не вполне точна: есть режим однократной проверки, а продолжительный запуск ограничен duration или остановкой пользователем."
+            ]
+          }
+        },
+        {
+          "role": "editor",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 5785,
+          "usage": {
+            "prompt_tokens": 11149,
+            "completion_tokens": 912,
+            "total_tokens": 12061,
+            "cost": 0.03110382,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.031418,
+              "upstream_inference_prompt_cost": 0.022298,
+              "upstream_inference_completions_cost": 0.00912
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 349,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Развернуть приложение из GitHub на Cloud.ru, настроить проверки и сопровождение.",
+            "recommendations": [
+              {
+                "name": "deploy-on-cloudru-vm",
+                "type": "skill",
+                "fit": "high",
+                "why": "Основной выбор. Навык клонирует и анализирует репозиторий, при необходимости создаёт docker-compose, запрашивает недостающие данные Cloud.ru и деплоит через CLI cloudru-vm. Затем проверяет результат командой verify и выдаёт IP, URL и ssh-строку. Для сопровождения есть status, logs и destroy. Подходит для одной ВМ с docker compose.",
+                "install": "dz init --target opencode --select deploy-on-cloudru-vm"
+              },
+              {
+                "name": "canary-watch",
+                "type": "skill",
+                "fit": "medium",
+                "why": "Дополнение после успешного деплоя, если нужны повторные проверки публичного URL. Он проверяет HTTP, статические файлы, ошибки консоли, SSE и производительность. Можно запускать однократно или в окне наблюдения (--interval, --duration).",
+                "install": "dz init --target opencode --select canary-watch"
+              }
+            ],
+            "gaps": [
+              "Перед деплоем нужно отдельно установить CLI cloudru-vm (go install или сборка из исходников). Также нужны ключ IAM, ID проекта, зона и образ ВМ: недостающее навык спросит у вас.",
+              "canary-watch запускается однократно или циклом до остановки либо до конца окна наблюдения (--duration). Уведомления в Slack или Discord опциональны."
+            ],
+            "pipeline": [
+              "deploy-on-cloudru-vm",
+              "canary-watch"
+            ]
+          }
+        },
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 7663,
+          "usage": {
+            "prompt_tokens": 7626,
+            "completion_tokens": 1341,
+            "total_tokens": 8967,
+            "cost": 0.02837538,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.028662,
+              "upstream_inference_prompt_cost": 0.015252,
+              "upstream_inference_completions_cost": 0.01341
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "2f61b359233e11c109da23b55ac18625cc8f3430332c6334f844698e15d352a3",
+            "checks": [
+              {
+                "id": "why:deploy-on-cloudru-vm",
+                "status": "supported",
+                "reason": "Все части утверждения подтверждаются текстом навыка: клонирование и анализ репозитория, синтез compose, запрос недостающих данных, деплой через cloudru-vm, verify, выдача IP/URL/ssh, команды status/logs/destroy, ориентация на одну ВМ с docker compose.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "clone & analyze any GitHub/GitLab"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "Synthesize BOTH: a Dockerfile from the detected stack, then the compose wrapper"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "cloudru-vm verify          # HTTP health-check of exposed ports"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "Ops:  cloudru-vm status | logs -f | destroy"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "this\n  targets ONE VM running docker compose"
+                  }
+                ]
+              },
+              {
+                "id": "why:canary-watch",
+                "status": "supported",
+                "reason": "Навык проверяет HTTP, статические ресурсы, ошибки консоли, SSE и производительность, поддерживает однократный режим и режим с --interval/--duration. Использование после деплоя соответствует разделу When to Use.",
+                "evidence": [
+                  {
+                    "source": "canary-watch",
+                    "quote": "After deploying to production or staging"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "SSE Streams — do event-stream endpoints connect and receive an initial event or heartbeat?"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "/canary-watch https://myapp.com --interval 5m --duration 2h"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "Console Errors — new errors that weren't there before?"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "supported",
+                "reason": "Prerequisites указывают установку CLI через go install или сборку из исходников, а Step 3 перечисляет ключ IAM, ID проекта, зону и образ; недостающее навык спрашивает у пользователя.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "go install github.com/dzhechko/cloudru-vm-cli/cmd/cloudru-vm@latest"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "The CLI requires four values."
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "then **ask the user**\nfor whatever is absent"
+                  }
+                ]
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "Источник описывает работу в цикле до остановки или конца окна наблюдения, режим быстрой однократной проверки и опциональные Slack/Discord webhooks.",
+                "evidence": [
+                  {
+                    "source": "canary-watch",
+                    "quote": "Runs in a loop until stopped or until the watch window expires."
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "**Quick check** (default): single pass, report results"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "Optional: Slack/Discord webhook"
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "Задача включает деплой из GitHub на Cloud.ru, проверки и сопровождение. deploy-on-cloudru-vm покрывает деплой, verify и status/logs/destroy; canary-watch добавляет условные повторные проверки публичного URL и не избыточен. Ограничения (одна ВМ, предварительные требования) указаны.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Порядок deploy, затем canary-watch согласуется с задачей и обоснованиями: мониторинг применяется после успешного деплоя.",
+                "evidence": []
+              }
+            ],
+            "issues": []
+          }
+        }
+      ]
+    }
+  ]
+}

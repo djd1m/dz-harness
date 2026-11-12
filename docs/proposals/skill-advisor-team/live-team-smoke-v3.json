@@ -1,0 +1,445 @@
+{
+  "model": "anthropic/claude-haiku-5.5",
+  "reports": [
+    {
+      "id": "feature",
+      "source": "../skill-advisor-opencode/runtime-comparison/claude-smoke.json",
+      "scope": "Historical candidate subset; fresh stateless gateway roles, not native runtime or live catalog integration",
+      "result": {
+        "ok": false,
+        "error": "advice_team_failed",
+        "stage": "review"
+      },
+      "trace": [
+        {
+          "role": "selector",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 10364,
+          "usage": {
+            "prompt_tokens": 30012,
+            "completion_tokens": 2076,
+            "total_tokens": 32088,
+            "cost": 0.003998808,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0040392,
+              "upstream_inference_prompt_cost": 0.0030012,
+              "upstream_inference_completions_cost": 0.001038
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1586,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Провести новую возможность в действующем приложении от требований через архитектурное решение до проверок и определить, какой навык взять первым.",
+            "recommendations": [
+              {
+                "name": "feature-adr",
+                "type": "skill",
+                "fit": "high",
+                "why": "Сквозной конвейер разработки фичи: требования (шаг 1), ADR (шаг 3), архитектура (шаг 5), план (шаг 6), код (шаг 7), QE и ревью (шаг 8). Complexity Router (шаг 0) выбирает набор шагов по размеру изменения. Для L/XL доступна оценка Fleet QE (шаг 9). Режим Reference работает без установки agentic-qe, а --full-qe требует её установки."
+              },
+              {
+                "name": "explore",
+                "type": "skill",
+                "fit": "medium",
+                "why": "Условный шаг перед feature-adr, если требования размыты. Он задаёт уточняющие вопросы по одному и формирует Task Brief без предложения решений. Если постановка уже ясна, пропустите его, так как feature-adr сам собирает требования на шаге 1."
+              }
+            ],
+            "gaps": [
+              "Источники получены как выдержки (excerpt), поэтому детали отдельных шагов архитектуры и проверок не подтверждены полным текстом модулей и требуют сверки.",
+              "Для расширенного QE-режима (--full-qe) нужна установленная agentic-qe; без неё используйте Reference-режим."
+            ],
+            "pipeline": [
+              "feature-adr"
+            ]
+          }
+        },
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 24082,
+          "usage": {
+            "prompt_tokens": 26425,
+            "completion_tokens": 5740,
+            "total_tokens": 32165,
+            "cost": 0.005457375,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0055125,
+              "upstream_inference_prompt_cost": 0.0026425,
+              "upstream_inference_completions_cost": 0.00287
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 3972,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "065eb39f1f5e11df694514e46d33b24e9da34b152fa966bcc18518c70f8c3602",
+            "checks": [
+              {
+                "id": "why:feature-adr",
+                "status": "supported",
+                "reason": "The feature-adr source describes an end-to-end pipeline with requirements, ADR, architecture, planning, code, and QE/review steps. Complexity Router selects steps by scale, Step 9 applies to L/XL, and Reference mode needs no agentic-qe setup. The source says --full-qe needs the installed runtime, and without it the flag falls back to Reference with a warning. The rationale's 'требует её установки' is a slight simplification of that fallback, but the source supports it.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "Complexity Router автоматически определяет масштаб (S/M/L/XL) и пропускает ненужные шаги."
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "Group 8 (sequential): Step 9 (after Step 8, L/XL only — fleet assessment)"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "Full agentic-qe protocols when the runtime is installed"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "flag without install → WARN + reference"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "Reference mode is the honest fallback for a machine without agentic-qe"
+                  }
+                ]
+              },
+              {
+                "id": "why:explore",
+                "status": "unsupported",
+                "reason": "The clauses about asking one question at a time, not proposing solutions, producing a Task Brief, and skipping when requirements are clear are supported. The sequencing clause 'Условный шаг перед feature-adr' is not. feature-adr lists explore as a helper used inside Step 1 (requirements clarification), not as a separate prior step. The explore source's handoff list also does not name feature-adr.",
+                "evidence": [
+                  {
+                    "source": "explore",
+                    "quote": "Ask ONE question at a time"
+                  },
+                  {
+                    "source": "explore",
+                    "quote": "Never solve before you understand."
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "| explore | Step 1 | Requirements clarification |"
+                  },
+                  {
+                    "source": "explore",
+                    "quote": "After exploration, this skill can hand off to:"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "supported",
+                "reason": "Both supplied sources are marked with coverage 'excerpt'. The gap correctly notes that step-level details are not confirmed by full module text and need verification.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "\"coverage\":\"excerpt\""
+                  },
+                  {
+                    "source": "explore",
+                    "quote": "\"coverage\":\"excerpt\""
+                  }
+                ]
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "The source states that Direct mode needs the installed agentic-qe runtime and that Reference mode is the fallback without it. Calling --full-qe 'расширенный' is loose, since --full-qe-extended is the extended flag, but the substance of the gap is supported.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "Reference mode is the honest fallback for a machine without agentic-qe"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "Full agentic-qe protocols when the runtime is installed"
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "feature-adr covers the requested span from requirements through architecture to QE, and explore is a conditional clarification aid rather than a duplicate. The fit judgment holds, but the explore placement is misdescribed, as noted in why:explore.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "uncertain",
+                "reason": "The pipeline lists only feature-adr, which is consistent with feature-adr being the core flow. However, the task asks which skill to take first, and the advice places explore before feature-adr as a conditional step. The pipeline does not express that conditional order, and the 'before' relationship is not supported by the sources.",
+                "evidence": []
+              }
+            ],
+            "issues": [
+              "The advice's claim that explore runs 'перед feature-adr' conflicts with feature-adr, which lists explore as a Step 1 helper. The user's question about which skill to take first is therefore answered inconsistently: explore is described as a prior step, while the pipeline contains only feature-adr.",
+              "The advice does not state a clear first-skill answer. It should say that feature-adr is the core pipeline and that explore is an optional tool for unclear requirements, not a prerequisite stage.",
+              "feature-adr carries trust_tier 0 (Advisory), and explore carries trust_tier 1. The advice does not mention this. The source does not make this a blocker, but the caveat is material for a team deciding how far to rely on the pipeline."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "source": "../skill-advisor-opencode/runtime-comparison/claude-smoke.json",
+      "scope": "Historical candidate subset; fresh stateless gateway roles, not native runtime or live catalog integration",
+      "result": {
+        "ok": false,
+        "error": "advice_team_failed",
+        "stage": "selection_validation"
+      },
+      "trace": [
+        {
+          "role": "selector",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 10715,
+          "usage": {
+            "prompt_tokens": 24383,
+            "completion_tokens": 1968,
+            "total_tokens": 26351,
+            "cost": 0.003388077,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0034223,
+              "upstream_inference_prompt_cost": 0.0024383,
+              "upstream_inference_completions_cost": 0.000984
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1631,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Исследовать GitHub-проекты и сохранять проверяемые ссылки на источники, подобрав первый набор навыков с описанием ограничений.",
+            "recommendations": [],
+            "gaps": [
+              "В снимке реестра есть только идентификаторы (goap-research-ed25519, git-mcp) и нет поля type, поэтому ни один пункт не подтверждён как навык для нативного маршрута OpenCode. Рекомендации не даны. Проверьте реестр через dz registry --json или запустите dz scout.",
+              "goap-research-ed25519 лучше всего подходит для проверяемых ссылок: fetch_source сохраняет хэш тела, статус и дату запроса. Однако он требует Python 3 и пакет cryptography, а режимы strict и paranoid по умолчанию недостижимы. git-mcp — это MCP-сервер для операций git (clone, log, diff). Он не решает задачу цитирования, а маршрут установки для OpenCode не проверен."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "cloudru",
+      "source": "../skill-advisor-opencode/runtime-comparison/claude-smoke.json",
+      "scope": "Historical candidate subset; fresh stateless gateway roles, not native runtime or live catalog integration",
+      "result": {
+        "ok": false,
+        "error": "advice_team_failed",
+        "stage": "review"
+      },
+      "trace": [
+        {
+          "role": "selector",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 11974,
+          "usage": {
+            "prompt_tokens": 10801,
+            "completion_tokens": 2639,
+            "total_tokens": 13440,
+            "cost": 0.002375604,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0023996,
+              "upstream_inference_prompt_cost": 0.0010801,
+              "upstream_inference_completions_cost": 0.0013195
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 2070,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Развернуть приложение из GitHub-репозитория на ВМ Cloud.ru с настройкой проверок и сопровождения, с объяснением выбора навыков, порядка применения и ограничений.",
+            "recommendations": [
+              {
+                "name": "deploy-on-cloudru-vm",
+                "type": "skill",
+                "fit": "high",
+                "why": "Покрывает основной путь: анализ репозитория, docker-compose, сбор четырёх учётных данных Cloud.ru, деплой через cloudru-vm, verify и выдачу IP, URL и ssh-строки. Источник: SKILL.md, покрытие excerpt.",
+                "install": "dz init --target opencode --select deploy-on-cloudru-vm"
+              },
+              {
+                "name": "canary-watch",
+                "type": "skill",
+                "fit": "medium",
+                "why": "Дополняет деплой пост-деплойными проверками: HTTP, консольные ошибки, производительность, статика и SSE. Использовать после деплоя, как условное дополнение для настройки проверок. Trust tier 0 (community), покрытие excerpt.",
+                "install": "dz init --target opencode --select canary-watch"
+              }
+            ],
+            "pipeline": [
+              "deploy-on-cloudru-vm",
+              "canary-watch"
+            ],
+            "gaps": [
+              "Навык не устанавливает Go-бинарник cloudru-vm и не предоставляет учётные данные Cloud.ru (ключ IAM, project ID, зону, образ); их нужно подготовить заранее.",
+              "Снимок реестра не содержит поля type, поэтому тип подтверждён только по SKILL.md. Canary-watch имеет community tier 0 и excerpt-покрытие, поэтому полнота описанных возможностей не подтверждена."
+            ]
+          }
+        },
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 20224,
+          "usage": {
+            "prompt_tokens": 7238,
+            "completion_tokens": 5101,
+            "total_tokens": 12339,
+            "cost": 0.003241557,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0032743,
+              "upstream_inference_prompt_cost": 0.0007238,
+              "upstream_inference_completions_cost": 0.0025505
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 3276,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "8f9f0affe5936473033ee83b34f06b387f093fcdfc0221cc8350a5e95445ac31",
+            "checks": [
+              {
+                "id": "why:deploy-on-cloudru-vm",
+                "status": "supported",
+                "reason": "SKILL.md describes the full path: repo analysis (Step 1), compose file creation or synthesis (Step 2), collection of the four Cloud.ru credentials (Step 3), deployment via cloudru-vm (Step 4), verification, and handover of IP, URL and ssh string (Step 5). The rationale matches these steps.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "collect the four required Cloud.ru credentials"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "hand back the public IP / connection URL / ssh string"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "Verify honestly, then hand over the connection"
+                  }
+                ]
+              },
+              {
+                "id": "why:canary-watch",
+                "status": "supported",
+                "reason": "The source lists HTTP status, console errors, performance (LCP/CLS/INP), static assets and SSE streams as checks, and it is meant for post-deploy verification. The source metadata confirms trust tier 0 and excerpt coverage. The conditional framing as an add-on matches the 'after deploying' use case.",
+                "evidence": [
+                  {
+                    "source": "canary-watch",
+                    "quote": "checks HTTP endpoints, SSE streams, static assets, console errors, and performance regressions"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "8. SSE Streams — do event-stream endpoints connect"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "trust_tier: 0"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "\"coverage\":\"excerpt\""
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "uncertain",
+                "reason": "The source supports that the skill wraps the cloudru-vm binary and asks the user for missing credentials, and that the binary must be installed through the listed prerequisites. However, the source does not say the credentials must be prepared in advance. It says they are asked for during the conversation ('asking the user for anything missing'). The clause 'нужно подготовить заранее' overstates the evidence, so the gap is only partly supported.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "cloudru-vm is a Go CLI (no npm package; pre-built binaries not yet released)"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "asking the user for anything missing"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "ASK — cannot be discovered"
+                  }
+                ]
+              },
+              {
+                "id": "gap:1",
+                "status": "uncertain",
+                "reason": "The claim that the registry snapshot lacks a type field is not in any supplied source, so it cannot be verified here. The second part is supported: canary-watch is tier 0 and has excerpt coverage, so the completeness of its described capabilities is not confirmed.",
+                "evidence": [
+                  {
+                    "source": "canary-watch",
+                    "quote": "Community (imported from ECC)"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "\"coverage\":\"excerpt\""
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "deploy-on-cloudru-vm directly covers the GitHub-to-Cloud.ru VM deployment and verification. canary-watch adds post-deploy monitoring beyond the HTTP check in verify, which fits the request for checks and maintenance. The picks are relevant and not redundant. The advice could note that canary-watch is generic URL monitoring and not Cloud.ru-specific, but this does not make the picks unfit.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "uncertain",
+                "reason": "The order deploy-on-cloudru-vm then canary-watch matches the source's guidance that canary-watch runs after deployment. However, the rationale calls canary-watch a conditional add-on, while the pipeline lists it as an unconditional step. The pipeline is therefore not fully consistent with the conditional pick, and the task explicitly asks for the order of application.",
+                "evidence": [
+                  {
+                    "source": "canary-watch",
+                    "quote": "After deploying to production or staging"
+                  }
+                ]
+              }
+            ],
+            "issues": [
+              "pipeline lists canary-watch as an unconditional step, but the rationale describes it as a conditional add-on. The pipeline should mark it as conditional, or the rationale should be changed to match.",
+              "gap:0 says the credentials must be prepared 'заранее' (in advance). The source says they are requested from the user during the conversation, so this wording overstates the source.",
+              "gap:1 refers to a registry snapshot without a type field. No supplied source contains that snapshot, so that part of the claim cannot be verified."
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

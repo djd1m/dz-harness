@@ -1,0 +1,358 @@
+{
+  "scope": "Developer-heldout questions; historical local package snapshot; no native runtime test",
+  "model": null,
+  "catalogRevision": "a54fd73db910b5540a57bc81fff7bcdd4524de94d8cbfab8f73cf590e4d42fec",
+  "approvedRecords": 24,
+  "excluded": [],
+  "rows": [
+    {
+      "id": "q01",
+      "query": "Мы уже решили перейти с REST на GraphQL. Сохрани короткое архитектурное решение с причинами и последствиями прямо по итогам этой беседы.",
+      "coverage": "absent",
+      "relevantScenarioIds": [],
+      "retrievedIds": [
+        "meta-feature-adr",
+        "website-clone-page",
+        "pm-feature-priority",
+        "reasoning-diagnose"
+      ],
+      "retrievalMs": 17.66282600000001,
+      "retrievedRelevant": false
+    },
+    {
+      "id": "q02",
+      "query": "Закрыли большой проект. Найди в его папке полезные команды, шаблоны и правила, которые можно перенести в следующие проекты.",
+      "coverage": "absent",
+      "relevantScenarioIds": [],
+      "retrievedIds": [
+        "bto-evaluate",
+        "mcp-context7-docs",
+        "bto-build",
+        "pm-sprint-plan"
+      ],
+      "retrievalMs": 1.576761999999988,
+      "retrievedRelevant": false
+    },
+    {
+      "id": "q03",
+      "query": "В рабочей базе большая таблица заказов. Нужно переименовать колонку без остановки сервиса, предусмотреть совместимость старой версии приложения и откат.",
+      "coverage": "absent",
+      "relevantScenarioIds": [],
+      "retrievedIds": [
+        "reasoning-diagnose",
+        "devops-cloudru-deploy",
+        "meta-explore-product"
+      ],
+      "retrievalMs": 1.3867619999999903,
+      "retrievedRelevant": false
+    },
+    {
+      "id": "q04",
+      "query": "У микросервисов есть разрозненные логи. Хочу связать запросы сквозными трассами, задать цели надёжности и получить дашборд с полезными алертами.",
+      "coverage": "absent",
+      "relevantScenarioIds": [],
+      "retrievedIds": [
+        "reasoning-diagnose",
+        "mcp-context7-docs",
+        "mcp-git-research",
+        "meta-explore-product",
+        "pm-feature-priority"
+      ],
+      "retrievalMs": 1.5071219999999954,
+      "retrievedRelevant": false
+    },
+    {
+      "id": "q05",
+      "query": "Найди в моей почте Google письма со счетами за прошлый месяц и пометь их отдельным ярлыком.",
+      "coverage": "absent",
+      "relevantScenarioIds": [],
+      "retrievedIds": [
+        "mcp-context7-docs",
+        "news-monitor-delta",
+        "news-period-digest"
+      ],
+      "retrievalMs": 1.5237020000000001,
+      "retrievedRelevant": false
+    },
+    {
+      "id": "q06",
+      "query": "Агент всё время использует старый API библиотеки. Нужен способ получать актуальную документацию и примеры для конкретной версии прямо во время разработки.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "mcp-context7-docs"
+      ],
+      "retrievedIds": [
+        "mcp-context7-docs",
+        "bto-build",
+        "meta-feature-adr",
+        "news-period-digest",
+        "bto-evaluate"
+      ],
+      "retrievalMs": 1.5192219999999992,
+      "retrievedRelevant": true
+    },
+    {
+      "id": "q07",
+      "query": "На тестовом стенде хочу искусственно задержать ответы зависимого сервиса и проверить, сработает ли предохранитель и восстановится ли система после сбоя.",
+      "coverage": "absent",
+      "relevantScenarioIds": [],
+      "retrievedIds": [
+        "qe-generate-tests",
+        "reasoning-diagnose",
+        "devops-github-actions",
+        "qe-coverage-gaps",
+        "tutorial-check"
+      ],
+      "retrievalMs": 1.368631999999991,
+      "retrievedRelevant": false
+    },
+    {
+      "id": "q08",
+      "query": "Собери за октябрь связный обзор событий в генеративном ИИ: релизы, исследования, важные сделки, со ссылками на источники и проверкой полноты.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "news-period-digest"
+      ],
+      "retrievedIds": [
+        "news-period-digest",
+        "news-monitor-delta",
+        "presentation-speaker",
+        "presentation-sales",
+        "devops-cloudru-deploy"
+      ],
+      "retrievalMs": 2.2685239999999993,
+      "retrievedRelevant": true
+    },
+    {
+      "id": "q09",
+      "query": "У меня сохранён прошлый обзор релизов. Покажи только действительно новые события после него, исключи уже виденные и дубли.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "news-monitor-delta"
+      ],
+      "retrievedIds": [
+        "news-monitor-delta",
+        "news-period-digest",
+        "qe-generate-tests",
+        "reverse-cjm"
+      ],
+      "retrievalMs": 1.6313020000000051,
+      "retrievedRelevant": true
+    },
+    {
+      "id": "q10",
+      "query": "В бэклоге тридцать идей, ресурсов на пять. Есть оценки влияния, трудозатрат и рисков; помоги выбрать первые пять под нашу продуктовую цель.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "pm-feature-priority"
+      ],
+      "retrievedIds": [
+        "pm-feature-priority",
+        "pm-sprint-plan",
+        "bto-evaluate",
+        "reverse-cjm",
+        "meta-explore-product"
+      ],
+      "retrievalMs": 1.9353129999999936,
+      "retrievedRelevant": true
+    },
+    {
+      "id": "q11",
+      "query": "Выгрузил результаты эксперимента с двумя вариантами регистрации. Проверь размер выборки, перекос распределения пользователей и доверительный интервал: выкатывать вариант или продолжать сбор данных?",
+      "coverage": "absent",
+      "relevantScenarioIds": [],
+      "retrievedIds": [
+        "reverse-cjm",
+        "bto-evaluate",
+        "devops-github-actions",
+        "tutorial-check"
+      ],
+      "retrievalMs": 2.037752999999995,
+      "retrievedRelevant": false
+    },
+    {
+      "id": "q12",
+      "query": "Есть инструкция для кодового агента и эталонные ответы. Хочу измерить её качество и стабильность, затем улучшать формулировки с повторной оценкой.",
+      "coverage": "partial",
+      "relevantScenarioIds": [
+        "bto-evaluate"
+      ],
+      "retrievedIds": [
+        "bto-evaluate",
+        "bto-build"
+      ],
+      "retrievalMs": 1.5245419999999967,
+      "retrievedRelevant": true
+    },
+    {
+      "id": "q13",
+      "query": "Разберись, почему после повторного входа теряется корзина. Нужны воспроизведение и документ с первопричиной; код менять и исправления предлагать пока нельзя.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "reasoning-diagnose"
+      ],
+      "retrievedIds": [
+        "reasoning-diagnose",
+        "reasoning-refactor",
+        "mcp-context7-docs",
+        "website-clone-multiple",
+        "qe-generate-tests"
+      ],
+      "retrievalMs": 1.736931999999996,
+      "retrievedRelevant": true
+    },
+    {
+      "id": "q14",
+      "query": "У нас четыре связанных репозитория, и агент каждый раз заново выясняет, кто чем владеет. Подготовь для каждого постоянные архитектурные инструкции с границами ответственности и направлением зависимостей.",
+      "coverage": "absent",
+      "relevantScenarioIds": [],
+      "retrievedIds": [
+        "bto-build",
+        "meta-feature-adr",
+        "news-period-digest",
+        "pm-sprint-plan",
+        "reasoning-refactor"
+      ],
+      "retrievalMs": 1.4234819999999786,
+      "retrievedRelevant": false
+    },
+    {
+      "id": "q15",
+      "query": "Разбери, как зарабатывает Miro, кто его покупает и как он растёт. На этой основе нужен практический план запуска похожего бизнеса, а не копия интерфейса.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "reverse-business"
+      ],
+      "retrievedIds": [
+        "reverse-business",
+        "website-clone-page",
+        "bto-evaluate",
+        "news-monitor-delta",
+        "website-clone-multiple"
+      ],
+      "retrievalMs": 1.2435219999999845,
+      "retrievedRelevant": true
+    },
+    {
+      "id": "q16",
+      "query": "Есть наш пакет командной строки с README и примерами. Сделай по нему интерактивный учебный курс с упражнениями и финальным тестом, который открывается одним HTML-файлом без сети.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "tutorial-create"
+      ],
+      "retrievedIds": [
+        "tutorial-create",
+        "tutorial-check",
+        "reasoning-diagnose",
+        "bto-evaluate",
+        "mcp-context7-docs"
+      ],
+      "retrievalMs": 1.4935219999999845,
+      "retrievedRelevant": true
+    },
+    {
+      "id": "q17",
+      "query": "Вот URL нашего старого лендинга. Воссоздай его внешний вид и интерактивность на новом фронтенде, включая мобильную версию. Готовый каркас Next.js с Tailwind и доступ к браузерной автоматизации уже есть.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "website-clone-page"
+      ],
+      "retrievedIds": [
+        "website-clone-page",
+        "bto-evaluate",
+        "qe-generate-tests",
+        "website-clone-multiple",
+        "news-monitor-delta"
+      ],
+      "retrievalMs": 1.2250219999999956,
+      "retrievedRelevant": true
+    },
+    {
+      "id": "q18",
+      "query": "Нужна презентация нашего сервиса для потенциального заказчика: аргументы с проверенными ссылками и связный текст выступления к каждому слайду. Содержимое можно отдать в Markdown.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "presentation-sales",
+        "presentation-speaker"
+      ],
+      "retrievedIds": [
+        "presentation-speaker",
+        "news-period-digest",
+        "presentation-sales",
+        "news-monitor-delta",
+        "website-clone-multiple"
+      ],
+      "retrievalMs": 1.4669820000000016,
+      "retrievedRelevant": true
+    },
+    {
+      "id": "q19",
+      "query": "Хочу сделать как у конкурента. С чего начать?",
+      "coverage": "clarify",
+      "relevantScenarioIds": [],
+      "retrievedIds": [
+        "reverse-cjm"
+      ],
+      "retrievalMs": 1.0556519999999807,
+      "retrievedRelevant": false
+    },
+    {
+      "id": "q20",
+      "query": "Помоги с тестами.",
+      "coverage": "clarify",
+      "relevantScenarioIds": [],
+      "retrievedIds": [
+        "qe-generate-tests",
+        "reasoning-refactor"
+      ],
+      "retrievalMs": 1.0169710000000123,
+      "retrievedRelevant": false
+    },
+    {
+      "id": "q21",
+      "query": "Мне нужен мониторинг.",
+      "coverage": "clarify",
+      "relevantScenarioIds": [],
+      "retrievedIds": [],
+      "retrievalMs": 1.5819929999999829,
+      "retrievedRelevant": false
+    },
+    {
+      "id": "q22",
+      "query": "Сочини короткое поздравление бабушке с юбилеем в стихах.",
+      "coverage": "no-match",
+      "relevantScenarioIds": [],
+      "retrievedIds": [],
+      "retrievalMs": 1.4827820000000145,
+      "retrievedRelevant": false
+    },
+    {
+      "id": "q23",
+      "query": "Закажи доставку двух пицц на мой домашний адрес сегодня к семи.",
+      "coverage": "no-match",
+      "relevantScenarioIds": [],
+      "retrievedIds": [
+        "devops-cloudru-deploy",
+        "website-clone-multiple",
+        "website-clone-page"
+      ],
+      "retrievalMs": 1.7862520000000188,
+      "retrievedRelevant": false
+    },
+    {
+      "id": "q24",
+      "query": "Обрежь этот аудиофайл до первых тридцати секунд и сохрани в WAV.",
+      "coverage": "no-match",
+      "relevantScenarioIds": [],
+      "retrievedIds": [],
+      "retrievalMs": 1.538722000000007,
+      "retrievedRelevant": false
+    }
+  ],
+  "summary": {
+    "fullCoverage": 9,
+    "fullCoverageRetrieved": 9,
+    "correct": null,
+    "total": 24
+  }
+}

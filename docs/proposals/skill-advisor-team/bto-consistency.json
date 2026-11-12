@@ -1,0 +1,251 @@
+{
+  "scope": "BTO B2: three independent stateless Haiku interpretation probes; not native runtime or end-to-end factual evaluation",
+  "requestedModel": "anthropic/claude-haiku-5.5",
+  "expected": {
+    "approvedDraftNeedsEditor": false,
+    "maxRepairAttempts": 1,
+    "editedDraftNeedsFreshReview": true,
+    "excerptSilenceProvesAbsence": false,
+    "sameModelNewSessionIsCrossModel": false,
+    "missingIndependentReviewCanBeCalledApproved": false,
+    "defaultMaxPicks": 2,
+    "defaultMaxGaps": 2,
+    "courseUrlsMayBeInvented": false
+  },
+  "results": [
+    {
+      "index": 0,
+      "elapsedMs": 2598,
+      "model": "anthropic/claude-haiku-5.5",
+      "finishReason": "stop",
+      "answer": {
+        "approvedDraftNeedsEditor": false,
+        "maxRepairAttempts": 1,
+        "editedDraftNeedsFreshReview": true,
+        "excerptSilenceProvesAbsence": false,
+        "sameModelNewSessionIsCrossModel": false,
+        "missingIndependentReviewCanBeCalledApproved": false,
+        "defaultMaxPicks": 2,
+        "defaultMaxGaps": 2,
+        "courseUrlsMayBeInvented": false
+      },
+      "checks": [
+        {
+          "field": "approvedDraftNeedsEditor",
+          "pass": true
+        },
+        {
+          "field": "maxRepairAttempts",
+          "pass": true
+        },
+        {
+          "field": "editedDraftNeedsFreshReview",
+          "pass": true
+        },
+        {
+          "field": "excerptSilenceProvesAbsence",
+          "pass": true
+        },
+        {
+          "field": "sameModelNewSessionIsCrossModel",
+          "pass": true
+        },
+        {
+          "field": "missingIndependentReviewCanBeCalledApproved",
+          "pass": true
+        },
+        {
+          "field": "defaultMaxPicks",
+          "pass": true
+        },
+        {
+          "field": "defaultMaxGaps",
+          "pass": true
+        },
+        {
+          "field": "courseUrlsMayBeInvented",
+          "pass": true
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 4654,
+        "completion_tokens": 515,
+        "total_tokens": 5169,
+        "cost": 0.000715671,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007229,
+          "upstream_inference_prompt_cost": 0.0004654,
+          "upstream_inference_completions_cost": 0.0002575
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 355,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    },
+    {
+      "index": 1,
+      "elapsedMs": 2706,
+      "model": "anthropic/claude-haiku-5.5",
+      "finishReason": "stop",
+      "answer": {
+        "approvedDraftNeedsEditor": false,
+        "maxRepairAttempts": 1,
+        "editedDraftNeedsFreshReview": true,
+        "excerptSilenceProvesAbsence": false,
+        "sameModelNewSessionIsCrossModel": false,
+        "missingIndependentReviewCanBeCalledApproved": false,
+        "defaultMaxPicks": 2,
+        "defaultMaxGaps": 2,
+        "courseUrlsMayBeInvented": false
+      },
+      "checks": [
+        {
+          "field": "approvedDraftNeedsEditor",
+          "pass": true
+        },
+        {
+          "field": "maxRepairAttempts",
+          "pass": true
+        },
+        {
+          "field": "editedDraftNeedsFreshReview",
+          "pass": true
+        },
+        {
+          "field": "excerptSilenceProvesAbsence",
+          "pass": true
+        },
+        {
+          "field": "sameModelNewSessionIsCrossModel",
+          "pass": true
+        },
+        {
+          "field": "missingIndependentReviewCanBeCalledApproved",
+          "pass": true
+        },
+        {
+          "field": "defaultMaxPicks",
+          "pass": true
+        },
+        {
+          "field": "defaultMaxGaps",
+          "pass": true
+        },
+        {
+          "field": "courseUrlsMayBeInvented",
+          "pass": true
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 4654,
+        "completion_tokens": 505,
+        "total_tokens": 5159,
+        "cost": 0.000710721,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007179,
+          "upstream_inference_prompt_cost": 0.0004654,
+          "upstream_inference_completions_cost": 0.0002525
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 345,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    },
+    {
+      "index": 2,
+      "elapsedMs": 2545,
+      "model": "anthropic/claude-haiku-5.5",
+      "finishReason": "stop",
+      "answer": {
+        "approvedDraftNeedsEditor": false,
+        "maxRepairAttempts": 1,
+        "editedDraftNeedsFreshReview": true,
+        "excerptSilenceProvesAbsence": false,
+        "sameModelNewSessionIsCrossModel": false,
+        "missingIndependentReviewCanBeCalledApproved": false,
+        "defaultMaxPicks": 2,
+        "defaultMaxGaps": 2,
+        "courseUrlsMayBeInvented": false
+      },
+      "checks": [
+        {
+          "field": "approvedDraftNeedsEditor",
+          "pass": true
+        },
+        {
+          "field": "maxRepairAttempts",
+          "pass": true
+        },
+        {
+          "field": "editedDraftNeedsFreshReview",
+          "pass": true
+        },
+        {
+          "field": "excerptSilenceProvesAbsence",
+          "pass": true
+        },
+        {
+          "field": "sameModelNewSessionIsCrossModel",
+          "pass": true
+        },
+        {
+          "field": "missingIndependentReviewCanBeCalledApproved",
+          "pass": true
+        },
+        {
+          "field": "defaultMaxPicks",
+          "pass": true
+        },
+        {
+          "field": "defaultMaxGaps",
+          "pass": true
+        },
+        {
+          "field": "courseUrlsMayBeInvented",
+          "pass": true
+        }
+      ],
+      "usage": {
+        "prompt_tokens": 4654,
+        "completion_tokens": 519,
+        "total_tokens": 5173,
+        "cost": 0.000717651,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007249,
+          "upstream_inference_prompt_cost": 0.0004654,
+          "upstream_inference_completions_cost": 0.0002595
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 364,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      }
+    }
+  ]
+}

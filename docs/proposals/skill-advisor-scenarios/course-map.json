@@ -1,0 +1,89 @@
+{
+  "source": "aicoding-site/src/data/inventory.json",
+  "sourceSha256": "6ddcc139317a00a207bd4287ae4ed129b5d4b82e44002a00bf06a82970bed64b",
+  "checkedAt": "2026-11-09T21:37:16.095592+00:00",
+  "entries": [
+    {
+      "package": "@dzhechkov/skills-bto",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-bto/",
+      "status": "verified",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-bto/"
+    },
+    {
+      "package": "@dzhechkov/skills-devops",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/",
+      "status": "verified",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+    },
+    {
+      "package": "@dzhechkov/skills-mcp",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-mcp/",
+      "status": "verified",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-mcp/"
+    },
+    {
+      "package": "@dzhechkov/skills-meta",
+      "url": null,
+      "status": "unmapped"
+    },
+    {
+      "package": "@dzhechkov/skills-news",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/news/",
+      "status": "verified",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/news/"
+    },
+    {
+      "package": "@dzhechkov/skills-pm",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-pm/",
+      "status": "verified",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-pm/"
+    },
+    {
+      "package": "@dzhechkov/skills-presentation-storyteller",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/presentation-storyteller/",
+      "status": "verified",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/presentation-storyteller/"
+    },
+    {
+      "package": "@dzhechkov/skills-qe",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-qe/",
+      "status": "verified",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-qe/"
+    },
+    {
+      "package": "@dzhechkov/skills-reasoning",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-reasoning/",
+      "status": "verified",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-reasoning/"
+    },
+    {
+      "package": "@dzhechkov/skills-reverse-engineering",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-reverse-engineering/",
+      "status": "verified",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-reverse-engineering/"
+    },
+    {
+      "package": "@dzhechkov/skills-tutorial-factory",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/tutorial-factory/",
+      "status": "verified",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/tutorial-factory/"
+    },
+    {
+      "package": "@dzhechkov/skills-website-cloner",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-website-cloner/",
+      "status": "verified",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-website-cloner/"
+    }
+  ]
+}
