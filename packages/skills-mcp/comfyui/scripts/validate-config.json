@@ -1,13 +1,13 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "comfyui config validator",
-  "description": "Validates configuration inputs for the comfyui skill",
+  "description": "Checks input shape only; does not probe MCP, ComfyUI, models, or generation.",
   "type": "object",
   "properties": {
     "server_url": {
       "type": "string",
-      "default": "http://127.0.0.1:8188",
-      "description": "ComfyUI server URL"
+      "description": "Explicit ComfyUI backend URL; supply via COMFYUI_URL at MCP registration.",
+      "pattern": "^https?://[^\\s/]+(?:/.*)?$"
     },
     "workflow_path": {
       "type": "string",
@@ -15,9 +15,16 @@
     },
     "workflow_type": {
       "type": "string",
-      "enum": ["text_to_image", "image_to_image", "inpaint", "upscale", "controlnet", "custom"],
+      "enum": [
+        "text_to_image",
+        "image_to_image",
+        "inpaint",
+        "upscale",
+        "controlnet",
+        "custom"
+      ],
       "default": "text_to_image",
-      "description": "Built-in workflow type to use"
+      "description": "Requested workflow category; availability depends on discovered tools and installed models."
     },
     "model": {
       "type": "string",
@@ -64,7 +71,15 @@
     },
     "sampler": {
       "type": "string",
-      "enum": ["euler", "euler_ancestral", "dpmpp_2m", "dpmpp_sde", "dpmpp_2m_sde", "lcm", "ddim"],
+      "enum": [
+        "euler",
+        "euler_ancestral",
+        "dpmpp_2m",
+        "dpmpp_sde",
+        "dpmpp_2m_sde",
+        "lcm",
+        "ddim"
+      ],
       "default": "euler",
       "description": "Sampling algorithm"
     },

@@ -38,6 +38,12 @@ npm install @dzhechkov/skills-mcp
 | `obsidian` | obsidian-mcp-server | Vault management — read, write, search notes |
 | `reddit` | Smithery (reddit) | Search posts, read threads, monitor subreddits |
 
+## ComfyUI in Codex
+
+The `comfyui` skill includes the byte-identical `comfyui-core` guide and MIT notice from `comfyui-mcp@0.52.206`. The local [wrapper](comfyui/SKILL.md) gives Codex setup and host adaptations; installing the skill does not register or launch the MCP server.
+
+Node.js 22 or newer is needed for the pinned server. After installing this package into your project with npm, run `dz init --target codex --select comfyui --skills-dir ./node_modules/@dzhechkov/skills-mcp --project . --no-integrations --no-hooks`. Then register the server in the intended Codex home with `codex mcp add comfyui --env COMFYUI_URL=http://127.0.0.1:8188 -- npx -y comfyui-mcp@0.52.206 --stdio --full`. Use your actual ComfyUI URL if it is hosted elsewhere. Check the stored command with `codex mcp get comfyui`; launch Codex and discover the actual tool schemas before using them. Reachability, models, and generated output need their own observations. This package's schema checks validate JSON shape only. This release was tested with an isolated Codex installation and MCP registration. Live generation with ComfyUI and a model remains unverified.
+
 ## Quick Setup (Claude Code)
 
 ```bash
@@ -55,7 +61,7 @@ dz init --target claude-code --preset mcp
 
 ## Status
 
-`v0.3.0` — published on npm. Part of [DZ Harness Hub](https://github.com/djd1m/dz-harness-hub).
+Part of [DZ Harness Hub](https://github.com/djd1m/dz-harness-hub).
 
 ## How to use
 

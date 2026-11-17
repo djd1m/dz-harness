@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "c343707988cf2d1e2859eaebea95573d5241aeebd14a47932fe42096d7921d9e"
+        "sha256": "a5e625ee532b998980c47f41a46bb474fbe575c51202834c24d569d4578115e9"
       },
       {
         "path": "agentdb-memory/SKILL.md",
@@ -61,19 +61,27 @@
       },
       {
         "path": "comfyui/SKILL.md",
-        "sha256": "9142b2a3f5a1965a6237d20ea436290a8ab0d63ddca812c0cef9b1a9f5d05f89"
+        "sha256": "6a26ca414afeb4230d5ab2363062ef7872f666259aa9d3335af5e9cb0435eb28"
       },
       {
         "path": "comfyui/evals/comfyui.yaml",
-        "sha256": "c7804935802bf8e4ec7aa63d7a1167f1a501742fd6960672425d86ef4240f977"
+        "sha256": "5baf73684e29c0a32400f412b4f72384ec8c32b6710ce410b0cbae192a202027"
+      },
+      {
+        "path": "comfyui/references/LICENSE.upstream-comfyui-core",
+        "sha256": "5110e81ef1f46c9a942c912ec517092ba9e5384c37891a9d70adefc37f17074a"
+      },
+      {
+        "path": "comfyui/references/upstream-comfyui-core.md",
+        "sha256": "f5be708b816114ffa69260586a734c010ec61f95f7d0be827bead05ac06c893c"
       },
       {
         "path": "comfyui/schemas/output.json",
-        "sha256": "9f2d6c02123b2484e455710a57799dfb636f707312cdb7a3d272104d7d55a3e6"
+        "sha256": "42c3957ac8702883a5ea0f8841d01c295bf4ceea7441d62af1755648b9001960"
       },
       {
         "path": "comfyui/scripts/validate-config.json",
-        "sha256": "0d40b57b494f43ab91551c13205636fee0213e369e5b162d9d408056044bc3fe"
+        "sha256": "4ff5d8ee1be44e445ef04a3d9b800fb05dd81ca0f329e53898cb560b270f5014"
       },
       {
         "path": "context7/SKILL.md",
@@ -253,7 +261,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "a1850b364d97d77e19f133b7a8d5f963459fa2a93b7614abe337c1f7be6c10f3"
+        "sha256": "07938cc2535fa41dfc7afb082f7def0b390d90b99b0ea595a9d51128343e0738"
       },
       {
         "path": "reddit/SKILL.md",
@@ -273,9 +281,9 @@
       },
       {
         "path": "sources.json",
-        "sha256": "36fb991d1d926f4b0aa39f07b60b1b61b726012d74d68f13c44f3e4b371702cd"
+        "sha256": "ec5f78aa304cb682866388ece16a272099fd626f686a764f600783a2fd64fe15"
       }
     ]
   },
-  "signature": "tjLka/ANEPFE/r+7QA9LGxlxQbdvT0sO4tXli+1zzDgDa2ToM9Cx1vIcQ7/a4NVmhtWyNSdDYiwxKzpLYsRCBw=="
+  "signature": "kok58dgcIkSB3M9HnukoHlVHEfl13lVYK+aPjrIBp6+52eLIgC+4hKnXfhkYnRL+rt1rAnciNz+PXTH2IXURAw=="
 }

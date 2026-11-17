@@ -1,45 +1,47 @@
-# comfyui evaluation
-# Run: aqe eval comfyui
+# comfyui evaluation scenarios. Expectations describe evidence boundaries; they are
+# not observations of a backend. Live-generation scenarios require an actual backend
+# and model and must remain unavailable in an environment without them.
 
 test_cases:
-  - name: "basic invocation"
-    input: "Run comfyui"
+  - name: "skill does not imply registration"
+    input: "I installed the comfyui skill. Is image generation ready?"
     expected:
-      status: success
-      summary_contains: "comfyui"
+      status: needs_more_info
+      registration_state: unknown
+      discovery_state: unknown
+      generation_state: unknown
 
-  - name: "text to image generation"
-    input: "Generate an image of a sunset over mountains using SDXL, 1024x1024, 25 steps."
+  - name: "registration does not imply a running backend"
+    input: "Codex shows a comfyui MCP registration, but there is no ComfyUI backend or model here. Generate a sunset."
     expected:
-      status: success
-      generation_workflow: "text_to_image"
-      generation_width: 1024
-      generation_height: 1024
+      status: needs_more_info
+      runtime_state: unavailable
+      models_state: unavailable
+      generation_state: unavailable
+      outputs: []
 
-  - name: "server not running"
-    input: "Generate an image but ComfyUI is not running at localhost:8188."
+  - name: "missing server"
+    input: "The registered server tool exists, but its configured ComfyUI URL is unreachable. Check readiness."
     expected:
       status: error
-      errors_type_includes: "connection"
+      runtime_state: unavailable
+      generation_state: unavailable
+      errors_type_includes: connection
 
-  - name: "VRAM management"
-    input: "Check VRAM status and free memory before loading a new SDXL model."
+  - name: "read-only model inventory"
+    input: "If the connected server exposes a model inventory tool, list available checkpoints without downloading anything."
     expected:
-      status: success
-      execution_has_vram_info: true
+      use_discovered_tool_schema: true
+      model_state_requires_observation: true
+      no_download: true
 
-  - name: "model selection"
-    input: "List available models and switch to Flux for high-quality generation."
+  - name: "generation requires output evidence"
+    input: "Generate an image with seed 42 and report the output path and parameters."
+    preconditions:
+      - reachable_backend
+      - usable_model
+      - discovered_generation_tool
     expected:
-      status: success
-      summary_contains_any:
-        - "model"
-        - "Flux"
-        - "switch"
-
-  - name: "seed reproducibility"
-    input: "Generate an image with seed 42 and report the exact parameters used so I can reproduce it."
-    expected:
-      status: success
-      generation_seed: 42
-      generation_has_all_params: true
+      generation_success_requires_completed_job: true
+      generation_success_requires_output_reference: true
+      unavailable_when_preconditions_missing: true

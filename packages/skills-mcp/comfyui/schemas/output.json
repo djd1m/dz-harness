@@ -1,17 +1,24 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "comfyui output",
-  "description": "Structured output from the comfyui skill",
+  "description": "ComfyUI skill report; schema conformance is not evidence of a live backend or generation.",
   "type": "object",
-  "required": ["status", "summary"],
+  "required": [
+    "status",
+    "summary"
+  ],
   "properties": {
     "status": {
       "type": "string",
-      "enum": ["success", "error", "needs_more_info"]
+      "enum": [
+        "success",
+        "error",
+        "needs_more_info"
+      ]
     },
     "summary": {
       "type": "string",
-      "description": "One-line summary of the generation result"
+      "description": "Concise observed result or first unavailable prerequisite."
     },
     "server": {
       "type": "object",
@@ -79,14 +86,28 @@
         "properties": {
           "file_path": {
             "type": "string",
-            "description": "Path to the generated image"
+            "description": "Path to the generated image",
+            "minLength": 1
           },
           "format": {
             "type": "string",
-            "enum": ["png", "jpg", "webp"]
+            "enum": [
+              "png",
+              "jpg",
+              "webp"
+            ]
           },
-          "width": { "type": "integer" },
-          "height": { "type": "integer" }
+          "width": {
+            "type": "integer"
+          },
+          "height": {
+            "type": "integer"
+          },
+          "reference": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Observed retrievable output reference when no local path is available."
+          }
         }
       }
     },
@@ -113,11 +134,167 @@
       "items": {
         "type": "object",
         "properties": {
-          "node": { "type": "string" },
-          "message": { "type": "string" },
+          "node": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
           "type": {
             "type": "string",
-            "enum": ["oom", "missing_model", "node_error", "connection", "timeout"]
+            "enum": [
+              "oom",
+              "missing_model",
+              "node_error",
+              "connection",
+              "timeout"
+            ]
+          }
+        }
+      }
+    },
+    "readiness": {
+      "type": "object",
+      "description": "Independent observations; earlier stages do not establish later stages.",
+      "required": [
+        "installation",
+        "registration",
+        "discovery",
+        "runtime",
+        "models",
+        "generation"
+      ],
+      "properties": {
+        "installation": {
+          "$ref": "#/$defs/readinessStage"
+        },
+        "registration": {
+          "$ref": "#/$defs/readinessStage"
+        },
+        "discovery": {
+          "$ref": "#/$defs/readinessStage"
+        },
+        "runtime": {
+          "$ref": "#/$defs/readinessStage"
+        },
+        "models": {
+          "$ref": "#/$defs/readinessStage"
+        },
+        "generation": {
+          "$ref": "#/$defs/readinessStage"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "success"
+          }
+        },
+        "required": [
+          "status",
+          "generation"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/observedOutputs"
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "readiness": {
+            "properties": {
+              "generation": {
+                "properties": {
+                  "state": {
+                    "const": "verified"
+                  }
+                },
+                "required": [
+                  "state"
+                ]
+              }
+            },
+            "required": [
+              "generation"
+            ]
+          }
+        },
+        "required": [
+          "readiness"
+        ]
+      },
+      "then": {
+        "$ref": "#/$defs/observedOutputs"
+      }
+    }
+  ],
+  "$defs": {
+    "readinessStage": {
+      "type": "object",
+      "required": [
+        "state"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "unknown",
+            "unavailable",
+            "verified"
+          ]
+        },
+        "evidence": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Observation, or reason the stage is unavailable."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "verified"
+              }
+            },
+            "required": [
+              "state"
+            ]
+          },
+          "then": {
+            "required": [
+              "evidence"
+            ]
+          }
+        }
+      ]
+    },
+    "observedOutputs": {
+      "required": [
+        "outputs"
+      ],
+      "properties": {
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "anyOf": [
+              {
+                "required": [
+                  "file_path"
+                ]
+              },
+              {
+                "required": [
+                  "reference"
+                ]
+              }
+            ]
           }
         }
       }

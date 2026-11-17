@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c343707988cf2d1e2859eaebea95573d5241aeebd14a47932fe42096d7921d9e"
+          "content": "a5e625ee532b998980c47f41a46bb474fbe575c51202834c24d569d4578115e9"
         }
       ]
     },
@@ -155,7 +155,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9142b2a3f5a1965a6237d20ea436290a8ab0d63ddca812c0cef9b1a9f5d05f89"
+          "content": "6a26ca414afeb4230d5ab2363062ef7872f666259aa9d3335af5e9cb0435eb28"
         }
       ]
     },
@@ -165,7 +165,27 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c7804935802bf8e4ec7aa63d7a1167f1a501742fd6960672425d86ef4240f977"
+          "content": "5baf73684e29c0a32400f412b4f72384ec8c32b6710ce410b0cbae192a202027"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "comfyui/references/LICENSE.upstream-comfyui-core",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "5110e81ef1f46c9a942c912ec517092ba9e5384c37891a9d70adefc37f17074a"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "comfyui/references/upstream-comfyui-core.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "f5be708b816114ffa69260586a734c010ec61f95f7d0be827bead05ac06c893c"
         }
       ]
     },
@@ -175,7 +195,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9f2d6c02123b2484e455710a57799dfb636f707312cdb7a3d272104d7d55a3e6"
+          "content": "42c3957ac8702883a5ea0f8841d01c295bf4ceea7441d62af1755648b9001960"
         }
       ]
     },
@@ -185,7 +205,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0d40b57b494f43ab91551c13205636fee0213e369e5b162d9d408056044bc3fe"
+          "content": "4ff5d8ee1be44e445ef04a3d9b800fb05dd81ca0f329e53898cb560b270f5014"
         }
       ]
     },
@@ -639,7 +659,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "a1850b364d97d77e19f133b7a8d5f963459fa2a93b7614abe337c1f7be6c10f3"
+          "value": "07938cc2535fa41dfc7afb082f7def0b390d90b99b0ea595a9d51128343e0738"
         }
       ]
     },
@@ -689,7 +709,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "36fb991d1d926f4b0aa39f07b60b1b61b726012d74d68f13c44f3e4b371702cd"
+          "content": "ec5f78aa304cb682866388ece16a272099fd626f686a764f600783a2fd64fe15"
         }
       ]
     }

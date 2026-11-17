@@ -14,8 +14,21 @@
     },
     "comfyui": {
       "upstream_type": "mcp-server",
-      "upstream_server": "comfyui-mcp (github.com/comfyui-mcp/comfyui-mcp)",
-      "description": "ComfyUI image generation via MCP — execute workflows, generate images, manage models, control VRAM."
+      "upstream_server": "comfyui-mcp@0.52.206 (https://github.com/artokun/comfyui-mcp)",
+      "description": "ComfyUI workflows through separately registered MCP, with pinned upstream core reference and layered readiness.",
+      "donor": {
+        "package": "comfyui-mcp",
+        "version": "0.52.206",
+        "gitHead": "c64a8ec76f3345446f0f472152afcd95af846a37",
+        "tarball": "https://registry.npmjs.org/comfyui-mcp/-/comfyui-mcp-0.52.206.tgz",
+        "source_path": "plugin/skills/comfyui-core/SKILL.md",
+        "reference_path": "comfyui/references/upstream-comfyui-core.md",
+        "sha256": "f5be708b816114ffa69260586a734c010ec61f95f7d0be827bead05ac06c893c",
+        "license": "MIT",
+        "license_source_path": "LICENSE",
+        "license_reference_path": "comfyui/references/LICENSE.upstream-comfyui-core",
+        "license_sha256": "5110e81ef1f46c9a942c912ec517092ba9e5384c37891a9d70adefc37f17074a"
+      }
     },
     "exa-search": {
       "upstream_type": "mcp-server",

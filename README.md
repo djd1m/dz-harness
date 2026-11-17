@@ -69,7 +69,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-edu-site` | 1.1.11 |
 | `@dzhechkov/skills-feature-adr` | 1.5.26 |
 | `@dzhechkov/skills-idea2prd` | 0.1.16 |
-| `@dzhechkov/skills-mcp` | 0.3.11 |
+| `@dzhechkov/skills-mcp` | 0.3.12 |
 | `@dzhechkov/skills-meta` | 0.9.75 |
 | `@dzhechkov/skills-news` | 0.1.17 |
 | `@dzhechkov/skills-package-story-page` | 0.2.5 |
