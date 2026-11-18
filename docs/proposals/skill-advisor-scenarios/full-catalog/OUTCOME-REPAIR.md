@@ -1,5 +1,7 @@
 # Outcome coverage follow-up
 
+The subsequent [requested-action contract](ACTION-COVERAGE.md) records the next candidate and its measured outcomes.
+
 The candidate fixes the three previously reported cases. Explore is available for requests whose immediate goal is to clarify a scoped task. Compound searches keep a complementary second skill when it covers a separate action, and can recover a skill from approved clause evidence. Specific recommendations show the approved skill name. A response with no match can quote the unsupported portion of the request.
 
 In two real search traces, `outcome-roadmap` and `github-actions` were already at ranks 3 and 4. The first reranker replaced them when another card improved a background clause. The final comparison considers the evidence the current second skill already contributes over the first. The saved search results still place a correct package in the top five for all 57 previous positive cases.
