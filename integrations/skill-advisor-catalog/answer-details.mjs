@@ -1,5 +1,5 @@
 import {ChoiceError} from './choice-error.mjs';
-import {directlyPhysical} from './action-coverage.mjs';
+import {actionScenarioIds,directlyPhysical} from './action-coverage.mjs';
 import {stems} from '../../packages/harness-core/dist/stem.js';
 
 const maxDetails = 6;
@@ -66,7 +66,7 @@ export function validateAnswerDetails(retrieval, choice, passages) {
   }
   const action = actions.find(item=>item.id===detail.actionId);
   if (actions.length ? !(action && Array.isArray(choice.coverage) && choice.coverage.some(row=>
-   row && row.actionId===action.id && row.scenarioId===detail.scenarioId)) : detail.actionId!==null) {
+   row && row.actionId===action.id && actionScenarioIds(row).includes(detail.scenarioId))) : detail.actionId!==null) {
    throw new ChoiceError('detail-binding','Unbound answer detail action');
   }
   const task = detail.requirement;
@@ -81,7 +81,7 @@ export function validateAnswerDetails(retrieval, choice, passages) {
   return {scenarioId:detail.scenarioId,actionId:detail.actionId,requirement:task,quote:passage.text};
  });
  if ([...selected].some(id=>!details.some(detail=>detail.scenarioId===id)) ||
-     (choice.coverage ?? []).some(row=>row?.scenarioId && !details.some(detail=>detail.actionId===row.actionId))) {
+     (choice.coverage ?? []).some(row=>actionScenarioIds(row).some(id=>!details.some(detail=>detail.actionId===row.actionId&&detail.scenarioId===id)))) {
   throw new ChoiceError('detail-requirement','Selected scope lacks a documented requirement');
  }
  return details;

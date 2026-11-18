@@ -68,9 +68,11 @@ export function dialogueContract(presentation,sourceContext=null) {
 export function renderDialogue(output,presentation,courses){
  const answer=renderAnswer(output,presentation,courses);
  if(output.decision==='clarify')answer.lead='Уточним задачу, чтобы подобрать полезные пакеты.';
+ if(output.recoveries?.length && output.decision==='partial') answer.lead='Есть рекомендации для части задачи. Остальные пункты остались без подтверждения.';
+ if(output.recoveries?.length && output.decision==='no-match') answer.lead='Не удалось подтвердить рекомендации для этой задачи.';
  if(output.limitReason==='physical-action') {
   const limit = 'Для физической работы нужен исполнитель на месте. Пакеты каталога её не выполняют.';
-  answer.lead = output.decision==='no-match' ? limit : `${answer.lead} ${limit}`;
+  answer.lead = output.decision==='no-match' && !output.recoveries?.length ? limit : `${answer.lead} ${limit}`;
  }
  return {...answer,missingParts:output.missingParts,
   clarificationQuestion:output.clarification?questions[output.clarification]:null};

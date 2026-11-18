@@ -1,0 +1,1386 @@
+{
+  "schema": "advisor-partial-recovery-trial/1",
+  "frozenSha256": "252085e5d3ea759553d53afb6f8837a80d3b04e9d8ef2019019b96db65acf79a",
+  "model": "anthropic/claude-haiku-5.5",
+  "index": {
+    "revision": "5f3f0f2c160fd00df167539c8a465d6dd42f8ca79a8523917af2e7154a24fcd9",
+    "model": "baai/bge-m3",
+    "dimensions": 1024,
+    "lexicalizerId": "dz-ru-en-stems-v1"
+  },
+  "sourceSha256": {
+    "harness/integrations/skill-advisor-catalog/acceptance-evaluate.mjs": "207a522483850a8ccc82fdb2af018f8128fce8e2467b2124d4573cc14ca69a32",
+    "harness/integrations/skill-advisor-catalog/action-coverage.mjs": "78a83f526e812a5c785da4cd66e66b3301e2d7d38dc7b808e83b6ce7c20668ef",
+    "harness/integrations/skill-advisor-catalog/answer-details.mjs": "a33d9b16c55987b6982f3f7f8c28330c715eb87df29c124b2ce31c94517cf0e0",
+    "harness/integrations/skill-advisor-catalog/answer-evaluate.mjs": "d1e0a1fabe544ed8722a7ad9fb9760ea29ef8b0a477b332baaa6ca4f19a005ea",
+    "harness/integrations/skill-advisor-catalog/answer.mjs": "f1e6fb0d59feade343339d42c6237035658fca54b07764428d86f49951779de8",
+    "harness/integrations/skill-advisor-catalog/browser-8h-check.mjs": "2d5811095157cf222a11541ff8e1fca5e18ea822bd794feb00ae817d8f96fc2d",
+    "harness/integrations/skill-advisor-catalog/catalog-inventory.mjs": "602996c63a36bda270ccc8fb0fd31cce2bebbc963f387f98c14b9c458a6a3232",
+    "harness/integrations/skill-advisor-catalog/catalog.mjs": "fd849a0fc4b7b70c77265e61a4e88620010413539d097cd27fa333080e426c67",
+    "harness/integrations/skill-advisor-catalog/choice-error.mjs": "f5c52f785fe940995afe63764be9a9561cfc92044d6d849b0f4ae5d05348b47e",
+    "harness/integrations/skill-advisor-catalog/cli.mjs": "cf2178f173a0f35866f14cdb2d5207146a5e479b76401a3ac21d8eed3145077f",
+    "harness/integrations/skill-advisor-catalog/compact-dialogue.mjs": "048165297c136ea44613fbefcc7864e2c9b7cc535f7cd7f4b2840383d0edd6cd",
+    "harness/integrations/skill-advisor-catalog/compact-recovery.mjs": "5632a0969d3f3935ecd27df162ce49fd9bfa0070b7f1afcb1e47403029123abd",
+    "harness/integrations/skill-advisor-catalog/dialogue.mjs": "9164837eb27eeeaea0a430bae698e2abf361d46df1382d0a037f8c52c50e0718",
+    "harness/integrations/skill-advisor-catalog/draft-catalog.mjs": "4f4dcb2760268d0485ff27921526436da8dbb0ae07d021e41514b2a65fa10d89",
+    "harness/integrations/skill-advisor-catalog/evaluate.mjs": "236b73abd09f605e5905c166675677413ef37ec9700969f55beeed00f78d129c",
+    "harness/integrations/skill-advisor-catalog/evaluation-budget.mjs": "99813428ce130cf8ccc2bd062f50f959eeabb04bd918ffac9caf622b9fb3306e",
+    "harness/integrations/skill-advisor-catalog/evaluation-matching.mjs": "3e256921dffcf67b0607188cb29be65f17db3c1c1d56e56c71dea20b35e28742",
+    "harness/integrations/skill-advisor-catalog/full-evaluate.mjs": "54625af49c0b6cc3a7541825f649d3e7081eb880e5116f7c97e19cbf2285aeee",
+    "harness/integrations/skill-advisor-catalog/historical-catalog.mjs": "b98d0d927cd74b5b0c044abd72a8c540b5155f3e70defbbbaecd196a1e57bb73",
+    "harness/integrations/skill-advisor-catalog/hybrid-advisor.mjs": "8f7613be88f76ae871724c5a98f8d6bfe170bfae7f63561b6f9a0e47c8bc3bd9",
+    "harness/integrations/skill-advisor-catalog/package-retrieval.mjs": "fdcfd3c5c5c7ffff06c7d9d36fafe471db6469319318c294cfeab2621286b418",
+    "harness/integrations/skill-advisor-catalog/preview-server.mjs": "e7830ba04579db15be1b7b431899f2dd2333b078a2894656a65b6d0a6f6ea7fb",
+    "harness/integrations/skill-advisor-catalog/refresh-catalog.mjs": "721806f7f999c850f4480afb91a7a4c435e167abc8c3fe98b9a46cfda06bfb0a",
+    "harness/integrations/skill-advisor-catalog/request-ledger.mjs": "3b678322457c45a30cb542a39115a329f9a60f8905b6d1614e67a00118d03304",
+    "harness/integrations/skill-advisor-catalog/scoring.mjs": "37953e4bf63ddab543a39a56fc3a5662e80f92a9a6ae1679a733589be2535185",
+    "harness/integrations/skill-advisor-catalog/search.mjs": "98ea88ad47b3765ea4dd32332477bc8d3dd690a3ce9dbcde944bd97bf10864e8",
+    "harness/integrations/skill-advisor-catalog/selector.mjs": "24195f3e4da784af9d6408eff013e02c9df7bcdbce79171e8cd9bf43ac6d60d6",
+    "harness/integrations/skill-advisor-catalog/source-context.mjs": "79a6a157604bb29f4e13a46e1f8d431df853ea4f092a910610be3c052dce6aba",
+    "harness/integrations/skill-advisor-catalog/source-projection.mjs": "043ce9532e9470c91521baf269a278f80e9da1d5421b6b7f713b7c6cc2c02ac8",
+    "site/deploy/advisor-containers/prepare.mjs": "13671cdb93440bca87bb4836b5d9b8f923d5dc0b46c279ef544f3d8ca9b937b4",
+    "site/deploy/advisor-containers/start-advisor.mjs": "3d7dbc81b34e63f9040abbe88641dd7ba37ae0fc668a6f72999b489a25beeb97",
+    "site/src/lib/advisor/client.js": "0532bf6a1fa68688961e4294b31c82a125401cf27d58297118ca714773642c55"
+  },
+  "spendCapUsd": 0.06,
+  "additionalSpendUsd": 0.016123657,
+  "gate": {
+    "knownVisibleAnswers": 5,
+    "mustPassKnown": [
+      "C03",
+      "fresh-compose-details"
+    ],
+    "freshSemanticMinimum": 5,
+    "freshTotal": 6
+  },
+  "gatePassed": false,
+  "browser": [
+    {
+      "width": 390,
+      "recoveredAnswerVisible": true,
+      "exactGapVisible": true,
+      "oldResponseCompatible": true
+    },
+    {
+      "width": 1440,
+      "recoveredAnswerVisible": true,
+      "exactGapVisible": true,
+      "oldResponseCompatible": true
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "id": "C03",
+        "kind": "compound",
+        "query": "Нужны два результата для одного PR: (1) pr-review — замечания с file:line и серьёзностью; (2) ci-fix — разбор красного job по логу, воспроизведение и исправление причины. Просто ревью не заменяет вторую задачу.",
+        "acceptableDecisions": [
+          "recommend"
+        ],
+        "essential": [
+          "Distinguish actionable PR review from diagnosis and root-cause repair of failed CI.",
+          "Name pr-review and ci-fix, both from skills-devops."
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/pr-review/SKILL.md",
+          "packages/skills-devops/ci-fix/SKILL.md"
+        ],
+        "acceptablePackages": [
+          [
+            "@dzhechkov/skills-devops"
+          ]
+        ],
+        "cohort": "replay",
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "pr-review"
+          },
+          {
+            "package": "skills-devops",
+            "skillId": "ci-fix"
+          }
+        ],
+        "unsupported": []
+      },
+      "semanticReview": {
+        "id": "C03",
+        "ok": false,
+        "reason": "No visible answer: incomplete-completion. The pinned pr-review source requires actionable severity/file:line review and explicitly delegates failed CI to ci-fix; ci-fix separately reads the failure log, reproduces it and repairs the root cause. Neither result is delivered. This is a host completion failure, not semantic coverage.",
+        "omissions": [
+          "pr-review recommendation with actionable severity/file:line review",
+          "ci-fix recommendation with log diagnosis, reproduction and root-cause repair"
+        ],
+        "falseFull": false
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "length",
+          "outputTokens": 1800,
+          "reasoningTokens": 1800
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 17623,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "pr-review — замечания с file:line и серьёзностью",
+            "cards": [
+              "c1",
+              "c3"
+            ]
+          },
+          {
+            "id": "r2",
+            "text": "ci-fix — разбор красного job по логу, воспроизведение и исправление причины. Просто ревью не заменяет вторую задачу.",
+            "cards": [
+              "c2",
+              "c4"
+            ]
+          }
+        ],
+        "candidateIds": [
+          "skills-devops-pr-review-ce0f7b73",
+          "skills-devops-ci-fix-4748f1fb",
+          "skills-12factor-12factor-logs-as-streams-90ff35a9",
+          "p-replicator-brutal-honesty-review-33781c43",
+          "skills-devops-overview-a6cd470c",
+          "skills-qe-overview-7fb6f43e",
+          "skills-qe-brutal-honesty-review-230143fd",
+          "skills-qe-validate-aa98f767",
+          "p-replicator-overview-0b410b50",
+          "skills-feature-adr-overview-35190d6c",
+          "skills-feature-adr-system-grill-70fefd4c",
+          "skills-feature-adr-code-impl-54ab875a"
+        ],
+        "chosenIds": null,
+        "selectorInputHash": "4682d5bcd6e5b24d6382ddd277ff17599c2b31be6df5f2d91805bcf0f253b2b0",
+        "recoveries": null,
+        "error": "incomplete-completion",
+        "choiceReason": null,
+        "answer": null,
+        "responseMs": 8360
+      }
+    },
+    {
+      "case": {
+        "id": "H52",
+        "kind": "positive",
+        "query": "Переработай лендинг портфолио: настрой выразительность, плотность и интенсивность движения, проверь доступность и reduced motion.",
+        "targetPackage": "@dzhechkov/skills-taste",
+        "acceptablePackages": [
+          "@dzhechkov/skills-taste"
+        ],
+        "essential": [
+          "Redesign portfolio landing page with deliberate visual and motion choices",
+          "Address accessibility and reduced motion"
+        ],
+        "sourcePaths": [
+          "packages/skills-taste/README.md"
+        ],
+        "cohort": "replay",
+        "requiredSkills": [
+          {
+            "package": "skills-taste",
+            "skillId": "design-taste-frontend"
+          }
+        ],
+        "unsupported": []
+      },
+      "semanticReview": {
+        "id": "H52",
+        "ok": false,
+        "reason": "Host returns a visible partial answer after card-eligibility recovery. Correct design-taste-frontend and accessibility/reduced-motion passages are visible and match pinned sources verbatim. However, missingParts explicitly leaves expressiveness, visual density and motion intensity uncovered, although the pinned taste README documents all three dials. Recovery therefore does not satisfy the complete frozen redesign requirement. The partial decision honestly exposes the gap.",
+        "omissions": [
+          "Deliberate expressiveness, density and motion-intensity choices for the portfolio redesign"
+        ],
+        "falseFull": false
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1365,
+          "reasoningTokens": 1315
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 17412,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "настрой выразительность, плотность и интенсивность движения",
+            "cards": [
+              "c1",
+              "c3"
+            ]
+          },
+          {
+            "id": "r2",
+            "text": "проверь доступность и reduced motion",
+            "cards": [
+              "c2"
+            ]
+          }
+        ],
+        "candidateIds": [
+          "health-advisor-health-advisor-rehabilitation-analyzer-463ba334",
+          "skills-ecc-browser-qa-0b8ea06a",
+          "skills-ecc-django-tdd-ad1834c0",
+          "skills-taste-overview-c63b8b64",
+          "skills-taste-design-taste-frontend-6856c4ba",
+          "skills-qe-overview-7fb6f43e",
+          "skills-qe-qe-visual-accessibility-4aa8bd95",
+          "health-advisor-overview-0968b6f3",
+          "health-advisor-health-advisor-fitness-analyzer-4e961943",
+          "skills-ecc-overview-3bdf1e3f",
+          "skills-feature-adr-overview-35190d6c",
+          "skills-feature-adr-frontend-design-3a9a3ad9"
+        ],
+        "chosenIds": [
+          "skills-qe-qe-visual-accessibility-4aa8bd95",
+          "skills-taste-design-taste-frontend-6856c4ba"
+        ],
+        "selectorInputHash": "dd05190c88af98a4e1457855bb458fa550de293aa9dcf4df26eda4c656746909",
+        "recoveries": [
+          "card-eligibility"
+        ],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "partial",
+          "lead": "Есть рекомендации для части задачи. Остальные пункты остались без подтверждения.",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-qe",
+              "scenarios": [
+                {
+                  "summary": "Навык qe-visual-accessibility. Направляет QE-проверки изображений, адаптивности и доступности через браузерные инструменты.",
+                  "boundary": "Нужны AQE, Vibium и доступная страница; автоматический аудит не гарантирует полное соответствие WCAG.",
+                  "nextAction": "Укажите URL, эталонные изображения и целевые размеры экрана.",
+                  "details": [
+                    {
+                      "action": "проверь доступность и reduced motion",
+                      "quote": "description: \"Captures and compares screenshots across viewports, runs axe-core accessibility scans, and detects visual regressions with pixel-diff analysis.",
+                      "joint": true
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-qe/"
+            },
+            {
+              "package": "@dzhechkov/skills-taste",
+              "scenarios": [
+                {
+                  "summary": "Навык design-taste-frontend. Выводит визуальное направление из брифа, проверяет исходный дизайн и реализует осмысленную типографику, композицию и систему стилей.",
+                  "boundary": "Предназначен для лендингов, портфолио и редизайна; не для dashboard, таблиц данных или многошагового продуктового UI.",
+                  "nextAction": "Предоставьте бриф, аудиторию, бренд-материалы и референсы; для редизайна начните с аудита существующей страницы.",
+                  "details": [
+                    {
+                      "action": "проверь доступность и reduced motion",
+                      "quote": "* **Any motion above `MOTION_INTENSITY > 3` MUST honor `prefers-reduced-motion`.** This is non-negotiable.",
+                      "joint": true
+                    },
+                    {
+                      "action": "проверь доступность и reduced motion",
+                      "quote": "* In CSS: gate animations behind `@media (prefers-reduced-motion: no-preference)` or provide an override block under `@media (prefers-reduced-motion: reduce)` that disables.",
+                      "joint": true
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-taste/"
+            }
+          ],
+          "missingParts": [
+            "настрой выразительность, плотность и интенсивность движения"
+          ],
+          "clarificationQuestion": null
+        },
+        "responseMs": 6865
+      }
+    },
+    {
+      "case": {
+        "id": "fresh-compose-details",
+        "query": "Нужен Docker Compose для web и PostgreSQL: база должна сохраняться в именованном томе, а web ждать успешного healthcheck базы. Какой навык выбрать?",
+        "kind": "positive",
+        "essential": [
+          "Recommend docker-compose",
+          "Identify named volume for PostgreSQL persistence",
+          "Identify service_healthy dependency on the database"
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/docker-compose/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "docker-compose"
+          }
+        ],
+        "unsupported": [],
+        "cohort": "replay"
+      },
+      "semanticReview": {
+        "id": "fresh-compose-details",
+        "ok": true,
+        "reason": "Visible recommend answer names docker-compose from skills-devops. Its source-matching details identify named-volume persistence, explain that service_healthy waits for readiness rather than container start, and include the PostgreSQL pg_isready healthcheck. Additional docker-patterns evidence shows pgdata and condition: service_healthy. All frozen requirements are covered; no recovery was used.",
+        "omissions": [],
+        "falseFull": false
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1592,
+          "reasoningTokens": 1532
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 16510,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "Нужен Docker Compose для web и PostgreSQL"
+          },
+          {
+            "id": "r2",
+            "text": "база должна сохраняться в именованном томе"
+          },
+          {
+            "id": "r3",
+            "text": "web ждать успешного healthcheck базы."
+          }
+        ],
+        "candidateIds": [
+          "skills-devops-overview-a6cd470c",
+          "skills-devops-docker-compose-1a1fbd1d",
+          "skills-devops-playwright-testing-bdc49c55",
+          "skills-ecc-overview-3bdf1e3f",
+          "skills-ecc-docker-patterns-d78f32f7",
+          "health-advisor-overview-0968b6f3",
+          "health-advisor-goap-research-ed25519-4e63a891",
+          "health-advisor-health-advisor-health-trend-analyzer-63d87884",
+          "harness-presets-package-641c226b",
+          "skills-book-fundamental-software-architecture-overview-dfce55d4",
+          "skills-book-fundamental-software-architecture-fundamental-software-architecture-guide-0ec0f7af"
+        ],
+        "chosenIds": [
+          "skills-devops-docker-compose-1a1fbd1d",
+          "skills-ecc-docker-patterns-d78f32f7"
+        ],
+        "selectorInputHash": "0fce33ebd6babf5ee9845b328c647293904d392ade13c9dc1f0c4a316248b48f",
+        "recoveries": [],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "recommend",
+          "lead": "Подходящие сценарии для вашей задачи:",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-devops",
+              "scenarios": [
+                {
+                  "summary": "Навык docker-compose. Поможет составить или проверить конфигурацию Compose, связи сервисов и постоянные данные.",
+                  "boundary": "Работа с конфигурацией не подтверждает успешный запуск на целевом сервере.",
+                  "nextAction": "Передайте список сервисов, порты и требования к хранению данных.",
+                  "details": [
+                    {
+                      "action": "Нужен Docker Compose для web и PostgreSQL",
+                      "quote": "**Service discovery:** Services on the same network resolve each other by service name via Docker's built-in DNS. `web` can reach `postgres` at hostname `postgres` on port `5432`."
+                    },
+                    {
+                      "action": "база должна сохраняться в именованном томе",
+                      "quote": "| Named volume | Database data, persistent storage | Yes (unless `-v` flag) |",
+                      "joint": true
+                    },
+                    {
+                      "action": "web ждать успешного healthcheck базы.",
+                      "quote": "| No health checks | `depends_on` without `condition: service_healthy` only waits for container start, not readiness. App crashes connecting to a database that is still initializing.",
+                      "joint": true
+                    },
+                    {
+                      "action": "web ждать успешного healthcheck базы.",
+                      "quote": "```yaml\nservices:\n  postgres:\n    image: postgres:16.2-alpine\n    healthcheck:\n      test: [\"CMD-SHELL\", \"pg_isready -U ${DB_USER} -d ${DB_NAME}\"]\n      interval: 10s\n      timeout: 5s\n      retries: 5\n      start_period: 30s",
+                      "joint": true
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-devops/"
+            },
+            {
+              "package": "@dzhechkov/skills-ecc",
+              "scenarios": [
+                {
+                  "summary": "Навык docker-patterns. Помогает проектировать Dockerfile, Compose, сеть, тома и многоэтапную сборку.",
+                  "boundary": "Сценарии ориентированы на контейнерную разработку; production-оркестрация требует своего контекста.",
+                  "nextAction": "Опишите сервисы, порты и сохраняемые данные либо покажите текущие Dockerfile и Compose.",
+                  "details": [
+                    {
+                      "action": "база должна сохраняться в именованном томе",
+                      "quote": "```yaml\nvolumes:\n  # Named volume: persists across container restarts, managed by Docker\n  pgdata:",
+                      "joint": true
+                    },
+                    {
+                      "action": "web ждать успешного healthcheck базы.",
+                      "quote": "condition: service_healthy",
+                      "joint": true
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-ecc/"
+            }
+          ],
+          "missingParts": [],
+          "clarificationQuestion": null
+        },
+        "responseMs": 7417
+      }
+    },
+    {
+      "case": {
+        "id": "fresh-02",
+        "query": "Explain our storage choice to the product owner in compact text: compare at least two viable alternatives with their consequences, and distinguish sourced facts from assumptions.",
+        "kind": "positive",
+        "essential": [
+          "Use compact text to explain a decision to an owner.",
+          "Compare at least two viable alternatives and their consequences.",
+          "Distinguish sourced facts from assumptions."
+        ],
+        "sourcePaths": [
+          "packages/skills-decision-mockups/decision-mockups/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-decision-mockups",
+            "skillId": "decision-mockups"
+          }
+        ],
+        "unsupported": [],
+        "cohort": "replay"
+      },
+      "semanticReview": {
+        "id": "fresh-02",
+        "ok": false,
+        "reason": "No visible answer: incomplete-completion. The pinned decision-mockups source supports compact owner explanations, at least two viable alternatives with consequences, and distinguishing sourced facts from assumptions. No recommendation or evidence is rendered for any of these requirements. This is a host completion failure, not a semantic pass.",
+        "omissions": [
+          "decision-mockups recommendation for compact owner-facing text",
+          "At least two viable alternatives and their consequences",
+          "Distinguish sourced facts from assumptions"
+        ],
+        "falseFull": false
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "length",
+          "outputTokens": 1800,
+          "reasoningTokens": 1800
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 22177,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "Explain our storage choice to the product owner in compact text",
+            "cards": [
+              "c1",
+              "c2"
+            ]
+          },
+          {
+            "id": "r2",
+            "text": "compare at least two viable alternatives with their consequences, and distinguish sourced facts from assumptions",
+            "cards": [
+              "c1",
+              "c2"
+            ]
+          }
+        ],
+        "candidateIds": [
+          "skills-decision-mockups-decision-mockups-d1152848",
+          "skills-meta-decision-mockups-8ade23f9",
+          "skills-meta-overview-559f6001",
+          "skills-meta-capture-adr-e8d5cd4b",
+          "skills-decision-mockups-overview-9144579b",
+          "p-replicator-overview-0b410b50",
+          "p-replicator-problem-solver-enhanced-614a56db",
+          "p-replicator-explore-ecc90278",
+          "keysarium-overview-e81e1bb8",
+          "keysarium-problem-solver-enhanced-c149a152",
+          "keysarium-analyst-manual-full-cccdd912",
+          "skills-book-ai-apps-overview-86b16c2c",
+          "skills-book-ai-apps-aiagents-agent-ux-96ff6925",
+          "skills-book-ai-apps-aiagents-orchestration-and-planning-9b416f99"
+        ],
+        "chosenIds": null,
+        "selectorInputHash": "e8d0fc4dc5881c65136dd12c41eab15baf69f85f8554f11eb9a28ade1592212e",
+        "recoveries": null,
+        "error": "incomplete-completion",
+        "choiceReason": null,
+        "answer": null,
+        "responseMs": 8712
+      }
+    },
+    {
+      "case": {
+        "id": "N04",
+        "query": "По транскрипту оцени доклад на защите магистерской ВКР относительно текста работы, а отдельно оцени полноту и глубину ответов студента на вопросы комиссии.",
+        "kind": "compound",
+        "essential": [
+          "evaluate defense presentation against thesis",
+          "assess completeness and depth of answers"
+        ],
+        "sourcePaths": [
+          "packages/skills-academic/defense-evaluator/SKILL.md",
+          "packages/skills-academic/answer-assessor/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-academic",
+            "skillId": "defense-evaluator"
+          },
+          {
+            "package": "skills-academic",
+            "skillId": "answer-assessor"
+          }
+        ],
+        "unsupported": [],
+        "cohort": "replay"
+      },
+      "semanticReview": {
+        "id": "N04",
+        "ok": true,
+        "reason": "Visible recommend answer names both defense-evaluator and answer-assessor from skills-academic. Exact pinned-source passages require comparing the presentation with the thesis and separately evaluating answers by completeness and depth. The two tasks remain distinct, no missing parts are claimed, and no recovery was used.",
+        "omissions": [],
+        "falseFull": false
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1110,
+          "reasoningTokens": 1065
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 16595,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "По транскрипту оцени доклад на защите магистерской ВКР относительно текста работы"
+          },
+          {
+            "id": "r2",
+            "text": "отдельно оцени полноту и глубину ответов студента на вопросы комиссии."
+          }
+        ],
+        "candidateIds": [
+          "skills-academic-overview-74144a5f",
+          "skills-academic-answer-assessor-bf990c08",
+          "skills-academic-defense-evaluator-ad971909",
+          "skills-decision-mockups-overview-9144579b",
+          "skills-decision-mockups-decision-mockups-d1152848",
+          "skills-meta-overview-559f6001",
+          "skills-meta-decision-mockups-8ade23f9",
+          "harness-cli-package-ec6546b1",
+          "health-advisor-overview-0968b6f3",
+          "health-advisor-health-advisor-medical-entity-extractor-0241f1cb",
+          "health-advisor-health-advisor-case-state-e3b970c7"
+        ],
+        "chosenIds": [
+          "skills-academic-defense-evaluator-ad971909",
+          "skills-academic-answer-assessor-bf990c08"
+        ],
+        "selectorInputHash": "69e9dc5fcb65f1b985de4276507c8ba652b356c08d4d87a64628ea72eba4f49c",
+        "recoveries": [],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "recommend",
+          "lead": "Подходящие сценарии для вашей задачи:",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-academic",
+              "scenarios": [
+                {
+                  "summary": "Навык defense-evaluator. Разберёт структуру, покрытие темы и признаки уверенности в транскрипте защиты.",
+                  "boundary": "Нужны транскрипт и работа; текстовая оценка не заменяет официальную аттестацию.",
+                  "nextAction": "Передайте расшифровку выступления и текст или структуру работы.",
+                  "details": [
+                    {
+                      "action": "По транскрипту оцени доклад на защите магистерской ВКР относительно текста работы",
+                      "quote": "| Оценивать только по транскрипту, игнорируя ВКР | Сопоставлять доклад с текстом работы |"
+                    },
+                    {
+                      "action": "По транскрипту оцени доклад на защите магистерской ВКР относительно текста работы",
+                      "quote": "### Шаг 5: Сопоставить с материалами ВКР\n- Есть ли противоречия между докладом и текстом ВКР?\n- Упомянуты ли замечания руководителя/рецензента в докладе?\n- Соответствуют ли озвученные цифры данным в работе?"
+                    }
+                  ]
+                },
+                {
+                  "summary": "Навык answer-assessor. Оценит полноту, глубину и связь ответов студента с замечаниями рецензентов.",
+                  "boundary": "Нужен транскрипт ответов; оценка навыка не является официальным решением комиссии.",
+                  "nextAction": "Передайте вопросы, ответы и замечания рецензентов.",
+                  "details": [
+                    {
+                      "action": "отдельно оцени полноту и глубину ответов студента на вопросы комиссии.",
+                      "quote": "ОТВЕТЫ:\n№ | Вопрос (кратко)          | Полнота | Глубина | Связь с ВКР\n1 | ________________________ | ⬜3 ⬜2 ⬜1 | ⬜3 ⬜2 ⬜1 | ⬜3 ⬜2 ⬜1\n2 | ________________________ | ⬜3 ⬜2 ⬜1 | ⬜3 ⬜2 ⬜1 | ⬜3 ⬜2 ⬜1\n..."
+                    },
+                    {
+                      "action": "отдельно оцени полноту и глубину ответов студента на вопросы комиссии.",
+                      "quote": "## Когда использовать\n- Анализ качества ответов на вопросы комиссии\n- Оценка ответов на замечания руководителя и рецензента (заключительное слово)\n- Формирование итоговой оценки по третьей составляющей (ответы)"
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-academic/"
+            }
+          ],
+          "missingParts": [],
+          "clarificationQuestion": null
+        },
+        "responseMs": 5383
+      }
+    },
+    {
+      "case": {
+        "id": "R01",
+        "query": "Проанализируй CSV с когортами пользователей: покажи retention curves и когда происходит основной отток.",
+        "kind": "positive",
+        "essential": [
+          "cohort retention",
+          "drop-off patterns"
+        ],
+        "sourcePaths": [
+          "packages/skills-pm/cohort-analysis/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-pm",
+            "skillId": "cohort-analysis"
+          }
+        ],
+        "unsupported": [],
+        "cohort": "fresh"
+      },
+      "semanticReview": {
+        "id": "R01",
+        "ok": true,
+        "reason": "Рекомендует cohort-analysis из skills-pm; видимые детали прямо охватывают CSV, retention curves и drop-off.",
+        "omissions": [],
+        "falseFull": false
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 918,
+          "reasoningTokens": 872
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 16998,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "Проанализируй CSV с когортами пользователей"
+          },
+          {
+            "id": "r2",
+            "text": "покажи retention curves и когда происходит основной отток."
+          }
+        ],
+        "candidateIds": [
+          "skills-pm-overview-b0d8f3a8",
+          "skills-pm-cohort-analysis-7165ea3f",
+          "health-advisor-overview-0968b6f3",
+          "health-advisor-health-advisor-health-trend-analyzer-63d87884",
+          "health-advisor-health-advisor-clinical-decision-support-afbe025d",
+          "skills-devops-overview-a6cd470c",
+          "skills-devops-observability-338720b5",
+          "skills-devops-redis-patterns-db46b4ad",
+          "skills-book-ai-apps-overview-86b16c2c",
+          "skills-book-ai-apps-aiagents-context-engineering-634f1cf0",
+          "skills-book-ai-apps-aiagents-observability-and-drift-6971df35",
+          "evidence-wiki-overview-edf3985c"
+        ],
+        "chosenIds": [
+          "skills-pm-cohort-analysis-7165ea3f"
+        ],
+        "selectorInputHash": "f2e4ce72ad30df10c92d2f41e6675a94d02688c5e29c6cba3bc45ad1b1b5cec7",
+        "recoveries": [],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "recommend",
+          "lead": "Подходящие сценарии для вашей задачи:",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-pm",
+              "scenarios": [
+                {
+                  "summary": "Навык cohort-analysis. Поможет проанализировать удержание, принятие функций и различия пользовательских когорт.",
+                  "boundary": "Нужны реальные данные и определения когорт; выводы не подтверждают причинность сами по себе.",
+                  "nextAction": "Передайте таблицу событий или метрик с периодами и сегментами.",
+                  "details": [
+                    {
+                      "action": "Проанализируй CSV с когортами пользователей",
+                      "quote": "- Accept CSV, Excel, or JSON data files with user cohort information"
+                    },
+                    {
+                      "action": "покажи retention curves и когда происходит основной отток.",
+                      "quote": "- Identify retention curves, drop-off patterns, and anomalies"
+                    },
+                    {
+                      "action": "покажи retention curves и когда происходит основной отток.",
+                      "quote": "- **Visualizations**: Charts showing retention curves, adoption patterns"
+                    },
+                    {
+                      "action": "покажи retention curves и когда происходит основной отток.",
+                      "quote": "Use when analyzing user retention by cohort, studying feature adoption over time, investigating churn patterns, or identifying engagement trends.\""
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-pm/"
+            }
+          ],
+          "missingParts": [],
+          "clarificationQuestion": null
+        },
+        "responseMs": 4438
+      }
+    },
+    {
+      "case": {
+        "id": "R02",
+        "query": "For our library app launch, map stakeholders by power and interest and draft a communication plan. Распредели группы по квадрантам.",
+        "kind": "positive",
+        "essential": [
+          "power and interest grid",
+          "communication plan"
+        ],
+        "sourcePaths": [
+          "packages/skills-pm/stakeholder-map/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-pm",
+            "skillId": "stakeholder-map"
+          }
+        ],
+        "unsupported": [],
+        "cohort": "fresh"
+      },
+      "semanticReview": {
+        "id": "R02",
+        "ok": true,
+        "reason": "Рекомендует stakeholder-map из skills-pm; видимые детали описывают сетку power × interest и план коммуникаций по квадрантам.",
+        "omissions": [],
+        "falseFull": false
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1422,
+          "reasoningTokens": 1387
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 15372,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "map stakeholders by power and interest",
+            "cards": [
+              "c1"
+            ]
+          },
+          {
+            "id": "r2",
+            "text": "draft a communication plan",
+            "cards": [
+              "c1",
+              "c2"
+            ]
+          }
+        ],
+        "candidateIds": [
+          "skills-pm-stakeholder-map-d2903aa6",
+          "design-thinking-reflection-loop-22eac04f",
+          "skills-pm-overview-b0d8f3a8",
+          "skills-pm-gtm-strategy-b7856002",
+          "skills-book-ai-apps-overview-86b16c2c",
+          "skills-book-ai-apps-aiagents-org-adoption-and-governance-62082206",
+          "skills-book-ai-apps-aiagents-multi-agent-infrastructure-fe208d15",
+          "skills-ecc-overview-3bdf1e3f",
+          "skills-ecc-data-scraper-agent-af1b7eb0",
+          "skills-book-fundamental-software-architecture-overview-dfce55d4",
+          "skills-book-fundamental-software-architecture-fundamental-software-architecture-guide-0ec0f7af"
+        ],
+        "chosenIds": [
+          "skills-pm-stakeholder-map-d2903aa6"
+        ],
+        "selectorInputHash": "e54bc04ebf6a80f30b201e4e33be466ef4f9df77ed58d2d83b1aa006c72e7a96",
+        "recoveries": [],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "recommend",
+          "lead": "Подходящие сценарии для вашей задачи:",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-pm",
+              "scenarios": [
+                {
+                  "summary": "Навык stakeholder-map. Сопоставит влияние и интерес сторон и предложит план коммуникаций по группам.",
+                  "boundary": "Карта строится по вашему контексту и сама не отправляет сообщения участникам.",
+                  "nextAction": "Перечислите участников, их ожидания и роль в решении.",
+                  "details": [
+                    {
+                      "action": "map stakeholders by power and interest",
+                      "quote": "Map stakeholders on a Power × Interest grid and create a tailored communication plan for each group."
+                    },
+                    {
+                      "action": "draft a communication plan",
+                      "quote": "description: \"Build a stakeholder map using a power/interest grid, identify communication strategies per quadrant, and generate a communication plan."
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-pm/"
+            }
+          ],
+          "missingParts": [],
+          "clarificationQuestion": null
+        },
+        "responseMs": 6541
+      }
+    },
+    {
+      "case": {
+        "id": "R03",
+        "query": "Подготовь локальный Docker Compose для web, database и cache с health checks, а ещё спроектируй для сервиса metrics, logs, traces и SLO.",
+        "kind": "compound",
+        "essential": [
+          "multi-service Docker Compose",
+          "observability and SLO"
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/docker-compose/SKILL.md",
+          "packages/skills-devops/observability/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "docker-compose"
+          },
+          {
+            "package": "skills-devops",
+            "skillId": "observability"
+          }
+        ],
+        "unsupported": [],
+        "cohort": "fresh"
+      },
+      "semanticReview": {
+        "id": "R03",
+        "ok": false,
+        "reason": "Оба требуемых навыка названы, однако ответ явно оставляет cache в missingParts и объявляет решение частичным: видимое покрытие всего Compose-запроса отсутствует, хотя закреплённый источник docker-compose поддерживает web + db + cache.",
+        "omissions": [
+          "Docker Compose для cache не покрыт: cache указан как missingParts."
+        ],
+        "falseFull": false
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1547,
+          "reasoningTokens": 1489
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 16635,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "Подготовь локальный Docker Compose для web, database и cache с health checks",
+            "cards": [
+              "c1",
+              "c3"
+            ]
+          },
+          {
+            "id": "r2",
+            "text": "спроектируй для сервиса metrics, logs, traces и SLO",
+            "cards": [
+              "c2",
+              "c4"
+            ]
+          }
+        ],
+        "candidateIds": [
+          "skills-devops-docker-compose-1a1fbd1d",
+          "skills-devops-observability-338720b5",
+          "skills-ecc-docker-patterns-d78f32f7",
+          "skills-book-ai-apps-aiagents-observability-and-drift-6971df35",
+          "skills-devops-overview-a6cd470c",
+          "skills-ecc-overview-3bdf1e3f",
+          "health-advisor-overview-0968b6f3",
+          "health-advisor-health-advisor-health-trend-analyzer-63d87884",
+          "health-advisor-health-advisor-fitness-analyzer-4e961943",
+          "skills-book-clean-code-overview-554fd912",
+          "skills-book-clean-code-clean-code-architecture-assembly-3e8c5919"
+        ],
+        "chosenIds": [
+          "skills-devops-docker-compose-1a1fbd1d",
+          "skills-ecc-docker-patterns-d78f32f7",
+          "skills-devops-observability-338720b5"
+        ],
+        "selectorInputHash": "159c8eda260dd42d0d854f6fbb6cf2a5c594d336d934979237f21ff12742bd6b",
+        "recoveries": [],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "partial",
+          "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-devops",
+              "scenarios": [
+                {
+                  "summary": "Навык docker-compose. Поможет составить или проверить конфигурацию Compose, связи сервисов и постоянные данные.",
+                  "boundary": "Работа с конфигурацией не подтверждает успешный запуск на целевом сервере.",
+                  "nextAction": "Передайте список сервисов, порты и требования к хранению данных.",
+                  "details": [
+                    {
+                      "action": "Подготовь локальный Docker Compose для web, database",
+                      "quote": "| No health checks | `depends_on` without `condition: service_healthy` only waits for container start, not readiness. App crashes connecting to a database that is still initializing.",
+                      "joint": true
+                    },
+                    {
+                      "action": "Подготовь локальный Docker Compose для web, database",
+                      "quote": "Health checks let Compose know when a service is actually ready to accept connections, not just when the process has started.",
+                      "joint": true
+                    }
+                  ]
+                },
+                {
+                  "summary": "Навык observability. Поможет выбрать метрики, логи, трассировки, панели и сигналы по SLO/SLI.",
+                  "boundary": "Это проектирование наблюдаемости; сбор телеметрии требует инструментирования сервисов.",
+                  "nextAction": "Опишите критические потоки и доступный стек мониторинга.",
+                  "details": [
+                    {
+                      "action": "спроектируй для сервиса metrics, logs, traces и SLO",
+                      "quote": "Design and implement a production-grade observability stack covering the three pillars (metrics, logs, traces), dashboards, alerting, SLOs, on-call integration, and cost optimization."
+                    },
+                    {
+                      "action": "спроектируй для сервиса metrics, logs, traces и SLO",
+                      "quote": "Instrument services using OpenTelemetry (OTel) as the vendor-neutral standard. OTel provides a single SDK that emits metrics, logs, and traces to any backend."
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-devops/"
+            },
+            {
+              "package": "@dzhechkov/skills-ecc",
+              "scenarios": [
+                {
+                  "summary": "Навык docker-patterns. Помогает проектировать Dockerfile, Compose, сеть, тома и многоэтапную сборку.",
+                  "boundary": "Сценарии ориентированы на контейнерную разработку; production-оркестрация требует своего контекста.",
+                  "nextAction": "Опишите сервисы, порты и сохраняемые данные либо покажите текущие Dockerfile и Compose.",
+                  "details": [
+                    {
+                      "action": "Подготовь локальный Docker Compose для web, database",
+                      "quote": "condition: service_healthy",
+                      "joint": true
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-ecc/"
+            }
+          ],
+          "missingParts": [
+            "cache"
+          ],
+          "clarificationQuestion": null
+        },
+        "responseMs": 7643
+      }
+    },
+    {
+      "case": {
+        "id": "R04",
+        "query": "As a thesis committee member, use the supplied abstract, introduction and conclusion to generate defense questions at several difficulty levels. Составь вопросы по методам и ограничениям.",
+        "kind": "positive",
+        "essential": [
+          "defense questions at varying difficulty",
+          "ground questions in supplied thesis materials"
+        ],
+        "sourcePaths": [
+          "packages/skills-academic/question-generator/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-academic",
+            "skillId": "question-generator"
+          }
+        ],
+        "unsupported": [],
+        "cohort": "fresh"
+      },
+      "semanticReview": {
+        "id": "R04",
+        "ok": false,
+        "reason": "question-generator назван и детали подтверждают сложность, методы, ограничения и чтение материалов; однако nextAction предлагает тренировку, а boundary подаёт сценарий как подготовку к защите. Закреплённый источник запрещает использование для подготовки студента и предназначает его члену комиссии.",
+        "omissions": [
+          "Корректное разграничение роли члена комиссии и тренировки студента."
+        ],
+        "falseFull": true
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1457,
+          "reasoningTokens": 1407
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 20961,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "As a thesis committee member, use the supplied abstract, introduction and conclusion to generate defense questions at several difficulty levels."
+          },
+          {
+            "id": "r2",
+            "text": "Составь вопросы по методам и ограничениям."
+          }
+        ],
+        "candidateIds": [
+          "skills-academic-overview-74144a5f",
+          "skills-academic-question-generator-346a6e99",
+          "skills-academic-answer-assessor-bf990c08",
+          "harness-cli-package-ec6546b1",
+          "health-advisor-overview-0968b6f3",
+          "health-advisor-problem-solver-enhanced-9ae9187f",
+          "health-advisor-health-advisor-weightloss-analyzer-54f288a8",
+          "keysarium-overview-e81e1bb8",
+          "keysarium-problem-solver-enhanced-c149a152",
+          "keysarium-goap-research-ed25519-98a82255",
+          "skills-book-ai-apps-overview-86b16c2c",
+          "skills-book-ai-apps-aiagents-single-vs-multi-agent-d0b5f622",
+          "skills-book-ai-apps-aiagents-knowledge-and-memory-7b2628b2"
+        ],
+        "chosenIds": [
+          "skills-academic-question-generator-346a6e99"
+        ],
+        "selectorInputHash": "42aa6fd1883ee6e722b329b44a8733e77a4bd4d67f0922fa4c367adc36c16868",
+        "recoveries": [],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "recommend",
+          "lead": "Подходящие сценарии для вашей задачи:",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-academic",
+              "scenarios": [
+                {
+                  "summary": "Навык question-generator. Составит вопросы по пониманию темы, методологии, применению и критическому анализу.",
+                  "boundary": "Это подготовка к защите, а не предсказание реальных вопросов комиссии.",
+                  "nextAction": "Передайте работу, тему и желаемую сложность тренировки.",
+                  "details": [
+                    {
+                      "action": "As a thesis committee member, use the supplied abstract, introduction and conclusion to generate defense questions at several difficulty levels.",
+                      "quote": "description: \"Generates defense questions of varying difficulty — basic understanding, methodology, application, and critical analysis.\""
+                    },
+                    {
+                      "action": "As a thesis committee member, use the supplied abstract, introduction and conclusion to generate defense questions at several difficulty levels.",
+                      "quote": "разной сложности и категорий\n- Подготовка вопросов по слабым местам и замечаниям рецензента\n- Подготовка вопросов, демонстрирующих внимательное ознакомление с работой"
+                    },
+                    {
+                      "action": "As a thesis committee member, use the supplied abstract, introduction and conclusion to generate defense questions at several difficulty levels.",
+                      "quote": "- Для подготовки студента к защите (skill для члена ГЭК)\n- Для генерации вопросов без прочтения хотя бы аннотации, введения и заключения"
+                    },
+                    {
+                      "action": "Составь вопросы по методам и ограничениям.",
+                      "quote": "description: \"Generates defense questions of varying difficulty — basic understanding, methodology, application, and critical analysis.\""
+                    },
+                    {
+                      "action": "Составь вопросы по методам и ограничениям.",
+                      "quote": "| \"Какие ограничения у выбранного метода?\" | Критическое мышление |"
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-academic/"
+            }
+          ],
+          "missingParts": [],
+          "clarificationQuestion": null
+        },
+        "responseMs": 9466
+      }
+    },
+    {
+      "case": {
+        "id": "R05",
+        "query": "Сделай за указанный месяц news digest о новых публичных библиотеках с проверенными ссылками; затем составь карту заинтересованных сторон для запуска внутреннего обзора.",
+        "kind": "compound",
+        "essential": [
+          "source-cited news digest",
+          "stakeholder map and communication plan"
+        ],
+        "sourcePaths": [
+          "packages/skills-news/news-digest/SKILL.md",
+          "packages/skills-pm/stakeholder-map/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-news",
+            "skillId": "news-digest"
+          },
+          {
+            "package": "skills-pm",
+            "skillId": "stakeholder-map"
+          }
+        ],
+        "unsupported": [],
+        "cohort": "fresh"
+      },
+      "semanticReview": {
+        "id": "R05",
+        "ok": true,
+        "reason": "Рекомендует оба требуемых навыка: news-digest с проверенными источниками и ссылками и stakeholder-map с планом коммуникаций.",
+        "omissions": [],
+        "falseFull": false
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1459,
+          "reasoningTokens": 1409
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 12205,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "Сделай за указанный месяц news digest о новых публичных библиотеках с проверенными ссылками",
+            "cards": [
+              "c1",
+              "c3"
+            ]
+          },
+          {
+            "id": "r2",
+            "text": "составь карту заинтересованных сторон для запуска внутреннего обзора",
+            "cards": [
+              "c2",
+              "c4"
+            ]
+          }
+        ],
+        "candidateIds": [
+          "skills-news-news-digest-ab498545",
+          "skills-pm-stakeholder-map-d2903aa6",
+          "skills-ecc-data-scraper-agent-af1b7eb0",
+          "design-thinking-problem-solver-enhanced-92b3e754",
+          "skills-news-overview-5162d2e0",
+          "skills-news-news-monitor-9f1efc3b",
+          "skills-pm-overview-b0d8f3a8",
+          "harness-cli-package-ec6546b1"
+        ],
+        "chosenIds": [
+          "skills-news-news-digest-ab498545",
+          "skills-pm-stakeholder-map-d2903aa6"
+        ],
+        "selectorInputHash": "11c278361746291ef351c46a34a252948658c27dc4ad0c3e7c408e48c8605dc7",
+        "recoveries": [],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "recommend",
+          "lead": "Подходящие сценарии для вашей задачи:",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-news",
+              "scenarios": [
+                {
+                  "summary": "Навык news-digest. Исследует несколько потоков по профилю темы и создаёт Markdown, при необходимости DOCX, с цитатами и индексом источников.",
+                  "boundary": "Подпись происхождения не доказывает правдивость новости; статус проверки нельзя повышать без основания.",
+                  "nextAction": "Задайте тему, начало и конец периода, аудиторию и профиль источников для полного обзора.",
+                  "details": [
+                    {
+                      "action": "Сделай за указанный месяц news digest о новых публичных библиотеках с проверенными ссылками",
+                      "quote": "Build a professional, source-cited news digest on ANY topic for a given period — research across multiple streams, tier sources by credibility, audit coverage, then synthesize a structured report (Markdown, optionally .docx) with inline"
+                    },
+                    {
+                      "action": "Сделай за указанный месяц news digest о новых публичных библиотеках с проверенными ссылками",
+                      "quote": "no claim ships without a verified, signed source. Topic-agnostic via swappable profiles (e.g. genai-world for AI news, or a custom profile you define). Use when the user wants a periodic digest, newsletter, or \"what's new in X\" report."
+                    },
+                    {
+                      "action": "Сделай за указанный месяц news digest о новых публичных библиотеках с проверенными ссылками",
+                      "quote": "clickable citations and a full source index. All source-gathering runs through the bundled goap-research-ed25519 skill as a MANDATORY verified-research backend (GOAP-planned research + ed25519-signed source provenance, anti-hallucination) —"
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/news/"
+            },
+            {
+              "package": "@dzhechkov/skills-pm",
+              "scenarios": [
+                {
+                  "summary": "Навык stakeholder-map. Сопоставит влияние и интерес сторон и предложит план коммуникаций по группам.",
+                  "boundary": "Карта строится по вашему контексту и сама не отправляет сообщения участникам.",
+                  "nextAction": "Перечислите участников, их ожидания и роль в решении.",
+                  "details": [
+                    {
+                      "action": "составь карту заинтересованных сторон для запуска внутреннего обзора",
+                      "quote": "description: \"Build a stakeholder map using a power/interest grid, identify communication strategies per quadrant, and generate a communication plan."
+                    },
+                    {
+                      "action": "составь карту заинтересованных сторон для запуска внутреннего обзора",
+                      "quote": "Use when managing stakeholders, preparing for a launch, aligning cross-functional teams, or planning stakeholder engagement.\""
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-pm/"
+            }
+          ],
+          "missingParts": [],
+          "clarificationQuestion": null
+        },
+        "responseMs": 7282
+      }
+    },
+    {
+      "case": {
+        "id": "R06",
+        "query": "Investigate why the local preview intermittently fails and report the root cause without changing code; затем физически наклей бумажную этикетку на мой ноутбук.",
+        "kind": "compound",
+        "essential": [
+          "diagnose preview failure without code changes",
+          "identify physical action as manual"
+        ],
+        "sourcePaths": [
+          "packages/skills-reasoning/investigate/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-reasoning",
+            "skillId": "investigate"
+          }
+        ],
+        "unsupported": [
+          "физически наклей бумажную этикетку на мой ноутбук"
+        ],
+        "cohort": "fresh"
+      },
+      "semanticReview": {
+        "id": "R06",
+        "ok": false,
+        "reason": "investigate покрывает диагностику без правок, а физическое действие перечислено как отсутствующее; однако ответ не сообщает, что наклейку должен физически наклеить человек, и дополнительно рекомендует debugging с проверкой исправления при требовании не менять код.",
+        "omissions": [
+          "Явно определить физическую наклейку как ручное действие человека.",
+          "Сохранить ограничение без исправления во всех рекомендованных сценариях."
+        ],
+        "falseFull": false
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 853,
+          "reasoningTokens": 784
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 23011,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "Investigate why the local preview intermittently fails and report the root cause without changing code"
+          },
+          {
+            "id": "r2",
+            "text": "затем физически наклей бумажную этикетку на мой ноутбук."
+          }
+        ],
+        "candidateIds": [
+          "skills-devops-overview-a6cd470c",
+          "skills-devops-problem-management-30216b22",
+          "skills-devops-debugging-2c04ece1",
+          "skills-reasoning-overview-81482c09",
+          "skills-reasoning-investigate-a24701a4",
+          "skills-reasoning-karpathy-guidelines-684e7364",
+          "skills-qe-overview-7fb6f43e",
+          "skills-qe-qe-defect-intelligence-f23d662d",
+          "skills-qe-systematic-debugging-c9ab6034",
+          "skills-12factor-overview-0b0f0465",
+          "skills-12factor-12factor-admin-processes-b5f0fc39",
+          "skills-12factor-12factor-backing-services-as-resources-b97b44f3",
+          "skills-feature-adr-overview-35190d6c",
+          "skills-feature-adr-code-critic-b0d23ef1",
+          "skills-feature-adr-problem-solver-enhanced-7b19d24b"
+        ],
+        "chosenIds": [
+          "skills-reasoning-investigate-a24701a4",
+          "skills-devops-debugging-2c04ece1"
+        ],
+        "selectorInputHash": "8bff9c2c3136bdb1b1829a330c121740d6fb3e3684314ecef13f68aed270353d",
+        "recoveries": [],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "partial",
+          "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-reasoning",
+              "scenarios": [
+                {
+                  "summary": "Навык investigate. Проведёт системный поиск первопричины и подготовит объяснение проблемы.",
+                  "boundary": "Режим исследования не вносит исправлений; реализация требует отдельной задачи.",
+                  "nextAction": "Опишите симптомы, наблюдения и область исследования.",
+                  "details": [
+                    {
+                      "action": "Investigate why the local preview intermittently fails and report the root cause without changing code",
+                      "quote": "Find and explain the root cause of a problem. Do NOT fix it. Do NOT propose code changes. Produce a clear diagnosis that someone else (or a future session) can act on.",
+                      "joint": true
+                    },
+                    {
+                      "action": "Investigate why the local preview intermittently fails and report the root cause without changing code",
+                      "quote": "- If you cannot reproduce — document what you tried and why it didn't work. This is still valuable information.",
+                      "joint": true
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-reasoning/"
+            },
+            {
+              "package": "@dzhechkov/skills-devops",
+              "scenarios": [
+                {
+                  "summary": "Навык debugging. Поможет воспроизвести сбой, локализовать причину и проверить исправление.",
+                  "boundary": "Без ошибки, контекста и способа воспроизведения диагноз остаётся гипотезой.",
+                  "nextAction": "Покажите стек, ожидаемое поведение и шаги воспроизведения.",
+                  "details": [
+                    {
+                      "action": "Investigate why the local preview intermittently fails and report the root cause without changing code",
+                      "quote": "- Note the reproduction rate (e.g., \"fails ~1 in 10 runs with concurrent requests\")",
+                      "joint": true
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-devops/"
+            }
+          ],
+          "missingParts": [
+            "затем физически наклей бумажную этикетку на мой ноутбук."
+          ],
+          "clarificationQuestion": null
+        },
+        "responseMs": 4324
+      }
+    }
+  ]
+}

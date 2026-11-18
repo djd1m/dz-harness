@@ -28,3 +28,5 @@ The predeclared control gate required all four replays to complete, both key sem
 The final code passed 110 local advisor tests, the assembly and disposable container checks, and desktop and mobile browser probes with a stubbed result. After the paid run, a display-only change labelled passages shared across complementary cards as joint support. Its regression and browser checks passed. The final code reproduced all ten serialized model inputs byte-for-byte by canonical hash using the same saved vectors. The live reviews retain the original output.
 
 Next, distinguish alien passage aliases from other passage rejections and support complementary evidence when an action spans more than one skill. Preserve valid partial results with explicit gaps when possible. Require the frozen CI and Compose cases and a small unseen cohort to clear the control gate before another broad trial. Public production remains on the previous pilot.
+
+The [partial-recovery trial](RECOVERY-TRIAL.md) implements reason-coded recovery and individually bound evidence from complementary cards, with a new control round.

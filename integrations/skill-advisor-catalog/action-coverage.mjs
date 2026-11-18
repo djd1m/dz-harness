@@ -143,6 +143,17 @@ export function retainActionCandidates(query, baseline, raw, clauseSearch) {
  };
 }
 
+export function actionScenarioIds(row) {
+ if (Array.isArray(row?.scenarioIds)) return row.scenarioIds;
+ return typeof row?.scenarioId==='string' ? [row.scenarioId] : [];
+}
+
+export function supportsActionCard(action,candidate,documented) {
+ return Boolean(candidate && !directlyPhysical.test(action.text) &&
+  (action.candidateIds.includes(candidate.id) ||
+   (documented && candidate.record.kind && candidate.record.kind!=='package-overview')));
+}
+
 export function applyActionCoverage(retrieval, choice, details = []) {
  const actions = retrieval.actions ?? [];
  if (!actions.length) return {...choice,coveredActions:[]};
@@ -152,17 +163,25 @@ export function applyActionCoverage(retrieval, choice, details = []) {
   if (!row || coverage.has(row.actionId)) throw new ChoiceError('action-coverage','Duplicate or invalid action coverage');
   const action = actions.find(candidate => candidate.id === row.actionId);
   if (!action) throw new ChoiceError('action-eligibility','Unbound action coverage');
-  if (row.scenarioId !== null) {
-   const candidate = retrieval.candidates.find(hit=>hit.id===row.scenarioId);
-   const documented = candidate?.record.kind && candidate.record.kind !== 'package-overview' &&
-    details.some(detail=>detail.actionId===row.actionId && detail.scenarioId===row.scenarioId);
-   if (directlyPhysical.test(action.text) || (!action.candidateIds.includes(row.scenarioId) && !documented)) {
+  const ids = actionScenarioIds(row);
+  const multi = Object.hasOwn(row,'scenarioIds');
+  if (multi ? (row.scenarioId!==undefined || !ids.length || ids.length>3 || new Set(ids).size!==ids.length)
+    : (row.scenarioId!==null && !ids.length)) {
+   throw new ChoiceError('action-coverage','Invalid action scenario IDs');
+  }
+  for (const id of ids) {
+   const candidate = retrieval.candidates.find(hit=>hit.id===id);
+   const documented = details.some(detail=>detail.actionId===row.actionId && detail.scenarioId===id);
+   if (!supportsActionCard(action,candidate,documented) || (multi && !documented)) {
     throw new ChoiceError('action-eligibility','Unbound action coverage');
    }
   }
-  coverage.set(row.actionId,row.scenarioId);
+  coverage.set(row.actionId,ids);
  }
- const coveredActions = actions.map(action=>({id:action.id,text:action.text,scenarioId:coverage.get(action.id)}));
+ const coveredActions = actions.flatMap(action=>{
+  const ids=coverage.get(action.id);
+  return (ids.length?ids:[null]).map(scenarioId=>({id:action.id,text:action.text,scenarioId}));
+ });
  const scenarioIds = [...new Set(coveredActions.flatMap(action=>action.scenarioId===null ? [] : [action.scenarioId]))];
  if (choice.scenarioIds.length !== scenarioIds.length || choice.scenarioIds.some(id => !scenarioIds.includes(id))) throw new ChoiceError('action-selection','Unbound action selection');
  const gaps = coveredActions.filter(action=>action.scenarioId===null).map(action=>action.text.slice(0,160).trimEnd());

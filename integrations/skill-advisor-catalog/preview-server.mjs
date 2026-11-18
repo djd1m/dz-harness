@@ -59,6 +59,7 @@ export function liveAnswer(apiKey,{catalog=currentCatalog(),retriever=null,sourc
    if(error.choiceReason)onEvent({event:'advisor.invalid_choice',reason:error.choiceReason});
    throw error;
   });
+  for(const reason of result.output.recoveries ?? []) onEvent({event:'advisor.partial_recovery',reason});
   const answer=renderDialogue(result.output,presentation,courses);
   return candidates.meta?{...answer,retrieval:candidates.meta}:answer;
  };
