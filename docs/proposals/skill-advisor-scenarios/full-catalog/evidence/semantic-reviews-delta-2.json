@@ -1,0 +1,488 @@
+{
+  "reviewerModel": "gpt-6.1-terra",
+  "reviews": [
+    {
+      "id": "skills-book-digitizer-book-pack-assemble-cb420969",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Собирает skills-book-пакет, включает локальные источники и evals, проверяет состав архива и установку. Остальные поля записи не изменены.",
+      "recordHash": "ae32c79aa4c5b82db8313e41f14b81314dcf48c159f52eb5cb621fb3556128fc",
+      "presentationHash": "5b238ab9794a84cca242c5b796b605cf66a30d13916274442ac7c76f98056e83"
+    },
+    {
+      "id": "skills-book-digitizer-book-skill-distill-e06cce64",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Кластеризует проверенные знания в decision-moment SKILL.md с происхождением, routing-evals и связями с источниками. Остальные поля записи не изменены.",
+      "recordHash": "c17f788fa9bc5f405a55e9c0234fa9bcc474a0285047a96da2c3e537874152b5",
+      "presentationHash": "9a5734944b98754031b9d93ae5de7a4b2bdb679d4fdea5933ae16c5b8683c916"
+    },
+    {
+      "id": "skills-book-digitizer-digitize-book-8af847ed",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Оркестрирует ingest, извлечение, дистилляцию, упаковку и индексацию с возобновлением и контрольными точками. Остальные поля записи не изменены.",
+      "recordHash": "21c24d1de4b634f07083af7d073e5210f77fec68dde77173ed279eeb059dce31",
+      "presentationHash": "09f07d2c5eacee60d45b8a870097e259966cd85a4e9bb239ad6c46d99b022da6"
+    },
+    {
+      "id": "skills-book-digitizer-source-brain-ingest-efe913c2",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Обходит исходники, выделяет Knowledge Units и передаёт их в общее личное хранилище с происхождением и лицензией. Остальные поля записи не изменены.",
+      "recordHash": "cbcc133c04208d22576345018e55df3449f537d8c0b82bb61d7a493eb18e6ae8",
+      "presentationHash": "fbe096973dd69f9c119a5ea54f62b497d44814aeef816160c17db7caf473d804"
+    },
+    {
+      "id": "skills-book-fundamental-software-architecture-fundamental-software-architecture-guide-0ec0f7af",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выбирает подходящий протокол из методов книги и возвращает решение с последствиями, проверкой и передачей следующему этапу. Остальные поля записи не изменены.",
+      "recordHash": "2c5c0f425e0fd7df292e98a96680cd35998e28ff66565675ca1ce26efe301b69",
+      "presentationHash": "35469383171cf20e63369804c2b4c21a081a7343249a0d1897c62724d5823a62"
+    },
+    {
+      "id": "skills-demo-publisher-demo-site-publisher-b95747b0",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проведёт запись JSON-сценариев, монтаж видео и сборку статического сайта с проверкой размеров и публикации. Остальные поля записи не изменены.",
+      "recordHash": "469b6a154e13d2b56aba20ffab4ae5c5464b4111365b7b57f08db0a8e1519e80",
+      "presentationHash": "979b8be0524444a8bfb62bf0804e808ab9005c3bf562adfdef0e72ea4ec9f8ac"
+    },
+    {
+      "id": "skills-devops-deploy-on-cloudru-vm-458aa6e5",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проанализирует репозиторий и проведёт развёртывание Docker Compose через cloudru-vm с проверкой доступности. Остальные поля записи не изменены.",
+      "recordHash": "22bae18b91651a4c8350d68567024c8fe2a1c7b778a654460dc33c65cd8ae8b2",
+      "presentationHash": "396622a41ffa3cea5801fa04fc4fd8377505688cbb8c8e3724b45b3dd6a29461"
+    },
+    {
+      "id": "skills-devops-itsm-itil-0e4a9257",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Предложит связанные Markdown-записи, состояния и приоритеты WSJF для сервисного управления. Остальные поля записи не изменены.",
+      "recordHash": "a9f9533137ea03ce14b76c6d061a7748e1691e687b91237e92fee489ea77bd25",
+      "presentationHash": "5640db762d8d2a68a9ae8e96e1446b63e9300b03a37e82527a8332bc0f47d0f8"
+    },
+    {
+      "id": "skills-devops-problem-management-30216b22",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет связать повторные инциденты с первопричинами и приоритизировать работу над известными ошибками. Остальные поля записи не изменены.",
+      "recordHash": "3dc1334fc7e840ebea700128ea113ad6026de65dee85dc6af43dfd5a9047e369",
+      "presentationHash": "e3c90d839cbb0d681f6cc378356b860ceb3bf354b01529593944d4ff43c1f3ae"
+    },
+    {
+      "id": "skills-ecc-agent-architecture-audit-fca25e48",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Аудирует слои агентной системы, инструменты, память, транспорт и рендеринг; ранжирует исправления по серьёзности. Остальные поля записи не изменены.",
+      "recordHash": "0fe9105873b2360112e83857b0960586d046dca70322642bbf36c0beac3fb9a3",
+      "presentationHash": "d167e73d7a5bfd4415e1cd0197028af7213024e1258aa091cd635aed980c7d2f"
+    },
+    {
+      "id": "skills-ecc-agent-eval-4fad4429",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Определяет воспроизводимые задания и сравнивает агентов по прохождению проверок, времени, затратам и стабильности. Остальные поля записи не изменены.",
+      "recordHash": "6a4ecd6d8546fed38b508da14b19ee76f939cfeb85c9ee8ef4c6e11c86fd53e1",
+      "presentationHash": "8d9e516d80d115ec47a797261da1de285d0f71092af550ce142fa31ed07fdd50"
+    },
+    {
+      "id": "skills-ecc-agentic-engineering-c5d80a46",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Начинает с критериев завершения и baseline, декомпозирует работу и сравнивает результаты после реализации. Остальные поля записи не изменены.",
+      "recordHash": "bc4d32a91eda6cc52efb510676db61c9e09586fb2e1904d9180f96df5df75c6e",
+      "presentationHash": "5d95c74f8f306749b8e4357ea9155a6a5c1752396087a5ac4308db770cfe50e0"
+    },
+    {
+      "id": "skills-ecc-ai-regression-testing-4d70ac29",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Строит регрессионные сценарии с mock/sandbox-режимами, выявляя слепые зоны самопроверки AI. Остальные поля записи не изменены.",
+      "recordHash": "3fa01b766448749ccfc7c1895e10bdebcbd7ad56e30a2656c73a9de8de4d8439",
+      "presentationHash": "41020baabe50f4b264261ecd4fa99de5ec3d0d9103c90b59c87d9be3562449fd"
+    },
+    {
+      "id": "skills-ecc-architecture-decision-records-bc8b5013",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Фиксирует решения из рабочих сессий и сохраняет контекст, варианты и обоснование рядом с кодом. Остальные поля записи не изменены.",
+      "recordHash": "c14be825a6720265595b4ad3d494af880fc6803642af186bcb51ce7e3ae2e529",
+      "presentationHash": "aba130abded0331145f9bfdfb4a8762276dfeec7bc7b239f59f399ec28464f7b"
+    },
+    {
+      "id": "skills-ecc-autonomous-loops-8660c516",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Описывает подробные схемы автономных циклов от линейного запуска до оркестрации по RFC. Остальные поля записи не изменены.",
+      "recordHash": "f992ffe50cc9f9936aa74131439b51932e06d16214d028fd2485fdcf46e4696c",
+      "presentationHash": "7265aa2c731fff324a8a4a51cc920fb9f85c70a7042e2be0695b6fb415a3587a"
+    },
+    {
+      "id": "skills-ecc-backend-patterns-9dd9a844",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Предлагает серверные паттерны API, доступа к данным, кеширования, фоновых задач и обработки ошибок. Остальные поля записи не изменены.",
+      "recordHash": "816175aec68364f9331c6dcc90f1392c160ced08125fb9cbc7e558acf632b80e",
+      "presentationHash": "34d4404a2963074d70cf6ffacdb7135fbec14a1f9c0abf61a49d46809ba74bfa"
+    },
+    {
+      "id": "skills-ecc-benchmark-optimization-loop-624a5715",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Измеряет baseline, ищет узкое место и проверяет варианты в заданном бюджете по выбранной метрике. Остальные поля записи не изменены.",
+      "recordHash": "ff68d29d9abe702212c01d0b2f91d0c37de4d4b6144c3af7d2b8b9d8c6698bc5",
+      "presentationHash": "18cb72c0ea05673de24a3c0dd1de2d1ac5c8b634e6a5812973ed23e969cfe58e"
+    },
+    {
+      "id": "skills-ecc-brand-voice-12b8024b",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Извлекает устойчивые особенности письма из реальных материалов и оформляет профиль для повторного применения. Остальные поля записи не изменены.",
+      "recordHash": "1ae7f63c8dc5b401e0061fbc66648fa9aa0dc182dbcce887fa749e95be776ba2",
+      "presentationHash": "a47122d40997a2ac00f8c319fcb1b2b52fa66a2ffa3add4d96e254463564530f"
+    },
+    {
+      "id": "skills-ecc-browser-qa-0b8ea06a",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Автоматизирует smoke-проверки, взаимодействия, снимки и проверки доступности в браузере. Остальные поля записи не изменены.",
+      "recordHash": "fb5b491c466c9418fa9dd9f91760216d215e310202641bee40f6b15b9417472c",
+      "presentationHash": "b270ef7fec0e13532a50fa60dc9ff11d8e8d48fdb71bc8cf12ec391d847f5751"
+    },
+    {
+      "id": "skills-ecc-canary-watch-a3fe5a29",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Наблюдает HTTP, потоки, ассеты, консоль и метрики в ограниченном окне после изменения. Остальные поля записи не изменены.",
+      "recordHash": "c9adb1ea1a10dc9129ced3603f33205f5d289e04f4abc3eb3a7f5cd25c6dd1e2",
+      "presentationHash": "da69dea6da7fc7f04a5020dba073a43a0d4c58808222b2ef95af1eb4261fc56c"
+    },
+    {
+      "id": "skills-ecc-continuous-agent-loop-9d764334",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выбирает последовательную, параллельную или PR-управляемую схему и связывает существующие навыки проверок и восстановления. Остальные поля записи не изменены.",
+      "recordHash": "b7f948fcedaccd33945c5329e198d50c9dc5937c42b477c612becb34699e905d",
+      "presentationHash": "647560a9e3d62abb0a92415ba509927f4c638f4c883490199d299567fe133661"
+    },
+    {
+      "id": "skills-ecc-data-scraper-agent-af1b7eb0",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проектирует Python-сборщик с GitHub Actions, обогащением через LLM и хранением в Notion, Sheets или Supabase. Остальные поля записи не изменены.",
+      "recordHash": "81659dde8e442af03ba4cc32aa05dbb670bd997f4a09cc5dfee19cd76e42caee",
+      "presentationHash": "c2fd0f1935b4064b8f8bfc74bea712f1ff0de34136e29a445ed187817c808363"
+    },
+    {
+      "id": "skills-ecc-django-tdd-ad1834c0",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Применяет red–green–refactor с pytest-django, factory_boy и проверками Django REST Framework. Остальные поля записи не изменены.",
+      "recordHash": "5f128afede9030b8d9e0d6fbf0b5276dc5f27ace7e27acae3ba527a5e2e041ea",
+      "presentationHash": "319eb2556029c67aecfc4d8bacb4b998c43404d3bd7e1d221f0138e1fb3a92c8"
+    },
+    {
+      "id": "skills-ecc-docker-patterns-d78f32f7",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Помогает проектировать Dockerfile, Compose, сеть, тома и многоэтапную сборку. Остальные поля записи не изменены.",
+      "recordHash": "3f7a58ccbb0517f197af458eabc810c711a67d0a0f920aa185e6ce3d060ccd66",
+      "presentationHash": "5199cd59757459c8b197f190e0f27a1ab11deb5fa4e9cfe82001313265f388d9"
+    },
+    {
+      "id": "skills-ecc-e2e-testing-5d1e7f67",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Организует сценарии, фикстуры, Page Object, конфигурацию CI и анализ нестабильных тестов. Остальные поля записи не изменены.",
+      "recordHash": "56ca97f7eabe8aae49ef01f6ad0cb20ab4a3ad2834063348735db132fed4681b",
+      "presentationHash": "da7084045e47492b241f7c3034be1d5d91b2b216fe09d721ad9d38d76a35fbf3"
+    },
+    {
+      "id": "skills-ecc-enterprise-agent-ops-2c856b22",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Описывает жизненный цикл, наблюдаемость, границы полномочий, таймауты и аудит агентных нагрузок. Остальные поля записи не изменены.",
+      "recordHash": "cc37bc12951f1cbe1e67ca0cde92ce17314805cf629b4f36784dc2e38a98112e",
+      "presentationHash": "1953074aa956cf3c2706fab4ae9a8c3d53f8ec4c79bead39b080c5a7b11fcdb8"
+    },
+    {
+      "id": "skills-ecc-fastapi-patterns-b6d737bf",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Описывает структуру FastAPI, зависимости, Pydantic v2, транзакции, аутентификацию и тестирование. Остальные поля записи не изменены.",
+      "recordHash": "ad5b2030b17932d9266fc82d24464efd43e17afd747ecaa75e8a404b4a071814",
+      "presentationHash": "3f0b522f44571ab584139da9564c7961f03d4c2cb7e2e7effc59e1084367951e"
+    },
+    {
+      "id": "skills-ecc-flutter-dart-code-review-bf71505b",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проверяет виджеты, состояние, архитектуру, производительность, доступность и безопасность Flutter-приложений. Остальные поля записи не изменены.",
+      "recordHash": "f825597b7eacd995646b0df03aca352cb0baf6895ced21b3a4be0303741450cd",
+      "presentationHash": "ae33d2e1a101ddaefb200f3f8314178d3cb6efe35424a53476f2b8ba6aa98cd0"
+    },
+    {
+      "id": "skills-ecc-git-workflow-91d62415",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Сопоставляет стратегии ветвления, merge/rebase, соглашения коммитов и управление версиями. Остальные поля записи не изменены.",
+      "recordHash": "c844e48e65dc4423651e060d9df098e56bf40908a330f5fd6310afc938ca251e",
+      "presentationHash": "ba528b09a2a81e75e004a096eb97c49141a483e4a65f4f4dfea8daf98c8fe59d"
+    },
+    {
+      "id": "skills-edu-site-edu-site-generator-76f5e789",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Создаёт модули, упражнения, итоговую проверку, достижения и адаптивный учебный интерфейс. Остальные поля записи не изменены.",
+      "recordHash": "5c11f40dd1b4f47d980d4105f23df2687613c633cc36c211dbd7012ddc1706a6",
+      "presentationHash": "d19111f6a931e5bff984d93ecd6d4d77b2593b4d890f233b5fba20f4fe70dcf3"
+    },
+    {
+      "id": "skills-feature-adr-challenge-panel-3daa87a5",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Организует независимую проверку плана по вопросам владельца с перепроверкой серьёзных находок. Остальные поля записи не изменены.",
+      "recordHash": "ab6d0df1b5be8958123999cc79d1b9fd9fd42c8057959cd96bfba2e7f606c023",
+      "presentationHash": "68175012c0a6d0222880e3dfd13109c4c56a7dfba1ea774f3d42b2717ba37600"
+    },
+    {
+      "id": "skills-feature-adr-code-critic-b0d23ef1",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Даст приоритетный список проблем качества backend по принципам и инвариантам проекта. Остальные поля записи не изменены.",
+      "recordHash": "0c5b2c67a4f3f11d697ff899f080f808e4297be9bf929b1a4f413d042b2c1961",
+      "presentationHash": "e1645fbbd6d948a2e5f811503c0d8851dce3e5c5b8ed80c4440b115ed3dc7d8e"
+    },
+    {
+      "id": "skills-feature-adr-code-impl-54ab875a",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет применить принципы переиспользования, инварианты, безопасность и критерии готовности до реализации. Остальные поля записи не изменены.",
+      "recordHash": "94a5021e3bb4d786887645d0c5fed988df5572b08ace68be81475a6b5eabfeed",
+      "presentationHash": "cb529e37461cf2850bfdd4f05475a1923557f4221e8492863482185e9de9f537"
+    },
+    {
+      "id": "skills-feature-adr-code-skills-creator-11614d96",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выведет из аудита повторных ошибок принципы и подготовит два проектных SKILL.md с исходными материалами. Остальные поля записи не изменены.",
+      "recordHash": "c82843a3cc567c4232d9dac343e8f9a6553eaca3a461dc15c4c4437e1063234e",
+      "presentationHash": "94c4722218758724830469ebf760c5bc39ccaa6d0bab4fe3235857611dde1d8a"
+    },
+    {
+      "id": "skills-feature-adr-configure-feature-adr-fc936abb",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проведёт настройку видения, карты архитектуры, правил проверок и проектных ролей через движок dz. Остальные поля записи не изменены.",
+      "recordHash": "0ef8cc282d0f3aae41013e6777b0f8eae98ba2a032ac38133491e6cb8994d582",
+      "presentationHash": "68fd8f4f518ed6f9fa74e8255f23e2b44c6fcae4bad87bc040996e985f45ea20"
+    },
+    {
+      "id": "skills-feature-adr-explore-cbd95e1a",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет через вопросы превратить неясный запрос в рабочую спецификацию. Остальные поля записи не изменены.",
+      "recordHash": "6db7876e126a9dbe27d2c0b04fac8feca5b69f153e1b6308a0329511709338e5",
+      "presentationHash": "a29d13fa758a74bf5889a8cf0afdc256da23ace952369f3de58f567784fdaeb1"
+    },
+    {
+      "id": "skills-feature-adr-feature-adr-aba74aac",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Организует адаптивный процесс требований, ADR, планирования, реализации и проверки качества. Остальные поля записи не изменены.",
+      "recordHash": "2cb567c27506b01b2e6d34de893cf9ff1d2f2b7692ed9343cb5a2ffb1ad68755",
+      "presentationHash": "f2719c6bc7f180eebed455d14908cc24cfb4d010d22ee4508ce1a00277791098"
+    },
+    {
+      "id": "skills-feature-adr-knowledge-extractor-9ec7510b",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Организует извлечение, классификацию и проверку паттернов, команд и правил с размещением в toolkit. Остальные поля записи не изменены.",
+      "recordHash": "8c92b4d5eced3280b0b9d2e01bfc7ca9fab4b6a9c59cdd8b93d3a7fd07944200",
+      "presentationHash": "03fb1bae17a75d451a7d6302491d83fd8430b9efce1b2f07fa692299def78508"
+    },
+    {
+      "id": "skills-feature-adr-system-grill-70fefd4c",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проведёт тренировку: сначала ваше предсказание, затем проверка по архитектурной карте и журнал понимания. Остальные поля записи не изменены.",
+      "recordHash": "54118f5b61b5ab6fec894fb08bcedecd69262900c34af71b6600f4b5eaadd8dc",
+      "presentationHash": "a1d2a19260ca85a4df163223b60e0212517caccb33dfd170475b0032867b8a78"
+    },
+    {
+      "id": "skills-idea2prd-explore-1585519c",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выясняет реальную цель, ограничения, ресурсы и признаки успеха через уточняющие вопросы. Остальные поля записи не изменены.",
+      "recordHash": "6944b14d7d27513897d4647daa63c01cb5a3c85a5b8159d1e30eff96165f14de",
+      "presentationHash": "109af21c4b6af6f909d8e4a6acc888d35cb24c8e611fe3c1652ef927b13e90e7"
+    },
+    {
+      "id": "skills-idea2prd-idea2prd-manual-94bc3792",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Соединяет анализ проблемы, PRD, архитектурные решения, псевдокод, Gherkin-сценарии и checklist завершения. Остальные поля записи не изменены.",
+      "recordHash": "a6759b45e2e509ce4d09cc6416704e07a97abb3ad337db3796135c974c9fc32b",
+      "presentationHash": "a08ac9e9ba2796ba06638d0a5a53cbbef10197bb3b805c59b9f5cf24357b6fc4"
+    },
+    {
+      "id": "skills-meta-adversarial-verifier-8f954c64",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проверяет достижимость, реальный ущерб и защитные механизмы, различая подтверждение, ложное срабатывание и неопределённость. Остальные поля записи не изменены.",
+      "recordHash": "6103f0ae5752dfcf2f3eea79581f586cec9a5495722411ca40eeebf5dce72481",
+      "presentationHash": "ff06430dac3b0b6092097b169fb423a712677d7684b0c5ece2171ad7ed5117c7"
+    },
+    {
+      "id": "skills-meta-agentshield-scan-7e9c864f",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Запускает AgentShield для поиска секретов, инъекций и рисков конфигурации, выдавая JSON для CI. Остальные поля записи не изменены.",
+      "recordHash": "a8b7bd6a14e8a4570fbc912b228ae018165eaf04d8632ab3891edbcac50d1d32",
+      "presentationHash": "3b57c9b674117b7392d162f35cbe628bee06de72c82034b8edbf5b9ac8e8bee5"
+    },
+    {
+      "id": "skills-meta-audit-ecff7de9",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Исследует кодовую базу, проверяет находки и ранжирует исправления и возможности улучшения. Остальные поля записи не изменены.",
+      "recordHash": "db2714b7fab560d86f0088fe5dba55064c1c9d0488f2b2bdd52b0d173a298ba7",
+      "presentationHash": "c616b0e197e51e3c3fdd3209ea2687bce17b3584968fd2427ebb004008ac474a"
+    },
+    {
+      "id": "skills-meta-capture-adr-e8d5cd4b",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Создаёт минимальную запись MADR в docs/decisions с очередным номером и отметкой needs-oversight. Остальные поля записи не изменены.",
+      "recordHash": "258448303000c76849998db56752836159073c91d48149b7699133ac3f4d5be8",
+      "presentationHash": "e91e4bc74816f623753e1fba8e4b4501817093394906c5b0fd2e3506c1e7fe3d"
+    },
+    {
+      "id": "skills-meta-context-window-management-bab6b4ee",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выбирает стратегию сокращения, контрольной точки или резюмирования с учётом важности сведений. Остальные поля записи не изменены.",
+      "recordHash": "cf5809f47e5640c0127488e7a16222a2f36dd7a4582feeb8225af9eb0d99977c",
+      "presentationHash": "7bd92e24556b1797f2a48d2b39127a3430e1feecdc76536a0ba72285367c2f4f"
+    },
+    {
+      "id": "skills-meta-design-thinking-08d3fa8b",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Организует исследование пользователей, определение проблемы, гипотезы, прототипы, тесты и пилотную проверку. Остальные поля записи не изменены.",
+      "recordHash": "482ab7a98eb7b645a483821b942a7eb54d0b7c974c70b8b14884f31ffef88dab",
+      "presentationHash": "9e74b3be5499a3f229f4c87065127d34d2328ae3055c1f4328d5252adde37248"
+    },
+    {
+      "id": "skills-meta-design-tokens-981927d6",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Создаёт, проверяет и сравнивает контракт токенов, экспортируя его в Tailwind или W3C DTCG. Остальные поля записи не изменены.",
+      "recordHash": "8d3c27fc389cd3f5cadaeae0a15a23d3bd55c8ff10bd9dea4039ed4277b3d67b",
+      "presentationHash": "1f0a40dc046523985c7fc0ff5d051600415d734007c950425a7a153ed3b81f64"
+    },
+    {
+      "id": "skills-meta-explore-0af324f8",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выясняет реальную цель, ограничения, ресурсы и признаки успеха через уточняющие вопросы. Остальные поля записи не изменены.",
+      "recordHash": "4e45279ee06898b91350ada6fedf8794ba3eaad4dd49bb4dabe0d833d59e4b86",
+      "presentationHash": "f17f6c3094f219b071885ae3e43eb7b72d146f4905e0bfa705bb9b9b3c69ceaa"
+    },
+    {
+      "id": "skills-meta-external-comms-gate-9dfb7ff1",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проверяет исходящие тексты перед публикацией, отмечает риск утечки и предлагает редактуру. Остальные поля записи не изменены.",
+      "recordHash": "1acd9e8469249e30f29393e15b698280bf2eebac078a282ab03dee8b016e4195",
+      "presentationHash": "93fbd0f0a26517b1ee9143afa3ebcda94c50f0d5a1172b0883eddfafb2f2df8e"
+    },
+    {
+      "id": "skills-meta-feature-adr-d4d61401",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выбирает размер процесса, связывает требования, архитектуру, реализацию и инженерные проверки. Остальные поля записи не изменены.",
+      "recordHash": "eecb8448013a6b755a0573e16a98e8943bb5d302331cbdcaccf8ec8ab9e031bb",
+      "presentationHash": "101b6c25324fcaef54a9cb740fe71340a32b3313f7a6a42da800538b8121cd7b"
+    },
+    {
+      "id": "skills-meta-knowledge-extractor-13b2b0dd",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Собирает знания, классифицирует, удаляет дубли, проверяет качество и размещает подходящие артефакты. Остальные поля записи не изменены.",
+      "recordHash": "4693ee62af17efcc66bb1e6a0bb4363f9ea3fc1d8be5c4d80e72a5117ed33d4e",
+      "presentationHash": "f911a02b721935aca084a2e8681343b7a6fcdc824c1d5a4998d39d9c25c9da6e"
+    },
+    {
+      "id": "skills-meta-loop-plan-author-5da91697",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Создаёт и проверяет loop-plan/1 с pipeline, barrier, fanout и gate; помогает читать трассу выполнения. Остальные поля записи не изменены.",
+      "recordHash": "9c2d3a93eaf526c65cdd3d17522f27922d24b892d2bd4eff0573329cc44926b1",
+      "presentationHash": "812a0e16023e4438d1a066f7e3e198d2d315ad7ce260cb07abcdf9005270752f"
+    },
+    {
+      "id": "skills-meta-reflection-loop-76701653",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Сопоставляет черновик с критериями, вносит предметные правки и проверяет результат до трёх раундов. Остальные поля записи не изменены.",
+      "recordHash": "c0a82a1189f3d9604b53fe10c30e38c8598348ea0340fcb397c2f3ac103a9c9a",
+      "presentationHash": "b655c69ad3c845e29f92dc330781c7532d8a88ad3e64c265718a623beeeef234"
+    },
+    {
+      "id": "skills-meta-session-recap-58a4a29c",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Обновляет известные статусы чтением и выдаёт четыре пункта о цели и ходе текущей сессии. Остальные поля записи не изменены.",
+      "recordHash": "155e5e7188e739a04291960374c414901c4961f1f7a941d2a8633741abe4c766",
+      "presentationHash": "e006c7b11b11097a717a93907e5951e4eedc457e4f054508dffcd64e974a5e02"
+    },
+    {
+      "id": "skills-meta-skill-advisor-0e4ec21c",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Читает действующий каталог, ранжирует навыки и наборы, объясняет порядок применения и пробелы. Остальные поля записи не изменены.",
+      "recordHash": "04e5af0be37b5341bd633e268d098ff7b6947150d608b4442891f138dcd2e60a",
+      "presentationHash": "3ef7cb56c09b846a6d4db8179bc1fcc312c84377b0ba262de059ddf32ca2085a"
+    },
+    {
+      "id": "skills-meta-skill-crystallizer-d5f00dd8",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Извлекает паттерны из трасс, составляет композиции и помогает ремонтировать слабые навыки с последующей проверкой. Остальные поля записи не изменены.",
+      "recordHash": "e2099ff06b726ad49a876a79fc897a173c0ec056fc87efbddc7253367dcc4b7e",
+      "presentationHash": "d36b463aaa270f3c044215c50e2b1786d0e40b2801a49bd1bc656a22e4aff0e8"
+    },
+    {
+      "id": "skills-meta-structured-reasoning-b6fcfdea",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Подбирает стратегию исследования вариантов, последовательного вывода или ограничения избыточного анализа. Остальные поля записи не изменены.",
+      "recordHash": "00c669ee7cee42649474e5f36f5684704e66d8ab8373e006dd3098f55b1a0a09",
+      "presentationHash": "745e61f61a60f570dbf37bc6ab6f632b2ee9b3cb921a5a66cac9629599598d0b"
+    },
+    {
+      "id": "skills-meta-understand-anything-bridge-acad02c2",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Читает граф Understand-Anything и передаёт контекст архитектуры и влияния изменений другим навыкам. Остальные поля записи не изменены.",
+      "recordHash": "3852cf48f30125bae7b59072c2a75aaa090a7b83c99320653fded19a9ddaa6ac",
+      "presentationHash": "f5c6fe55362cce486daeb9bffb3a055388f3e8d2f107b7db786a039f94ed6d91"
+    },
+    {
+      "id": "skills-news-news-digest-ab498545",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Исследует несколько потоков по профилю темы и создаёт Markdown, при необходимости DOCX, с цитатами и индексом источников. Остальные поля записи не изменены.",
+      "recordHash": "9f6c939dede470339505980ca4526eb0c84c32f995e575bc72cdadb6b85665e2",
+      "presentationHash": "c4ccb6d6f0168e8ca192407af1770ab97f30d65f021363fc852ad32b26ce38b3"
+    },
+    {
+      "id": "skills-news-news-monitor-9f1efc3b",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Сравнивает найденные события с сохранённым watermark и выдаёт новые дедуплицированные пункты с источниками. Остальные поля записи не изменены.",
+      "recordHash": "77914b4c7a46ee5b58eb5a34c0290397858b9edd945bde512dd3a17a70303a97",
+      "presentationHash": "e7dc534a0842e9945a337d07b8aeb243e55a9c29a5784a9ed9c73d0484f8bea3"
+    },
+    {
+      "id": "skills-presentation-storyteller-explore-fd33d531",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет через вопросы превратить неясный запрос в рабочую спецификацию. Остальные поля записи не изменены.",
+      "recordHash": "2a9e4aace90f5960fcdefaf2b567942c562797574246c10345ffc97306724983",
+      "presentationHash": "5b46369aeaeb7847c82876a176c9fcaba071cd4c10da03a8639cc94f97eb4b00"
+    },
+    {
+      "id": "skills-presentation-storyteller-presentation-storyteller-7ccca571",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Подготовит план, Markdown-презентацию, ссылки на источники и связный рассказ для слайдов. Остальные поля записи не изменены.",
+      "recordHash": "4c6914475d83d0036d33c799f5bd4adf7c7f69af99787bd634c810201a77ea60",
+      "presentationHash": "78f20b2692cddb4547820ee1b937efa79e94fdc5bffb93ff666dac261efdce94"
+    },
+    {
+      "id": "skills-reasoning-agents-md-creator-9cfa89ee",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет подготовить per-repo AGENTS.md с зависимостями, обязанностями пакетов и ограничениями архитектуры. Остальные поля записи не изменены.",
+      "recordHash": "e4abd37a164aac90e9a18f20a5ef6b70075df78cdb54fe5b4667a2663050e591",
+      "presentationHash": "017dafb386501ee0eea11e285bfcc61bdec61331072d2bfaa221adb33be27ffd"
+    },
+    {
+      "id": "skills-reverse-engineering-explore-0cbc2e1c",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выясняет реальную цель, ограничения, ресурсы и признаки успеха через уточняющие вопросы. Остальные поля записи не изменены.",
+      "recordHash": "2a6d8b1246c8b77e87c6f61c605ba01bb0f1d4db794f96af47301f26ad16db52",
+      "presentationHash": "53ae8f17cc76efc1b4a348fe1a4010386808f9e6f3b87374d7e7ce86f06ce4f7"
+    },
+    {
+      "id": "skills-transcript-site-transcript-site-generator-2e78ef86",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет превратить транскрипт в адаптивный статический сайт без этапа сборки, подготовленный для GitHub Pages. Остальные поля записи не изменены.",
+      "recordHash": "5ce0973bcabd5700d5a08942c7afbbca7d43478f4388c6a8ae3340141cb7b3f7",
+      "presentationHash": "8fa8e1116defe56f995a178344fbdcb6e1d25967b39eb27831edb5e317c670c6"
+    },
+    {
+      "id": "skills-tutorial-factory-package-tutorial-factory-8072e340",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Собирает курс по исходникам пакета, использует готовую методическую базу и детерминированный renderer с verifier. Остальные поля записи не изменены.",
+      "recordHash": "2161b4d5a990781a24edfc601e70adb9c2f21f7b8fd877a7f765a2139ef3d7f2",
+      "presentationHash": "d7075b9197eeba5aa741df55ed32357b3486a1f263f8b964a1f707015963658d"
+    },
+    {
+      "id": "trip-planner-explore-244a45d1",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет через вопросы превратить неясный запрос в рабочую спецификацию. Остальные поля записи не изменены.",
+      "recordHash": "8644c8fbb09ee1f4c211c84c2a2a46e9063330ebaba787600c484591e8e68c48",
+      "presentationHash": "c81be3838f5509a69baaf503bab139eace267d509961ff830a0284da8274755e"
+    },
+    {
+      "id": "trip-planner-trip-planner-87c87607",
+      "verdict": "approved",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Организует проверку мест и составление самостоятельного HTML-маршрута с таймлайном и ссылками на карты. Остальные поля записи не изменены.",
+      "recordHash": "f0ba237d2e79d646c42e12cd2266bd946eadf184875b310297eb58b0c5ad01b0",
+      "presentationHash": "9fcbb98a9e6f96277430553a2a5b80eef2bc689ee1a0c6532afd2a12a2e5b526"
+    }
+  ]
+}

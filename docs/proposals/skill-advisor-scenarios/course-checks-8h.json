@@ -1,0 +1,111 @@
+{
+  "schema": "dz-scenario-course-checks/1",
+  "recordedAt": "2026-11-09T22:39:52.297507+00:00",
+  "checkedAt": null,
+  "timestampNote": "HTTP GET проверки выполнены ранее в этом сеансе аудита; точное время запросов не сохранялось. recordedAt — время записи доказательств, не повторной HTTP-проверки.",
+  "method": "Python urllib.request.urlopen, GET, timeout=30; 6 parallel workers",
+  "sourceInventorySha256": "6ddcc139317a00a207bd4287ae4ed129b5d4b82e44002a00bf06a82970bed64b",
+  "catalogScenarios": 32,
+  "packages": 12,
+  "uniqueSkillIds": 27,
+  "scenariosWithCourse": 28,
+  "entries": [
+    {
+      "package": "@dzhechkov/skills-bto",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-bto/",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-bto/",
+      "contentType": "text/html; charset=utf-8",
+      "status": "verified"
+    },
+    {
+      "package": "@dzhechkov/skills-devops",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/",
+      "contentType": "text/html; charset=utf-8",
+      "status": "verified"
+    },
+    {
+      "package": "@dzhechkov/skills-mcp",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-mcp/",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-mcp/",
+      "contentType": "text/html; charset=utf-8",
+      "status": "verified"
+    },
+    {
+      "package": "@dzhechkov/skills-meta",
+      "url": null,
+      "httpStatus": null,
+      "finalUrl": null,
+      "contentType": null,
+      "status": "unmapped"
+    },
+    {
+      "package": "@dzhechkov/skills-news",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/news/",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/news/",
+      "contentType": "text/html; charset=utf-8",
+      "status": "verified"
+    },
+    {
+      "package": "@dzhechkov/skills-pm",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-pm/",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-pm/",
+      "contentType": "text/html; charset=utf-8",
+      "status": "verified"
+    },
+    {
+      "package": "@dzhechkov/skills-presentation-storyteller",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/presentation-storyteller/",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/presentation-storyteller/",
+      "contentType": "text/html; charset=utf-8",
+      "status": "verified"
+    },
+    {
+      "package": "@dzhechkov/skills-qe",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-qe/",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-qe/",
+      "contentType": "text/html; charset=utf-8",
+      "status": "verified"
+    },
+    {
+      "package": "@dzhechkov/skills-reasoning",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-reasoning/",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-reasoning/",
+      "contentType": "text/html; charset=utf-8",
+      "status": "verified"
+    },
+    {
+      "package": "@dzhechkov/skills-reverse-engineering",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-reverse-engineering/",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-reverse-engineering/",
+      "contentType": "text/html; charset=utf-8",
+      "status": "verified"
+    },
+    {
+      "package": "@dzhechkov/skills-tutorial-factory",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/tutorial-factory/",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/tutorial-factory/",
+      "contentType": "text/html; charset=utf-8",
+      "status": "verified"
+    },
+    {
+      "package": "@dzhechkov/skills-website-cloner",
+      "url": "https://djd1m.github.io/dz-harness/tutorials/skills-website-cloner/",
+      "httpStatus": 200,
+      "finalUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-website-cloner/",
+      "contentType": "text/html; charset=utf-8",
+      "status": "verified"
+    }
+  ],
+  "limits": "HTTP 200 подтверждает доступность страницы, не содержание, полноту курса или актуальность версии пакета."
+}

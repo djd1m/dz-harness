@@ -1,0 +1,145 @@
+{
+  "reviewerModel": "gpt-6-astra",
+  "reviews": [
+    {
+      "id": "adapter-agents-md-package-7c454bd5",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на capability-абзац README о flattening canonical skills в root AGENTS.md и цитату потерь/managed merge. Сам сценарий разработчика и роль guide соответствуют источнику. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "00f54228b5bab3b81d36040851cc189f81342bbefa19fa411ae36ae0d4ccf31e",
+      "presentationHash": "df588335a55a910eb9697afe32e0f6cc5193da118d3f20ff428bcc07994831fe"
+    },
+    {
+      "id": "adapter-claude-package-59d2c9f3",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на абзац Adapter/CanonicalSkill и pure compile из README. Заявленные дерево файлов, отсутствие записи на диск и роль guide соответствуют источнику. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "bd7f1360da435600e099a5a4a748a2ee34cc2da82afeaee92b54b20955f7e23b",
+      "presentationHash": "bf645c042f8d0ffc8848f1929d104643d70462d87620d0c025c10f225554dd25"
+    },
+    {
+      "id": "adapter-codex-package-6f89ec38",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на абзац о CanonicalSkill → .agents/skills и отдельности AGENTS.md. Граница навыков и пользовательских инструкций соответствует README. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "fb95643bddf44ba208db185564ddf7916332165702023df9bab3485f57c4bcb5",
+      "presentationHash": "3fd3fd204a26c76a373b6ef8c5a41da74c0ed55e8069b644242687a7873acc83"
+    },
+    {
+      "id": "adapter-copilot-package-21c8a5a9",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на описание instruction-file output. В boundary явно добавьте отсутствие прежнего выполнения scripts/активации навыков: README описывает потери функциональности, а не только метаданных. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "3a7c8b04ff4b35e4a86f7a0fe987bf0a0066b137b64410337d776ebb0dc3fe53",
+      "presentationHash": "738866b8605e37dc0323012bbecdc8dfe656cbf4367dc96569cfbd015d522ef3"
+    },
+    {
+      "id": "adapter-cursor-package-e0441575",
+      "verdict": "rejected",
+      "reason": "Цитата description: Human-centered product development orchestrator относится к примерному навыку, а не адаптеру. Замените её описанием .mdc project rules и transforming frontmatter; укажите в boundary, что scripts/assets не переносятся. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "1b062324aff08669eba8dcaf50db58b9f6a2e8164fc0ecb875a40c4c5c798319",
+      "presentationHash": "e7508378937ccf3f2b52022f42862a9ba70cf6eb96178337508b9e2704e7359f"
+    },
+    {
+      "id": "adapter-gemini-package-d11ff56d",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на описание одного GEMINI.md и loss/merge. Уточните, что compile возвращает представление, а объединение с существующим файлом выполняет operations layer, как прямо сказано в README. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "297da0df3a2c00ce21caa7b8a71b1c05d2aba91f644e53a16f9d6c73a514368f",
+      "presentationHash": "38a0b4f3ca0406c645182cce4c2cdab0b4d1a32cf0a9b1812cc52e617ddc1c99"
+    },
+    {
+      "id": "adapter-hermes-package-65c3101b",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на Adapter/CanonicalSkill → .hermes/skills. Сценарий корректен; полезная граница из README: относительный путь, а выбор home/project делает harness. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "03f3cfc0d20e5c0a044f72f17cf5b79a77079b2b63c79743eb0d2b96d77cb8db",
+      "presentationHash": "7556c619bed3ffeeeb2bacc92176b6e818c0bd5a47467f44b3c8f005c84270ce"
+    },
+    {
+      "id": "adapter-openclaude-package-2a76a83d",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на первый содержательный абзац OpenClaude platform adapter. Сценарий, отделение от runtime и dz init поддержаны README. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "5725bd55c292f4169f73bebce55eb5bb897c6a8f871ba2c7b2ac0695bc705aba",
+      "presentationHash": "9bbb16f64c0e08a6c846ca0493caffaee2b5a6f8747de9315dff158c7c4fbdde"
+    },
+    {
+      "id": "adapter-opencode-package-64a662ea",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на Adapter/CanonicalSkill → .opencode/skills и pure compile. Сценарий не заявляет запуск модели и соответствует README. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "9b5d254f0cd81b166607bca6d873d4689c97cfc9bed80c578b0d692e2739241f",
+      "presentationHash": "589bee2afebe2300a490afaf20d55ad717fb3d28656ff4d5b62c7221ff8083e6"
+    },
+    {
+      "id": "adapter-windsurf-package-9b14b40b",
+      "verdict": "rejected",
+      "reason": "Цитата description: Human-centered product development orchestrator — пример другого навыка. Замените её описанием workspace rules/.md и transforming frontmatter; укажите отсутствие переноса scripts/assets. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "68f2b3b0ec5a58d9b7a6f0cfcce059df0d68ee183b71db2fcf334536218924bf",
+      "presentationHash": "47fbe5bb709465e8a75ce3e0b59d6115169de5bd43846d4624c6ddc35b9d4b0a"
+    },
+    {
+      "id": "cloudru-hub-package-dd5eac9a",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на thin JS launcher/cloudru-vm MCP engine и сведения о runtime resolution. В boundary или prerequisites добавьте требование проверенного engine: Linux/x64 optional package либо trusted binary того же SHA-256 на иной платформе. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "c379de52492da7718d1d6010aedf9ed465b56b1533e5c729c8cbefa2ed977763",
+      "presentationHash": "133ad5f98656dda57745d51c90d3dd5fa7099d1abe6598f49ea04e119e77849a"
+    },
+    {
+      "id": "cloudru-vm-linux-x64-package-ee2f1f71",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на Linux/x64 engine и exact optional dependency/SHA-256 абзацы. Служебная роль, отсутствие самостоятельных навыков и проверка пары версий соответствуют README. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "c9ca95e9e20fdc70f5c20229980a777ffd2cd683d4b9f5eaa5a4e84518668fb4",
+      "presentationHash": "c57990437b65fa435dfb28f35c4829250baaba3f4a0c17892f363d681fea6003"
+    },
+    {
+      "id": "core-package-af0c08d6",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на таблицу skill.schema/hooks.schema/adapter либо содержательный platform-neutral contracts абзац. SDK-сценарий и отсутствие выдуманных skillIds корректны. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "1e192f6d28e2028da6b953ce31b0ebff1eb08f78ba47db75d7161cc07545deb5",
+      "presentationHash": "e3f5030a39cbd2406bbf39d4aa15699dc5d5ec6d9918e2dddf4a2e6466e4ba8c"
+    },
+    {
+      "id": "harness-cli-package-ec6546b1",
+      "verdict": "rejected",
+      "reason": "Текущая цитата описывает qe-rounds и не обосновывает установку/проверку навыков. Выберите главный абзац dz CLI и релевантную команду init/verify из README; остальные claims соответствуют источнику. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "d18662bc2c60aca2389a550ccb4b450fe4c7c948264026ac3929f45c54fe7cb0",
+      "presentationHash": "228f7035247ddccf8b125b9c6b54b5bd189df60c150edc4df6f960a6b57ab921"
+    },
+    {
+      "id": "harness-core-package-19287df7",
+      "verdict": "rejected",
+      "reason": "Текущая цитата относится к packArtifact/publish, а сценарий — к загрузке/применению и init/sync/verify/doctor. Замените её фрагментами таблицы exports для skills, apply и operations; библиотечная граница корректна. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "ea522124ac9b2eac53701d09f96326bc2eaef46a07d930e2cc935b82962ed933",
+      "presentationHash": "2585954d1b05457b0448a6667a24eb1104ba0e970cfe5b301b95909ed2720430"
+    },
+    {
+      "id": "harness-presets-package-641c226b",
+      "verdict": "rejected",
+      "reason": "Версионная строка не подтверждает назначение пресетов. Цитируйте Named skill-set presets и A preset selects skill ids; явно поясните, что npm-провайдеры не устанавливаются автоматически и для optional presets нужны доступные исходники/provider. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "b9e4d814eba661ff2497d18aec347edfdd6a77ac5cfd1ffd06aafc4853944687",
+      "presentationHash": "8dc251f5c59c0bfb6363e6171346ea132600c05f6e0e4158dce7cf392f6d4f42"
+    },
+    {
+      "id": "keysarium-core-package-0fe8f819",
+      "verdict": "rejected",
+      "reason": "Кроме нерелевантной Site/Source-цитаты, формулировка программный каркас/механизмы вводит в заблуждение: README говорит markdown-based protocols, package files содержит Markdown и каталоги протоколов. Назовите набором протоколов/правил для агента, не исполняемым SDK; cite domain-agnostic protocols и markdown-based. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "c072c0e53109a953ae1b8d05da2525304e275829ac10fb7f5cba0fef7233a2af",
+      "presentationHash": "1610b0770077c32881c3dc3e3c34454d31c2791cc61a4e13fda6979d859de478"
+    },
+    {
+      "id": "mcp-server-tools-package-b038d517",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на таблицу skill_list/get/compile/harness_verify и stdio-конфигурацию. Наличие MCP-клиента и настройки явно обозначено, сценарий поддержан источником. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "341d069a7fad10ce0830554d9c8dd059721123aeeca0cd266261c6ffcf7009e2",
+      "presentationHash": "941093643e09b2845b90c0d28247ad58763b89796ce68a413a905989a00d66f8"
+    },
+    {
+      "id": "memory-package-0318b63f",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на harness memory layer records skill outcomes/ranks/imports и нужные строки backend/reflexion/bridge. Ограничение применения опыта и optional dependencies корректно. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "5fceca2e2e0d372d6818504bc8dfda3add0e0dc82e3a29bd846e0773a7ce7a43",
+      "presentationHash": "4817119e6c7e068a730722cffe4ab74c5b09b976a0c56bd5938afe44108ab23e"
+    },
+    {
+      "id": "scout-package-833bff4f",
+      "verdict": "rejected",
+      "reason": "Замените цитату Site/Source на описание поиска/форматов/оценки и GitHub source row. В nextAction/prerequisites уточните способ запуска через harness-cli dz scout либо программный API, сетевой доступ и token для GitHub, вместо впечатления автономного навыка. Литеральность текущей цитаты и SHA-256 объявленных исходных файлов проверены; проблема семантическая, не отсутствие файлов.",
+      "recordHash": "abd7b0eced1d48f5f6367b1f15201d5a04ecc784d0ec0637cdbc49d16795c599",
+      "presentationHash": "63d814e123b7b0f96186dbb3b3ef81f96596309f29a0c04d17ef0d1b11910431"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "question": "q06",
+  "kind": "single diagnostic retry; not independent evaluation",
+  "httpStatus": 200,
+  "finishReason": "length",
+  "maxTokens": 400,
+  "completionTokens": 400,
+  "reasoningTokens": 396,
+  "cost": 0.000353727,
+  "observation": "JSON truncated before decision value",
+  "change": "Increase total output budget to 1200 without changing selection prompt or labels; preserve original reports."
+}

@@ -1,0 +1,123 @@
+{
+  "schema": "dz-scenario-coverage/1",
+  "questionFile": "evaluation-questions-v2.json",
+  "questionSha256": "82534c8021274956130793b019d573d7e88df4c66e0b705aff9c8aa39392ffc5",
+  "catalogParts": [
+    "part-a.json",
+    "part-b.json",
+    "part-c.json"
+  ],
+  "approvedScenarioCount": 32,
+  "method": "Оценка конкретных сценариев, не общего пакета. acceptableScenarioSets перечисляет полные допустимые наборы ID (порядок несущественен); лишние и недостающие ID не принимаются. Для full relevantScenarioIds — объединение допустимых наборов. Для partial это только полезные части, и полного допустимого набора нет. Для partial консервативная политика принимает clarify или no-match как scoped abstention, отдельно считая useful clarify; это не меняет замороженный expectedDecision. Более двух необходимых сценариев означает partial из-за лимита host=2. Одобрение карточек подтверждает документацию снимка, не фактическое исполнение. Положительные сценарии оцениваются по явной области и результату; конкретные методические детали могут подтверждаться цитируемым исходником.",
+  "cases": [
+    {
+      "id": "v2-q01",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "coverage": "clarify",
+      "reason": "Не заданы объект стратегии и ожидаемый результат."
+    },
+    {
+      "id": "v2-q02",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "coverage": "clarify",
+      "reason": "История может относиться к коду, переписке или событиям; выбирать Git по слову «история» преждевременно."
+    },
+    {
+      "id": "v2-q03",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "coverage": "clarify",
+      "reason": "Не указаны объект запуска и критерии качества; нельзя выбрать конкретную проверку."
+    },
+    {
+      "id": "v2-q04",
+      "relevantScenarioIds": [
+        "news-monitor-delta"
+      ],
+      "acceptableScenarioSets": [],
+      "coverage": "partial",
+      "reason": "Дельта событий с источниками покрыта. Развёрнутый постоянный бот, расписание и доставка сообщений не покрыты; исходник явно отделяет deployed scraping bot. Общая карточка разработки не подтверждает этот конкретный результат."
+    },
+    {
+      "id": "v2-q05",
+      "relevantScenarioIds": [
+        "presentation-sales",
+        "presentation-speaker"
+      ],
+      "acceptableScenarioSets": [],
+      "coverage": "partial",
+      "reason": "Содержание слайдов и речь покрыты; ни одна карточка не создаёт аудиозапись MP3. Объединение двух карточек презентации не закрывает этот пробел."
+    },
+    {
+      "id": "v2-q06",
+      "relevantScenarioIds": [
+        "tutorial-create"
+      ],
+      "acceptableScenarioSets": [],
+      "coverage": "partial",
+      "reason": "Курс по библиотеке покрыт, передача индивидуальных оценок в Moodle не документирована карточками. Проверка курса не заменяет LMS-интеграцию."
+    },
+    {
+      "id": "v2-q07",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "coverage": "no-match",
+      "reason": "Бронирование ресторана отсутствует в сценариях выбранных пакетов."
+    },
+    {
+      "id": "v2-q08",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "coverage": "no-match",
+      "reason": "Распознавание музыки и нотная транскрипция отсутствуют."
+    },
+    {
+      "id": "v2-q09",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "coverage": "no-match",
+      "reason": "Интерпретация рентгеновских снимков отсутствует; общая исследовательская инструкция не устанавливает такой сценарий."
+    },
+    {
+      "id": "v2-q10",
+      "relevantScenarioIds": [
+        "devops-github-actions"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "devops-github-actions"
+        ]
+      ],
+      "coverage": "full",
+      "reason": "Ревью triggers, секретов, разрешений и закрепления внешних действий относится к конфигурации workflow."
+    },
+    {
+      "id": "v2-q11",
+      "relevantScenarioIds": [
+        "qe-coverage-gaps"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "qe-coverage-gaps"
+        ]
+      ],
+      "coverage": "full",
+      "reason": "Риски непокрытых веток, критичность платежей и частота изменений соответствуют приоритизации покрытия."
+    },
+    {
+      "id": "v2-q12",
+      "relevantScenarioIds": [
+        "pm-sprint-plan"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "pm-sprint-plan"
+        ]
+      ],
+      "coverage": "full",
+      "reason": "Приоритизированный бэклог, отпуска, ёмкость, зависимости и риски соответствуют планированию спринта."
+    }
+  ]
+}

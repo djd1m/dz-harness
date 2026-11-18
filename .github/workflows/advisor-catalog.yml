@@ -1,0 +1,46 @@
+name: Advisor catalog
+
+on:
+  pull_request:
+    paths:
+      - 'packages/**'
+      - 'integrations/skill-advisor-catalog/**'
+      - 'integrations/hybrid-retrieval/**'
+      - 'docs/proposals/skill-advisor-scenarios/**'
+      - '.github/workflows/advisor-catalog.yml'
+  push:
+    paths:
+      - 'packages/**'
+      - 'integrations/skill-advisor-catalog/**'
+      - 'integrations/hybrid-retrieval/**'
+      - 'docs/proposals/skill-advisor-scenarios/**'
+      - '.github/workflows/advisor-catalog.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source-and-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install isolated source-registry dependencies
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/advisor-deps" --no-save --ignore-scripts yaml@2.9.1 zod@4.6.5
+          ln -s "$RUNNER_TEMP/advisor-deps/node_modules" node_modules
+          mkdir -p node_modules/@dzhechkov
+          ln -s "$GITHUB_WORKSPACE/packages/core" node_modules/@dzhechkov/core
+      - name: Install hybrid retrieval dependencies
+        run: npm ci --prefix integrations/hybrid-retrieval
+      - name: Offline contract and retrieval tests
+        run: |
+          node --test integrations/skill-advisor-catalog/*.test.mjs
+          npm test --prefix integrations/hybrid-retrieval
+      - name: Reject source drift and incomplete approvals
+        run: node integrations/skill-advisor-catalog/refresh-catalog.mjs --check

@@ -1,0 +1,2993 @@
+{
+  "schema": 1,
+  "reviews": [
+    {
+      "id": "adapter-agents-md-package-7c454bd5",
+      "recordHash": "38f6a6b925d6a9cc0329fb18552f268118c9ab57a8b9432b694175e29bb70359",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Манифест и README подтверждают сведение в root AGENTS.md; boundary теперь называет потери frontmatter, границ и assets. Запросы адресованы разработчику адаптера, не обещают готовый предметный навык. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "470e4e2d9efde6d29dbfea35fa31f68d3f258f3c6eb7f16e51afcb432bde9565"
+    },
+    {
+      "id": "adapter-claude-package-59d2c9f3",
+      "recordHash": "3760a2f651c4e6ae950c49853efead695122f52cec9167bf15488e8a05e174a5",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Манифест прямо подтверждает .claude/skills; README описывает Adapter/CanonicalSkill и pure compile. Граница размещения файлов вызывающим кодом и guide-роль корректны. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "0db5079f3089fe68c90423a26b6c125620f768257dbe831f9518c1716e2c2385"
+    },
+    {
+      "id": "adapter-codex-package-6f89ec38",
+      "recordHash": "c6be37eb1c24f8e89ade6b7b3383653acd01e2b40b3f5e5112e529af11975527",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Манифест подтверждает .agents/skills; README явно отделяет AGENTS.md от навыков. Следующий шаг compile/dz init и библиотечная роль соответствуют источнику. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "b5befcab10e702fd458e1d30cdb5c129ecb6c0cd481d920a4e00d39c70a723df"
+    },
+    {
+      "id": "adapter-copilot-package-21c8a5a9",
+      "recordHash": "82ec5670a89b4a942da8324438eb0199ede7833633ce06ffbb9fe95baeb24ec6",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Манифест и README подтверждают instructions-emitter; boundary теперь явно предупреждает о потере активации навыков и выполнения scripts. Полного переноса runtime не обещает. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "99988fff6d715aba2feb69d207825fa813e962d8e0bb0aa1bca7e099b03092e0"
+    },
+    {
+      "id": "adapter-cursor-package-e0441575",
+      "recordHash": "1732eff684d0d8c5b332779d1fcdabb07e894980b6faca005dcfba93e43d3ec8",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Заменена нерелевантная цитата на package-description и project-rules абзац. .mdc/frontmatter, отсутствие scripts/assets и небайтная эквивалентность подтверждены README. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "53b44c45b4df6fc16ff07be48918ac01660aa217409c9694725ef25de1299c62"
+    },
+    {
+      "id": "adapter-gemini-package-d11ff56d",
+      "recordHash": "7a8c7b51eefed34c0be171be4f0f1d39e5fa71e11e04bddc85c41df4c9aa2ce4",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Источники подтверждают root GEMINI.md; boundary верно относит merge существующего файла к operations layer и обозначает потерю scripts/references. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "ad6b980b5c1abf32b39da02352b8ae045a125ffb1e52fabd1fdf579ae1ca1041"
+    },
+    {
+      "id": "adapter-hermes-package-65c3101b",
+      "recordHash": "03ba2a68926d93a829c2c38656b6181bf5b5c641661c8f885df89a4694d147f3",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Манифест подтверждает .hermes/skills; README подтверждает относительный emit и выбор home/project харнессом. Это теперь явно отражено в boundary. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "2b46eb5410bfcefea1f90db94e3ffac07434df5f218ceb55cb5ebd839d352f67"
+    },
+    {
+      "id": "adapter-openclaude-package-2a76a83d",
+      "recordHash": "efa625c5df58f7dc3e09645c4522a023bcd98897c02c42ff03f0744d5a42766a",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Capability-цитаты подтверждают OpenClaude skill-tree adapter, README показывает dz init. Presentation не путает адаптер с агентным runtime. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "e1d225d2573ae11eafd71099e608eadcbb3d971f4e3682ed3be84947177e06d7"
+    },
+    {
+      "id": "adapter-opencode-package-64a662ea",
+      "recordHash": "358b5da424ea795da867e741e4865acdc52c7e19d46bab1273989e243040f679",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Манифест и README подтверждают .opencode/skills; pure compile в источнике соответствует отсутствию обещания запуска модели или агента. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "0fd7c98365c3727716fdee09e02bacd1ce960ace5283507cd3b4ccdbc07f8478"
+    },
+    {
+      "id": "adapter-windsurf-package-9b14b40b",
+      "recordHash": "5c4792bf45c5144a8734b386d5d46d81725f82fbb53c94ae1152265fd8a4cdf1",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Package-description и workspace-rules абзац заменяют пример чужого навыка; loss of scripts/assets и преобразование frontmatter отражены явно и подтверждены README. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "35ffb46aee530f439f4f68a59166cb88095c0530459ef72c547ba486f849cb4b"
+    },
+    {
+      "id": "cloudru-hub-package-dd5eac9a",
+      "recordHash": "b03a8541352657db30d82e719d75677b745d55ac4957b3e6b308c98abfa2acb2",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Манифест и MCP-engine абзац подтверждают launcher/integration. Boundary теперь требует проверенный платформенный engine и облачные доступы, не выдаёт наличие пакета за разрешение платных действий. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "0e116974926aac05766c8ab61b757bd1daa6591633f49fa17626a735f01771f1"
+    },
+    {
+      "id": "cloudru-vm-linux-x64-package-ee2f1f71",
+      "recordHash": "ee4fa20c3653b0bcafa73cbb1d9333f4993ca21892b2cc74262fd06699afb662",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Источники подтверждают платформенный Linux/x64 engine, точную optional dependency hub и проверку SHA-256. Presentation корректно описывает служебную зависимость без самостоятельных skill IDs. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "c54f859b4b01eeda31240537ffd60cb6f021120fdd7225f5a19ccb84e6447590"
+    },
+    {
+      "id": "core-package-af0c08d6",
+      "recordHash": "3bd7cec94e9306600c30b693beb9b582801ef634a79850ef96903030c07a637d",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Capability-bearing package-description и README contracts/table подтверждают схемы и Adapter. Разработческий SDK не выдан за предметный навык или готового агента. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "7737c49e283b26ec4c87bdafb0fbd0463f276c9a1faaf055bf2ad2b7213c914e"
+    },
+    {
+      "id": "design-thinking-design-thinking-cbb2e523",
+      "verdict": "approved",
+      "reason": "Оркестратор выполняет этапы discovery, прототипирования, usability-тестирования и пилотной проверки; результат не ограничен планом. Границы исполнения сохранены в презентации.",
+      "recordHash": "371d9340dc698ba7e23ac79b227420e050c3fd2afb62a74551f688d95cefc310",
+      "presentationHash": "f9f915d81640d8f5d4df95774e8783e8edf389e93c7f2d87ae63729a9f98d06a",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "design-thinking-explore-458dd0ae",
+      "recordHash": "cefff281fbf5fda9b272235a3db3f20206a4e4480d384880e51625f93ada68a8",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: уточнение запроса до предложения решения. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "aba8ac4bd19c27b2eb5d669c90c60fa3524eff9fd6c6f9d4f874ba1b2ecd97cf"
+    },
+    {
+      "id": "design-thinking-frontend-design-700c552c",
+      "recordHash": "1668dd9dbce2c70a0782a5e70c3264694fa8447f855b8b71208ce5b1b9965117",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/design-thinking/templates/.claude/skills/frontend-design/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "3576f82cbcede9be6022f98e47e5d4a80c5079fc84c3e67268432d151723e353"
+    },
+    {
+      "id": "design-thinking-goap-research-ed25519-f9da7286",
+      "recordHash": "a4787d2b9bdf7c833667102022e08e5b5e0978db81c2a8c5f77a125d73923744",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/design-thinking/templates/.claude/skills/goap-research-ed25519/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "66127869d628b11dc0a4d711441673a9e03c709008aa0b9c2bc7f60d2327816f"
+    },
+    {
+      "id": "design-thinking-problem-solver-enhanced-92b3e754",
+      "recordHash": "1f5198e254fb1ab978c8ca55e6811eaf55852b3ea7e6011ca93ef050a31353bc",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/design-thinking/templates/.claude/skills/problem-solver-enhanced/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "e6b32f48613df8fba12dcf4c04cf2267e7073a783330890abce405a573e948af"
+    },
+    {
+      "id": "design-thinking-reflection-loop-22eac04f",
+      "recordHash": "6743381d8aff36358d0827065aa56081f449a4952199ecd193b5b438e7e66170",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: critique-revise с максимумом трёх раундов и запретом косметических итераций. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "c8914e7f3225135733864eee1db54ccee2c156cc1c364c72eab430924d7999cc"
+    },
+    {
+      "id": "design-thinking-six-thinking-hats-c7a86258",
+      "recordHash": "ed0325c7c8333ffb1f67f68306798bba1a9315a7df33e27631985e3272cb8f25",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/design-thinking/templates/.claude/skills/six-thinking-hats/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "0474cf36127f4eb8c5885f85fb084cfc29f36a6bc7586552c4656a0f47890669"
+    },
+    {
+      "id": "design-thinking-structured-reasoning-5b27475d",
+      "recordHash": "0f5addcbeebb9cbf2fa623fa6df219c1e9c7b730f4aaebc2924f9d2f45ae1ce1",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: выбор стратегии рассуждения и ограничение циклов. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "6cb08642cf469490d5bd4ebfb3bc1970b586e93a7dc2ceaa8294cfd7a7fb9ee0"
+    },
+    {
+      "id": "evidence-wiki-concept-wiki-generator-5d81f0bc",
+      "recordHash": "2f280d80cdaec1a671e6e31a7c2fe95dd942485e7dfc077d932a9afc87c2ec3e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет выделить концепции из существующих материалов и подготовить страницы, индекс и граф вики. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "a1f24a8757bc7c9349d9fbb9edb43b3b881dc2b1ff37b2b4c2f2adb3e4ca5d03"
+    },
+    {
+      "id": "harness-cli-package-ec6546b1",
+      "recordHash": "8e52679fcae01c3f8510a2e51dbff38e0aab0de9d0ae41d54433178f67194443",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Новая package-description цитата прямо поддерживает CLI установки под разные платформы; README quickstart и команды подтверждают следующие шаги и проверки. Дополнительная qe-rounds цитата узкая, но не является единственным основанием claim. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "59b243944e11feb2d4ee6c38d1ed1e871ced23ea636210b97847d61160b4c3af"
+    },
+    {
+      "id": "harness-core-package-19287df7",
+      "recordHash": "4c34322e2796b0149f58bb203718341a3e638f20f873c478a3932466a5a32241",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Новая package-description цитата прямо подтверждает skill loading/additive apply/init/sync/verify/doctor; таблица README проверена. Дополнительный packArtifact-фрагмент не заменяет теперь релевантное основание. Библиотека отделена от CLI. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "72c2a697fdf4197c2dae0173345f8fd5da6de9a45054358966108d03c92d7dc4"
+    },
+    {
+      "id": "harness-presets-package-641c226b",
+      "recordHash": "e393fb4147485dba8725792e48c90f84346c4f576298c4cc3a47369a446cbfd8",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Capability-цитаты подтверждают named presets. Boundary и nextAction теперь соответствуют README: IDs выбираются, optional providers устанавливаются отдельно, исходная команда повторяется. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "534a748d79b41993f725d15743292668b8f052d5ec799b6f77b109297c52773c"
+    },
+    {
+      "id": "health-advisor-analyst-manual-full-003722b5",
+      "recordHash": "f0dcea669133833930bd0e261b649199523c9ee657448963ec9f0f2daa917be1",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: manual-процесс уточнения, исследования и решения с подтверждениями. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "1166fc38680e49f388d4fa9cb504a4eb078592d124700469ba697d9d02c3f9d1"
+    },
+    {
+      "id": "health-advisor-explore-edd028b5",
+      "recordHash": "94c096dd6d0dfb1965eab40ca9a7cbfe2251831816dbd6d99820cfc333cd6c7b",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: прояснение потребности до решения. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "e117f8dad0eea961d6ef3c6848113729df4deeb239265ca15002178fc257a882"
+    },
+    {
+      "id": "health-advisor-goap-research-ed25519-4e63a891",
+      "recordHash": "6796143d6134e455191d312496e5d796fddd0448349470c89a6ea792428580cf",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/base/skills/base/goap-research-ed25519/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "c5d69a0b10c88a1fa982c912322704ce1177a86d45d289af98498faefb1deaa3"
+    },
+    {
+      "id": "health-advisor-problem-solver-enhanced-9ae9187f",
+      "recordHash": "6901a354e42f7736b1def10d4ecdf07740f7050dae6d938a01875a0289f1853e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/base/skills/base/problem-solver-enhanced/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "861a59b12a70efe53916068e4569c2047f738a0b1cd58cd994c582b09d6f594a"
+    },
+    {
+      "id": "health-advisor-health-advisor-case-state-e3b970c7",
+      "recordHash": "573aea6ed580d4b1e6f46aea6a4f2c76e17b50eae64e03ea99ea48cee9efda4d",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL.md требует session.readAnalyte в том же вызове и перечитывания каждого значения перед каждым расчётом; исправленные intent, summary и nextAction это отражают, а boundary сохраняет ограничение гарантии выводами движка.",
+      "report": "semantic-reviews-case-fixed.json",
+      "presentationHash": "4f74ef3c693929b83513690852a04519da81cc5cb6ef5a02eb94e330fb260959"
+    },
+    {
+      "id": "health-advisor-health-advisor-clinical-decision-support-afbe025d",
+      "recordHash": "89017bf5c546ba0226314db1472e0492bbb69d547f7b2349e46476695aa2b0af",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/clinical-decision-support/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "994b722dd35206348a2aec46a758e8d705ac6e82a3c508a61863e9f88afa1c51"
+    },
+    {
+      "id": "health-advisor-health-advisor-clinical-diagnostic-reasoning-e827637f",
+      "recordHash": "ddfa2b611cb599216406f4a11b87694fd5da497d3ce407133b676ce84c5798d4",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: анализ когнитивных ошибок и контекстного применения клинического алгоритма. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "6e4da642bd962def600c8fcb959e28b53765da875dd71279c818daa785b0da82"
+    },
+    {
+      "id": "health-advisor-health-advisor-clinical-nlp-extractor-b136ec34",
+      "recordHash": "be4e31790122a9e8efed8abdd33e0e403baddc99cd9d5ded0e076c209f5663f9",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/clinical-nlp-extractor/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "f9dd02706a5030f1d99bd8f5d374e7215523a5a3a70877b1c757df005c818c2e"
+    },
+    {
+      "id": "health-advisor-health-advisor-clinical-targets-3aac4dd7",
+      "recordHash": "c5f2bc9b63910842c012b0285544f962f1ea8aeb27a56504c218e0e852a47ffe",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/clinical-targets/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "44002d25babbd2bb2bf9ef3a6114ba36aa70c3f3c196709e748554174dd3f4cd"
+    },
+    {
+      "id": "health-advisor-health-advisor-clinicaltrials-database-98e17b98",
+      "recordHash": "dd039f93c9eef63c8d05d415e3023b2fdea17bf7b7a765274d085a48f0550c4e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/clinicaltrials-database/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "a0614be9152e55c0224023285553f2f0433a333ddc0afc196db8b2b4788e8b92"
+    },
+    {
+      "id": "health-advisor-health-advisor-clinpgx-dcae1778",
+      "recordHash": "3de9abfd73a21dd72283d3b1827fd4e43e8e1e4429b2119509ea7f3da7737644",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/clinpgx/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "f2be4d3563313a83590f7ed8b3313954c961bb3574e997a3848121226111f898"
+    },
+    {
+      "id": "health-advisor-health-advisor-critical-appraisal-6ab65cd2",
+      "recordHash": "133124d8c61d6ca61e1e84284eaa39e5e0f8876d173eb67e532c33cbc4f30d25",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/critical-appraisal/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "c0cfef4dd86cf1147391c6c583dbe546363388952a25fd67c74550db787c3f10"
+    },
+    {
+      "id": "health-advisor-health-advisor-deep-research-ff28f7ce",
+      "recordHash": "84ef106b3312b56b02360f626e31ef3e8b62263c0ac79fee92d18b4c38af92d4",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/deep-research/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "3eafdeab4fd934890424dfe5a8dcfa4181bbd4b65933ead09c3103a5ebea132d"
+    },
+    {
+      "id": "health-advisor-health-advisor-drug-interaction-checker-24312c8e",
+      "recordHash": "77b6b67f073b2f1b7bfafc519c9e391055de4f559c53247f65f2483c21983052",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/drug-interaction-checker/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "03498059c3313bbb9061c9f87af044887027953937b66f05f1502f85141e7e87"
+    },
+    {
+      "id": "health-advisor-health-advisor-emergency-card-0c8569ad",
+      "recordHash": "f15e8f8050a72502f06c6f6d31866906561035141bd25653a2928cbc869392be",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/emergency-card/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "ebad2bd413162f9bfbf910cd6ae8983e3b77d5dd26ad3f936475a8dccd0f824d"
+    },
+    {
+      "id": "health-advisor-health-advisor-fitness-analyzer-4e961943",
+      "recordHash": "6bde9456c168ecc80f8db9b53c6df3602cb2924ba6239a0ef50cc6a87f981497",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/fitness-analyzer/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "a08d8a6aacd227458701d5d8094a9c8791e5261cbf5bd30b104750852da250fb"
+    },
+    {
+      "id": "health-advisor-health-advisor-health-trend-analyzer-63d87884",
+      "recordHash": "55802418b3d22b2db9ad857fb17163ac80dedbe0babbdc1ce4e56fd824b2ce31",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/health-trend-analyzer/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "1db1ed5e28e7e7406caf689a709df582c7bf33f345bdd3396483aee607a07fd4"
+    },
+    {
+      "id": "health-advisor-intake-archive-e8001751",
+      "recordHash": "3b586ad25279ee439a6cd9b69e6feb37b175eabae6308e8af349a23b9c7ce09e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/intake-archive/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "e7394fcc5c1c8feb0460e8e160dc02e55452fb9b9cf037e4dbdaaac6b597ddbf"
+    },
+    {
+      "id": "health-advisor-health-advisor-lab-results-ed76ff8a",
+      "recordHash": "d279aa9d988c39408b326f72386295898cbf0fcf949daac0d37d31e9ee5ddfa4",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/lab-results/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "bde0afb105402508a9fa6fe50da932ec221e25cbb4e8909e620457a295c144ae"
+    },
+    {
+      "id": "health-advisor-health-advisor-medical-entity-extractor-0241f1cb",
+      "recordHash": "71079f09c7c639839f02957e607c91be84ffbb4eb350cccfcd8cedee4aefef34",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/medical-entity-extractor/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "268fcd82f7a04cd4f5069c08067be0b01a7ef0f9022c5802e74b9c83d672f978"
+    },
+    {
+      "id": "health-advisor-health-advisor-multi-search-engine-e861c484",
+      "recordHash": "b92ac0dc345e03486122c46fe7b8666a45e5dda98193302563036fca6bce891c",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/multi-search-engine/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "49f1ccbda2f449d83ff78b8d19b1155d6e4a55f3a2e06317c473475b8c29890a"
+    },
+    {
+      "id": "health-advisor-health-advisor-nutrition-analyzer-7f43ab23",
+      "recordHash": "660329210b69e833d5cff90ab153f47e919377b4d23a36f13239ce8a8d888a9f",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/nutrition-analyzer/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "5f996288957b76936d9af2ce4d31ae16207804c776eaad3fed9f5f832e40db7c"
+    },
+    {
+      "id": "health-advisor-health-advisor-patiently-ai-0828cc52",
+      "recordHash": "f4353567fca8d03e53a7dee9cbe76e3eb3e65f182597601f70274a2f8f097612",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/patiently-ai/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "4cabe8b2779f7b4d38beda95e7b66f39db73402826482a6bc6e47f4ca8033144"
+    },
+    {
+      "id": "health-advisor-health-advisor-preanalytical-guard-abd31b4d",
+      "recordHash": "efee2b5d6477d04e640ddb097ef296f8e85fe9b5ca080e38773730eb308d37fb",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/preanalytical-guard/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "9a0cce05dcc06286cd888d5600680aba739aac192264fab66f0a367acafa76e1"
+    },
+    {
+      "id": "health-advisor-health-advisor-pubmed-search-82aadf31",
+      "recordHash": "23c79cda692d306842ee173f8a93673ec47b4bfda4d17f1a5f791cc7eee7655d",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/pubmed-search/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "49f2b3f4610d211353da931e68f0481d13ce518a987fe813521765778d42aeb7"
+    },
+    {
+      "id": "health-advisor-health-advisor-rehabilitation-analyzer-463ba334",
+      "recordHash": "76b78321068ad4f4d710ee62896b87fda642f60d0f60c33533f5de071268854a",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/rehabilitation-analyzer/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "e337ff7b46729035406f6312c7cf84c2e7dba12cf3dc1669c72bea7ae822cd92"
+    },
+    {
+      "id": "health-advisor-health-advisor-sleep-analyzer-b0bdd545",
+      "recordHash": "24bbfffe06d61f6e28c1bb9b5ca88525bbfd2ef8fa83bff281289d78beb5566e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/sleep-analyzer/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "f84a71b59e80653fc1670773f73d068d2b0af9b4d6ac97fc224877c418dfff0f"
+    },
+    {
+      "id": "health-advisor-third-brain-9450fda0",
+      "recordHash": "3ee02d6f4b30575f85f9b83db0cba335d2d1068b2e88d39d086f2c73f918f15c",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/third-brain/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "33cb5570dfdabd19c423819a27ae62ec06cc9549fe85c65087d99a110b6746af"
+    },
+    {
+      "id": "health-advisor-health-advisor-tooluniverse-drug-drug-interaction-da0519c0",
+      "recordHash": "059d37388ad9764a8634d648095645f8e765d6244cc9459c161ff47c087fe7df",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/tooluniverse-drug-drug-interaction/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "ee87951dddb580dd4d458e73ed8c44acf69dad7aa6710d8824f27437321b0a75"
+    },
+    {
+      "id": "health-advisor-health-advisor-tooluniverse-drug-research-b29e357f",
+      "recordHash": "b2b58d31b7a6ec5994c7644e1f1fddde5430ddf30dce59f5283c012f0f0f3108",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/tooluniverse-drug-research/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "c516d3105c6a9ff1ec7634e95cfd6a4ce6c8d7381a54ccc035a1ca0ae118e0df"
+    },
+    {
+      "id": "health-advisor-health-advisor-weightloss-analyzer-54f288a8",
+      "recordHash": "eb5e189c681b83841ef4411427d0624930f8f165169d6c4e8c0b7064d8bd7391",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/health-advisor/skills/weightloss-analyzer/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "8df6963d11f11c7a098e141609cf3a07a51a69d4a2295dc743b60433d6bbf72e"
+    },
+    {
+      "id": "keysarium-core-package-0fe8f819",
+      "recordHash": "22450ba251b10cc270cbeda127de7a516fd4f6a057b247f61a887dbcb01c1f23",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Проверены README markdown-based protocols и package files. Summary, queries, boundary и nextAction теперь последовательно описывают читаемые агентами протоколы, а не исполняемый SDK. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "67d6be61e3f78832209877b0749cf53988235a1ddb5e00ae68727075be7c8fc5"
+    },
+    {
+      "id": "keysarium-casarium-f4097dec",
+      "recordHash": "5ffe4193cdf52bf73dccadedfac7f33f0e1af536ea930ed9f53621d1bbf0908c",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Проведёт по установленному семифазному процессу Keysarium с артефактами фаз и проверками пользователя. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "f0df69e6213d91cdd1dcaa4a5053e6594dd1da8d06d8a51a959c19c89c797339"
+    },
+    {
+      "id": "keysarium-ai-factory-mapper-b03fc0eb",
+      "recordHash": "99663a72af8ab679fdff37756afdb1ff615b5b2de32ab514d0c9baef17071690",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "839d3957aa096445250c5c6b086cdf5b9abd77fe705b5a059a22c4207b764df3"
+    },
+    {
+      "id": "keysarium-analyst-manual-full-cccdd912",
+      "recordHash": "3ea07c8012b2b45f4eb2116061559eb1fc1c91996b05a750d90b7df1977610bd",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "92ca28c568249bea25b39d33372d5e75aa51b5656108117da54f41e9f7cd6582"
+    },
+    {
+      "id": "keysarium-edu-site-generator-1f76ed3c",
+      "recordHash": "20edff2affff8f4327746959ddab0839ef09f4cecfd2ccbfdf624149c3be4e60",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "f2cceb81f7cd6cc704ad7631bbe21060353f9b6a9ba6206ba4d75cf7e06f855b"
+    },
+    {
+      "id": "keysarium-explore-c4387a99",
+      "recordHash": "f30b38e3769c8b0515fb608baf2e53ea78ce32a8a277f072660bf36871758bd8",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "34fa30364765e26a695ea73f6e1e087ddbd523e4e60c9746dc9489959e3ce802"
+    },
+    {
+      "id": "keysarium-feature-adr-cfdbc6ed",
+      "recordHash": "cf56e6b18c3bb9490a3b1a31e7204be73db986f19e33f8b9475a8df1e5e28670",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "dbaf68f7500dd8e0ca5944bb4cc5de45a6d9e6cf23370544bdfca4e89029867c"
+    },
+    {
+      "id": "keysarium-frontend-design-427ff31c",
+      "recordHash": "b8300025c0d3e5cf67f71ea7b00f550bc3f8d19c7623b9ebcf17a280cddc329b",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет выбрать визуальное направление и реализовать интерфейс в коде с вниманием к типографике и композиции. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "9dcc1a360cf51ed94fd2b50da98e340f00705526900b5dffc248ecd229ad9941"
+    },
+    {
+      "id": "keysarium-goap-research-ed25519-98a82255",
+      "recordHash": "10a02f7eeeafbb61be67c6e9eb31bfabb135f5abe3f23f7eb1338ed0965e135e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует GOAP-исследование с оценкой источников и опциональными Ed25519-подписями происхождения. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "4429cd22e6147e4658348c426d2a2b78c0b734759412305a4e0bd68856f9b1af"
+    },
+    {
+      "id": "keysarium-knowledge-extractor-9b316b7e",
+      "recordHash": "201e60ee358a0094eb030d78d8be853e671dc91df29d1819493b88beb18bab89",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "f9a85c768733ad8be8fd80c78cd400635954a832d297c5b448a0941db874f3bf"
+    },
+    {
+      "id": "keysarium-presentation-storyteller-0aa6fcc1",
+      "recordHash": "cc11beed4eb4df902012ebcb5563102d134cbc9447d9263891d3038707c360c9",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "0080176b56774946b09b52d3d6abbc812e1c3a3ee78f354bd7c65b203e8b2f95"
+    },
+    {
+      "id": "keysarium-problem-solver-enhanced-c149a152",
+      "recordHash": "1047de0cdc0a6388c19c40a8cee09735d946c54110d2fe82a31835ecd7de1644",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Соединит первые принципы, анализ причин, теорию игр и ТРИЗ для поиска решений сложной задачи. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "5bfbacc4629309640c13a53673013f127648f8b7d82da109572cc8cadd5d0f21"
+    },
+    {
+      "id": "keysarium-reverse-engineering-unicorn-d39786eb",
+      "recordHash": "87a78bc5985b3d025431db6a0fa694d4c1622880edb3e4d40def0ab0bccaf3f4",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует исследование компании, клиентов и рынка с планом запуска и кликабельным CJM-прототипом. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "572ac39459d34178bc2a7102e210515e44f64cd8b4272b3e8959328ab8844371"
+    },
+    {
+      "id": "keysarium-transcript-site-generator-14262829",
+      "recordHash": "4185542dd3abbd43fb21179547fdd35ec713ba854554fe7b4e161b1cfe974689",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "c2f831269b575bc54d25b31b323644cdb53aa24ebf1f1c78fdf9736b902fd558"
+    },
+    {
+      "id": "loop-designer-plugin-loop-plan-author-b31427c3",
+      "verdict": "approved",
+      "reason": "Создаёт, проверяет и рендерит plan в исполняемый script; для исполнения указан host или portable runner. Границы исполнения сохранены в презентации.",
+      "recordHash": "e988a1634cbf1f3cd0e00153c9e81bb0f418828dbeb86266231faae7f990ac79",
+      "presentationHash": "9d9a2d85ed11325edc1a98d13813870349c4218f6141d39672e7f81a9fcd9922",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "loop-designer-plugin-loop-plan-author-ea9841b8",
+      "verdict": "approved",
+      "reason": "Создаёт, проверяет и рендерит plan в исполняемый script; для исполнения указан host или portable runner. Границы исполнения сохранены в презентации.",
+      "recordHash": "40dd2ddbbc2c1939142dd24a4e9691b0f133dd36f893473c56a7d32dac7b541b",
+      "presentationHash": "92c8b358bf547d79e3e1c739a62de1e189730816351f76f3f7254bac18c1b6d2",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "mcp-server-tools-package-b038d517",
+      "recordHash": "86ba27863da833871da0b1501547f03792c17617480ab994a455d809d61560b2",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Package-description и README tools/config подтверждают stdio MCP и четыре заявленные операции. Требование клиента и настройки указано, универсальных внешних интеграций не обещано. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "c2896dbc45d3d778f6096ac9bb7f41ed6ca9f7d79f4ab5c23576d802289f9411"
+    },
+    {
+      "id": "memory-package-0318b63f",
+      "recordHash": "2634204723ef46a157d16f7731881c960d4d1bd0caaa5d246cfd00cad0999771",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "README capability-абзац и таблица backend/reflexion/bridge подтверждают запись outcomes, ранжирование и импорт. Boundary не обещает автоматическое применение опыта агентом и учитывает зависимости бэкендов. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "36c6475328cf27382016c2931a703711cb6b9f65b643874a51df931f89da5344"
+    },
+    {
+      "id": "p-replicator-brutal-honesty-review-33781c43",
+      "recordHash": "b535c2ed5c1483cc9f66be7b771a51facb449604e639da68c6d95ed10795b257",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL описывает структурированную прямую критику кода и тестов и исключает первый PR новичка и низкую психологическую безопасность.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "6585a583c455e1c76d7b3069f13546cff1a6959890ea62740d6828e83d8da7c6"
+    },
+    {
+      "id": "p-replicator-cc-toolkit-generator-enhanced-3392730b",
+      "recordHash": "5dd41e09e95255624009f2f305f5d7e25493c196766e67f9862dccb9110d8319",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "7d75d3eca0c2d09faed1b49976f769d60326e86645f0a9098c7b25d7c8a1d31c"
+    },
+    {
+      "id": "p-replicator-explore-ecc90278",
+      "recordHash": "75ea13fbaea94495f73160159ab479c5fc1fe4041ecd962be3c9f499fcb3882a",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "44d64398d0d4aa31473044f9ea15f7bc6f021110301d269a5bd70b7b247ba48b"
+    },
+    {
+      "id": "p-replicator-goap-research-ed25519-c1cf3e67",
+      "recordHash": "b1bbe2b70627d1b631e693a2017bfacf52dd0052d69a6c4ccd7bfb3cba775177",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует GOAP-исследование с оценкой источников и опциональными Ed25519-подписями происхождения. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "6985a71957707ae20a49d67eac5b247b76e9133a1369e920ef85138415f9fd52"
+    },
+    {
+      "id": "p-replicator-knowledge-extractor-35fb9d25",
+      "recordHash": "8165fbf4e525a83225169e16c28feb9e8494b2ae648d6dd927a921c159d335cc",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "e3376de9a4ff4bae8395a0ee21e57d69ad5766e3ea19684db56f84f06a752c12"
+    },
+    {
+      "id": "p-replicator-pipeline-forge-9ffd8557",
+      "recordHash": "0207ea2c9923c88bae215f47f8c73baa5032044bcfcf785f5be4207ae46d3e08",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "f47182e7545ece13807a8d07c4e15683ffa555b8bc8c71ac16d9e5256969f82d"
+    },
+    {
+      "id": "p-replicator-problem-solver-enhanced-614a56db",
+      "recordHash": "755b70006a48c736fe8835bbc0913258b6f27825492db3c2e71b6f871fcae708",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Соединит первые принципы, анализ причин, теорию игр и ТРИЗ для поиска решений сложной задачи. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "283ec1b4c57bf0098ebb056de1b373b2e0b6ac29cc8e0f88833e46ee74c24f65"
+    },
+    {
+      "id": "p-replicator-requirements-validator-618accfd",
+      "recordHash": "d4bedf80fb5ccb120ca3d1b59d67140b2c7702d8615b2438bf64754eb9cc8d06",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "d483a2e9ea3d6ac796e93b4d0395f99441543332bda1b6ef383ebf94b54fcf5f"
+    },
+    {
+      "id": "p-replicator-reverse-engineering-unicorn-130e0f22",
+      "recordHash": "9b0f25ed19aed8e9b803f371caf62106eb2da5bea2eef0731fbb7178c39e8396",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует исследование компании, клиентов и рынка с планом запуска и кликабельным CJM-прототипом. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "05efa12103bd804879bf69b04f9ba0d89609447e5da0b7fe3fb98a8fc079a9f7"
+    },
+    {
+      "id": "p-replicator-sparc-prd-mini-1c38d20c",
+      "recordHash": "0fd46b3af00e0a8bf5be401bb88a9b77f201a8c1ffd13cff407dfff27f2632a8",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "867d21acc5dcb4648548b9b9e097cb9302f273b8dd893c7253679216531911e3"
+    },
+    {
+      "id": "scout-package-833bff4f",
+      "recordHash": "08ab1b25e622e429c5d2d48b1612afc11095391fdbca7e01a5811f5c27c3190d",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Package-description и README подтверждают GitHub discovery, форматы и релевантность. NextAction теперь указывает dz scout/API, сеть и GitHub token; boundary отделяет найденный репозиторий от безопасной готовой установки. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
+      "report": "semantic-reviews-support-revised.json",
+      "presentationHash": "77e83c870d59f78464f1df0b456a4df58032afdd7b9dd084e852811f8fffb533"
+    },
+    {
+      "id": "skills-12factor-12factor-admin-processes-b5f0fc39",
+      "recordHash": "397077756ac47c6ca7b2e50f245c719244366e2bba674f430b5b68c4d46923f2",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: одноразовая admin-задача в коде, конфигурации и изоляции конкретного релиза. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "bceb3114765e825e71ccb152144e53f2879804a4759c8a5cffbc962e96474d97"
+    },
+    {
+      "id": "skills-12factor-12factor-backing-services-as-resources-b97b44f3",
+      "recordHash": "9f8b9ce410a22931d4e796e2467d7d3b17f45842c25a9bc3765267c262a6cdbf",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: backing services как заменяемые ресурсы через конфигурационный locator. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "c22435b397c47d414c371ca336b88063ca2890b940524ef191971aed9ae828e5"
+    },
+    {
+      "id": "skills-12factor-12factor-build-release-run-separation-799850b6",
+      "recordHash": "c0cfbd595659ef1b26a142c2e7636b3aaf00bf23a190c9e93cd50f769650509f",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: последовательное build/release/run и immutable release ID. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "1d99aa8acbb4cf32a73ab4a662ddfe23a855adb30c02ed21e98a80b5b9638ab6"
+    },
+    {
+      "id": "skills-12factor-12factor-codebase-repo-mapping-eefbabe5",
+      "recordHash": "391d981560d25e1e9479811cb705490980df1fc41f3beb263aeb9ab7760c5f53",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: соответствие codebase/app/deploy. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "2403bcbafabc530a7e52b8fd42f75f4c71fef4c8aef2cc375ad0fe84445e4b9d"
+    },
+    {
+      "id": "skills-12factor-12factor-concurrency-process-model-e880e58a",
+      "recordHash": "5167e5174a4b2efb2a830fc6342e1cdd6e6ae9797a9853e6eb0155e027454716",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: масштабирование process types и внешний жизненный цикл. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "28db32d7d9e693a59bd06fc21853769c55f75bf79a4f804d8c3e7b5ad814c787"
+    },
+    {
+      "id": "skills-12factor-12factor-config-in-environment-a78562dc",
+      "recordHash": "8a596de54d2a409319aa2ab9feade5bfdaccff1cb90fd4da0a9af36692b69699",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: переменные окружения вместо deploy-констант и секретов в исходниках. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "ed85c9d263b463146f759dfbb7c86ee52376b6e159148dcdad98e79e3cef02c6"
+    },
+    {
+      "id": "skills-12factor-12factor-dev-prod-parity-6f779997",
+      "recordHash": "acaae06ae3fe30583f8c95358a0fdf3b6809b9800c505ae8253a31ff194db85e",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: time/personnel/tools разрывы dev/prod. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "7fbe2c26c05a3b96cd699e29aa138614d62b406dd2f73c1c9875736e1230196d"
+    },
+    {
+      "id": "skills-12factor-12factor-disposability-fast-startup-3132a574",
+      "recordHash": "5b835766510060f539421ee3a22bd245ac8ff5a90ff7fa08f82de542e7198d77",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: быстрый старт, SIGTERM drain и внезапная смерть процесса. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "562470ee7f28916de028c9caec7b339c40c14655743d06b90bbd42b4fe70b652"
+    },
+    {
+      "id": "skills-12factor-12factor-explicit-dependencies-907a04b4",
+      "recordHash": "5e146d5711492431043b4a6b5dc7a83acfb2fa7be75ae5bf7ea7bd1793584a57",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: полный манифест зависимостей вместе с изоляцией. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "b53ac3679bf56823b55a9ea7f223e78cae3538ea13ba2ad2c4da993b6d866321"
+    },
+    {
+      "id": "skills-12factor-12factor-logs-as-streams-90ff35a9",
+      "recordHash": "fb5a7e06896f010df64df4c539cb02cd6deb36fdcb35003fe5c3e9c9faddd77a",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: stdout event stream и платформенное владение маршрутизацией/хранением. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "36880ea842fa072c68c76091e4bd7227fbc66b9c94dd976c16bdc705ebeca120"
+    },
+    {
+      "id": "skills-12factor-12factor-port-binding-f94d1b04",
+      "recordHash": "751f4eb62d8fa904a86c9a81b3c6ff96ea12ae9e048c3da46101d0854801e542",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: собственный listening socket и внешний роутинг. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "073010e39ff47f28424e06e5a6a5fe90bb0f15593ebded8a8f6c409f7675d3c3"
+    },
+    {
+      "id": "skills-12factor-12factor-stateless-processes-3b0b7b9f",
+      "recordHash": "1c7a578b1027fc7841858d4cb61b048f280f83c3fb66c8cc3b41a0ce19d713e6",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: временные локальные данные и внешнее долговечное состояние. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "77f0ff69ceb427dd9b6744cb2852b6e9695ca81c08c89d393d3beb8499296fc1"
+    },
+    {
+      "id": "skills-academic-answer-assessor-bf990c08",
+      "recordHash": "3f15c10fc10a3af68ef474fe340a3ae2af45920e4a2e9b28a72da005621a8503",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Оценит полноту, глубину и связь ответов студента с замечаниями рецензентов. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "b1a3314acc3a007bed7e7b8f896fa535427beca0530a2bf8a1f602e5436d7d7c"
+    },
+    {
+      "id": "skills-academic-defense-evaluator-ad971909",
+      "recordHash": "6ab8e3259899122aa71628b0269965bc8d95fd18b61a116af55da08cb04639ee",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL разбирает транскрипт доклада, структуру, признаки владения материалом и сопоставление с ВКР; это не решение комиссии.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "9089dcfa26e559f9dac30fed1044788cc3cff92ed64ec61956b1a8b978dcfd28"
+    },
+    {
+      "id": "skills-academic-dissertation-review-2e07c7cc",
+      "recordHash": "e66021f7db6b7fa5ec00840cc2d4879f03c9cf3ecf5330bd19ebe45c789879dc",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Разберёт магистерскую работу по структуре, методологии, новизне и практической значимости. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "36fb2371ad2a7838f8879f6a21cda4464e44af341a98fa4c489a9c6936970138"
+    },
+    {
+      "id": "skills-academic-document-checker-840c59dd",
+      "recordHash": "22fb630c497c94b7bebc1161c2519228799ac87f5e28a9ac4a382917ee52a0ae",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет проверить полноту пакета, согласованность оформления и соответствие темы документов. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "e06824483389c11e0b7255baca86c6ddfffef0f4450c2048bd9a95e29c37852b"
+    },
+    {
+      "id": "skills-academic-question-generator-346a6e99",
+      "recordHash": "84f3adde73346605ec2d3cf3b475fed25bf0bd74befcaeb68f74e37db1f9e75e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Составит вопросы по пониманию темы, методологии, применению и критическому анализу. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "5993459b6f0ec7de8905f8c05d642e40757ba75624dfecaa6ca8f46e9f73a88d"
+    },
+    {
+      "id": "skills-analyst-manual-analyst-manual-full-2bd0f916",
+      "recordHash": "0dd957c733a0a6f0412084a90bb62fbff86c41c56091593b289e040bd48bf1d9",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "1b7d32179b1d4c552ca42aa4bdba4721e1e62be0c71d2af272fc51f34e15dd92"
+    },
+    {
+      "id": "skills-analyst-manual-explore-1b58931d",
+      "recordHash": "709c23e23ec431f5148b14ad6f1b2493000bf4e1a55d5902fdc7338d91bdafb6",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "e3b3018128c0e4d7a61a07df7739b79f95218e3dfecaff835cb0be499a9bac8a"
+    },
+    {
+      "id": "skills-analyst-manual-goap-research-ed25519-fc460073",
+      "recordHash": "ce6cfd4f1409d1e8c8c3e5d4242d09d95dd61b345555d72e86eff0f8a9ddc7b2",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует GOAP-исследование с оценкой источников и опциональными Ed25519-подписями происхождения. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "fbad812b8a4c756f3b6e251577c20c1757f4ad16298ce3dcc634e3ab371f7897"
+    },
+    {
+      "id": "skills-analyst-manual-problem-solver-enhanced-9ef85c73",
+      "recordHash": "790d7d82c4ea1093fac6656e18c3b1ae5119c6b89a4b557f0b0465bcc2279779",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Соединит первые принципы, анализ причин, теорию игр и ТРИЗ для поиска решений сложной задачи. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "1b9cd9ee3656df4a2f9cdd262e8cc1e5372ec6a7d6852751516fc19c914eb2b5"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-agent-fit-and-model-choice-54acf0f5",
+      "recordHash": "af4660152cbab84e1b2e791c0f8f8724ffed307691ebe5e87c9a69d6360f9211",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "888a31798315c8ef687ee3fa6d7f2765b1bee83e89a2a99fc1cf8fd3d38d24c9"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-agent-security-5298015d",
+      "recordHash": "db35899cb7556b603513ca364206a06ea5525b671be2608e81fa5cfd2c6c0fdf",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "2cd4775cf1c096685524fe236593116964464c786a22dd7de5bc63741bd7b154"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-agent-ux-96ff6925",
+      "recordHash": "e1bda31dca3796fdd5ccb62982891d8cfffffc0b0ce33ddc7f47295cf31eef16",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "4654a301cce0f0e599f466bd5d20a023b64bc4e215813d5730ff201675774c0c"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-context-engineering-634f1cf0",
+      "recordHash": "c3c110db90336fdefcff6860a2f1a6062c4220f1fadd1a715207c39ccce9e658",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "87a802fb2431a578211696262e8c312650a95b2ee9defe4256ded59db3df4f3a"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-evaluation-design-74b4c8dc",
+      "recordHash": "1ab0c9df00c150bcafdec61e6c0bc23c6a37911cc0045f8663369f0ee96fa344",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "3abf38fe9c73d75f00e7d3758ff8d92c23219df0376e75f95b3beb08b114940a"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-human-in-the-loop-d8aab295",
+      "recordHash": "e8d57e1f00f6b17e82dd886c4dc071f1c8bd7850570a9adc34d296abfb43696e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "7ec1eecce9be232d373e63682692f5821b7bc5d42503be96db79d603f8a004cd"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-improvement-loops-4dfa9a67",
+      "recordHash": "aa617f9c52c11c304b97c0ed8dc61412301c64b925fe02bbb2a1746f7a9199fd",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "f938730625ddc182221ad93971f49acd7e1efcc8fec43c2966d10673a27b24e3"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-knowledge-and-memory-7b2628b2",
+      "recordHash": "399c7736578c5041d92ecf2c926badaada73a31cab70026c50d27403a0273d35",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "1bdefbcc6dbc39abad6342f09e5c865f0ee4b16716f1da7680ed8f92f00cd7e1"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-learning-strategy-bc57e4e9",
+      "recordHash": "f7ff3fc39338e5364703601098017436a8008722568cdbc9551027ec9857bcf9",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "8819ebb2d403b9dcfda1a038827eb44236c513c63e9d16ddb633658a403216b1"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-multi-agent-infrastructure-fe208d15",
+      "recordHash": "9bf3cefcd44b68b2f6267edd4a47f96983dc3b57e7a17e291ddc33843414a631",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "c22171ba82a153c8fe2c645a4fd07ee72056da3d91dfc019d836aeae89fbd4d7"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-observability-and-drift-6971df35",
+      "recordHash": "6119b7158e9086af5776471b56288b56075cd7b746ad8d2b2572c01b79a665f7",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "7fe1d86763f3434266e48ad4022004740c2d7b240faa7aa0f2a403e66a50e48d"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-orchestration-and-planning-9b416f99",
+      "recordHash": "f51bad8e9819b0aee8560a0c1d9c33829a084955285b88cf9d23be063c86ed62",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "bc5ab09d8c12befe2d25adea5ec8705f920d1fe33e532d3ad7d27452fe7675d5"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-org-adoption-and-governance-62082206",
+      "recordHash": "18b9e2b3d72ee635ceb1089e332435c708303d501b367151029ac3800ccd4862",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "002fedd450e799e9a605b38690a8f5618b5253c322e7e1e10b5cd5dc0121b083"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-probabilistic-behaviour-checks-7f3a3b6a",
+      "recordHash": "642eb282b950b087b51cdde9e90bb60a3d860686c85325884a58205c0107fc4a",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "1e1d6cdbad88cd203b1c77e0d9bfaeaaa78afdaef9f5b7eb958101fe696b9637"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-release-gates-and-rollout-0c95e14f",
+      "recordHash": "aedcc4585a9b26e3896c0053022a6734404784a3a4dc0bf50423427718d5ecd6",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "added8ac9947c9c57c1d6a71141b8972f0bde5919932818a6b805c0ac09c91ed"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-single-vs-multi-agent-d0b5f622",
+      "recordHash": "101a20daa9af128845240aa352d9b8d32f241ee4631a788ae46a231eb60cc8f0",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "2a2cd914b022cbf7f85980bfd274bf16f1def52efff74cc286175e4c309c6079"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-tool-design-and-selection-815a9b07",
+      "recordHash": "61eecc94e7aa468d1f7dfdf485f3a0b7a281e430c0812cef5a01a0ca8cd8f4b1",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "7f9ded89d39bd3248a5fbe58211843342cc60f0f94799741bcf46fe22e5695bc"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-architecture-assembly-3e8c5919",
+      "recordHash": "a4f0ec04d05ccab43ef153c0fd386c9b46db3cf7d10a22c16c36647395944786",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "244b585cfaf9267206590470f3cb7d2350260b522a307e75cf52437c2444d68f"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-concurrency-safety-017ee45c",
+      "recordHash": "107f4f3dde225a0c1c66b1803dde8836de1eb4229c69cd7ca7e696e31b35934c",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "af60eefca348f49a7d951cab4a32094edb11d9668daa084f8acc9564a7abbb29"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-error-and-boundary-handling-05071555",
+      "recordHash": "e70019cf150f589752ad661035f2a75fabfe8366d0917bf5fbec7b0850c6caea",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "3367c3016762d3d0859653672c91838535a90b8c887f59c03cc259efffbf0c35"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-function-contracts-070d7a07",
+      "recordHash": "ad828e3240a5de3abf67adf464190b2ab02e65e72aa1a3b08004f8eb523c1b1c",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "8077d79fa58bbdb37c6a08db0b93a600cfc28c4d31e2d7727a091a7381665753"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-intent-and-comment-contract-d9b95123",
+      "recordHash": "a44b655e8acf9f3eae6b8cde132eb0ec59d76881d39f26139b75f703ed85ea95",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "ea258c25c627ae65317b68c66548fe9a67fb4cf0d43479298fc42c64b023f0eb"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-legacy-refactoring-loop-c5da49fb",
+      "recordHash": "9ae666c2e51cf4cf7060e8fd35b211d1a9c488c291289f153d32936352c71577",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "b4bb7e94430cf60fbed850024ff8a8d788a5d8cbb00e175fde951c6cd0458da1"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-object-data-ownership-0e3a918f",
+      "recordHash": "a89d7e48bdf6ca0b5237263fbe71349b326f8c6ff06cf9cf9db3406ea15c4804",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "a52af9c6cbd6850384682dfbd1cf2e15d99b06578043ffd0ff441f09e74f3cf0"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-source-layout-6c014f11",
+      "recordHash": "2267580c91ab212e58c8692df286c37d9317ca1a58290f8fc542508ceab141dc",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "0bc2b9b09a143c5b4b9725e5b652372dab93bbba3da76400a7d716790f2748ae"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-test-suite-feedback-2e83c3ee",
+      "recordHash": "cdc798cbcd3a2c34db71679d3575eb29535dd550a337137704e3e12f24a6fb28",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Изменено только evidence; цитата дословно присутствует в description исходного SKILL.md и подтверждает описанную возможность.",
+      "report": "semantic-reviews-delta-1-terra.json",
+      "presentationHash": "029e0db9d02a35f610fe94fc90682312074d9d556e7259d0a0c1a6aa5bb8ea3b"
+    },
+    {
+      "id": "skills-book-ddia-ddia-batch-and-stream-processing-d3074e43",
+      "recordHash": "0265cff82afe1f082d9bfb20e981913372b038e93c107fdcad0a0609fc9c93b5",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: вычислительный batch/stream и выбор join/broker. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "c78b6320ecf160b2525f7e9082291119941d6c732954eb244f824347efe19e17"
+    },
+    {
+      "id": "skills-book-ddia-ddia-data-model-selection-2efe18ba",
+      "recordHash": "725a6d060b6adc48651a121b132a666ae42c992bbfafbf70d218ecd2b8ec849c",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: логическая модель БД отдельно от storage engine и сериализации. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "dba9565cd9d3b9a5cca73d22f3a512928e24a7c1c47cbd12810317b140a5d8e9"
+    },
+    {
+      "id": "skills-book-ddia-ddia-deriving-data-and-integration-8a86e817",
+      "recordHash": "98423e3d9c63eb0d84e3cc0759976691e70a3477574303d808ccc28da0f932ef",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: systems of record, CDC и согласование производных хранилищ. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "4d3c3857a870e1ff4ad9afd3213b5728a323630a2a388109cf4b96f61c3e7b46"
+    },
+    {
+      "id": "skills-book-ddia-ddia-distributed-consistency-consensus-4f66239c",
+      "recordHash": "16a0e881c404884b9eaa6a1eb9ac9ec922687dee0ba4adf258a48d30095a08c0",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: межузловая согласованность и координация отдельно от изоляции одной БД. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "8e225e737cdf5da1a941660ced4615da7d26a66320a12e0e055b4d581163a83b"
+    },
+    {
+      "id": "skills-book-ddia-ddia-encoding-and-schema-evolution-a16fb094",
+      "recordHash": "d5cc2e48e9ec9a99edbb155b16de34249c7838971cc982411037db08920354a8",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: сериализация и эволюция схемы для совместной работы версий. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "60888a90b1a4d12873314b4b80f562f0a9666f7e8e3dac6421f97277d45a8937"
+    },
+    {
+      "id": "skills-book-ddia-ddia-partitioning-strategy-5f83dc79",
+      "recordHash": "6356ffdfa00df44f9f2b730899f235a741799e1d865f19d4596cd79f71cd09e4",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: шардирование разных данных и rebalancing отдельно от репликации. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "1f2a30fb8445b0a4c021490a631c421ac19732ffaffbaa1cc8697101d7e7619e"
+    },
+    {
+      "id": "skills-book-ddia-ddia-reliability-scalability-foundations-a45a6ed1",
+      "recordHash": "6ec7b5526dc1ef14d9ab190040f6aa22757ee9a3c89f8273b4ebc8605ae95956",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: измеримые reliability/scalability/maintainability требования. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "1279b48ac5b66cb86319a2da152ec9284299ae1759f6e7c355c573b3d1e344bc"
+    },
+    {
+      "id": "skills-book-ddia-ddia-replication-topology-choice-d8767ac3",
+      "recordHash": "8cc6cbd5defa5ad8ff46a10d13ae26eaa097ddc67ae729b0337bbabb6873623d",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: топология распространения копий, lag/failover/quorum отдельно от consensus. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "3270bb3be34cf44b73c076087d22d05749dbacd929cfbd68fc305849c61c4606"
+    },
+    {
+      "id": "skills-book-ddia-ddia-storage-engine-tradeoffs-9e966f9c",
+      "recordHash": "b68cf21f2d2cb6dd94ac17482476a3cf735b61e51e185d29a8e697fea272cefa",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: физические storage engine/index tradeoffs одного узла. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "b675b0650b65b5e44124412523ec19d6cade19e996eec4d5fb3148add5410372"
+    },
+    {
+      "id": "skills-book-ddia-ddia-transaction-isolation-choice-0ff909c0",
+      "recordHash": "d9b3811feb1b8b369c5066522f9513ffbac203a4cd5505a0eb2a58a4bce161bf",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: изоляция и concurrency control одной БД. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "2af515304bc7a7d29ab37505d172d9f12443cfc9fbec79ae8246bc8c130c5311"
+    },
+    {
+      "id": "skills-book-digitizer-book-brain-register-c379e63d",
+      "recordHash": "751d862ae159a9b3cf371f255964e09f303e487ff6fd9996ae2f317515d0c59d",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: опциональная CP6-промоция знаний в cross-project brain после project KB. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "a140aec9376555cdc16005cab029e968d79bc86011af0a9fd9c0ea91ee067c97"
+    },
+    {
+      "id": "skills-book-digitizer-book-ingest-e2428a74",
+      "recordHash": "3894697803e86a0e3cef63efa867f3bb4614356d98194d5bc3b17f812374485e",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: детерминированный Poppler ingest с чанками, качеством и corpus hashes. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "17a8c9d94ca4da007300923f7ca3228a4afe8a35f2232f91e81e28312c064856"
+    },
+    {
+      "id": "skills-book-digitizer-book-kb-index-6f59bfe2",
+      "recordHash": "ac08b2edf01d7794c67ae20c47ae5243638b750d81d6c7e058601c352c3f75ec",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: проектная лексическая и векторная индексация проверенных KUs с upsert. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "631974bcb04418c189e093ab613f9cd48c3da52f8bb00d9620f3dde063e6da2d"
+    },
+    {
+      "id": "skills-book-digitizer-book-knowledge-extract-4b67b2b1",
+      "recordHash": "4dbee605660198f78869e3f3b46ac2221759dc08f85601801affad66f07c953c",
+      "verdict": "approved",
+      "reviewer": "gpt-6-astra",
+      "reason": "Независимая проверка только evidence-delta: извлечение, dedup и entailment-проверка page-anchored KUs. Новый буквальный фрагмент найден внутри frontmatter исходного SKILL.md и подтверждает заявленное назначение. SHA-256 исходников проверены; record отличается от previous только evidence; presentation summary/boundary/nextAction совпадают с неизменным record. Не заявляется повторное выполнение workflow.",
+      "report": "semantic-reviews-delta-1.json",
+      "presentationHash": "62f6b8ae874052122ff190089a4bad93075a883bfeb759c96bf10beb82984517"
+    },
+    {
+      "id": "skills-book-digitizer-book-pack-assemble-cb420969",
+      "recordHash": "ae32c79aa4c5b82db8313e41f14b81314dcf48c159f52eb5cb621fb3556128fc",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Собирает skills-book-пакет, включает локальные источники и evals, проверяет состав архива и установку. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "5b238ab9794a84cca242c5b796b605cf66a30d13916274442ac7c76f98056e83"
+    },
+    {
+      "id": "skills-book-digitizer-book-skill-distill-e06cce64",
+      "recordHash": "c17f788fa9bc5f405a55e9c0234fa9bcc474a0285047a96da2c3e537874152b5",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Кластеризует проверенные знания в decision-moment SKILL.md с происхождением, routing-evals и связями с источниками. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "9a5734944b98754031b9d93ae5de7a4b2bdb679d4fdea5933ae16c5b8683c916"
+    },
+    {
+      "id": "skills-book-digitizer-digitize-book-8af847ed",
+      "verdict": "approved",
+      "reason": "Оркестрирует реальное извлечение, сборку и установочный smoke пакета с базой знаний; есть контрольные точки. Границы исполнения сохранены в презентации.",
+      "recordHash": "21c24d1de4b634f07083af7d073e5210f77fec68dde77173ed279eeb059dce31",
+      "presentationHash": "71c7b8ca15410d2752a3420f73feea86c06b44b710068f1d3bc4074e78739e3d",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "skills-book-digitizer-source-brain-ingest-efe913c2",
+      "recordHash": "cbcc133c04208d22576345018e55df3449f537d8c0b82bb61d7a493eb18e6ae8",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Обходит исходники, выделяет Knowledge Units и передаёт их в общее личное хранилище с происхождением и лицензией. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "fbe096973dd69f9c119a5ea54f62b497d44814aeef816160c17db7caf473d804"
+    },
+    {
+      "id": "skills-book-fundamental-software-architecture-fundamental-software-architecture-guide-0ec0f7af",
+      "recordHash": "2c5c0f425e0fd7df292e98a96680cd35998e28ff66565675ca1ce26efe301b69",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выбирает подходящий протокол из методов книги и возвращает решение с последствиями, проверкой и передачей следующему этапу. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "35469383171cf20e63369804c2b4c21a081a7343249a0d1897c62724d5823a62"
+    },
+    {
+      "id": "skills-bto-bto-09ecdb0a",
+      "recordHash": "b2e1e5d39b7a601e66b1fb7b3201096468ccc75d8a3a9b1bc5958b513e2c20aa",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует сборку, benchmark, оценку и оптимизацию навыков, команд, правил и агентных шаблонов. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "17b0f0b7337faed3c20c736e8c9d03d6caae865b8c7ce5a92cc5a31d2d346fc3"
+    },
+    {
+      "id": "skills-decision-mockups-decision-mockups-d1152848",
+      "recordHash": "025978117f323a30ee9ab2e22b77da7ff729c551aac41cbff3790676f134f309",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Сценарий и границы соответствуют описанию и рабочему процессу packages/skills-decision-mockups/decision-mockups/SKILL.md.",
+      "report": "semantic-reviews-a1.json",
+      "presentationHash": "f6248379d5064101f22811e8ed4f09ab0f1e391d32f63d28daafc62ffd1f715b"
+    },
+    {
+      "id": "skills-demo-publisher-demo-site-publisher-b95747b0",
+      "recordHash": "469b6a154e13d2b56aba20ffab4ae5c5464b4111365b7b57f08db0a8e1519e80",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проведёт запись JSON-сценариев, монтаж видео и сборку статического сайта с проверкой размеров и публикации. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "979b8be0524444a8bfb62bf0804e808ab9005c3bf562adfdef0e72ea4ec9f8ac"
+    },
+    {
+      "id": "skills-devops-api-design-0c4d943d",
+      "recordHash": "e7bc7b24bdd99017f1bed7c0a1f527ba2a67cc72932818c8ecf194fda95ed96a",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL создаёт спецификацию API, сравнивает REST и GraphQL и прямо исключает реализацию и тестирование API.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "8ef1d191c26cf4fbe4d8c784904df6a9450d5b0e3e6fca2958c615ff65c0fb3c"
+    },
+    {
+      "id": "skills-devops-c4-architecture-e660ad01",
+      "recordHash": "a738312b2b4d09a17dc8bb85d2b4aeb5734c51af3a3f02ec61f17d9e457d0516",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Составит представления C4 от контекста до компонентов с границами и связями. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "452e5c13e690498fc49ac7483069e93b8aa75ad2026e0dbd2e894ab2463c77a6"
+    },
+    {
+      "id": "skills-devops-ci-fix-4748f1fb",
+      "recordHash": "374ed8f496164359980a0fe6d5e59b1f1f992fbd9cd1dbd68a4ca5c6148c6829",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет выделить первичную ошибку в журнале CI и отличить дефект кода от теста или окружения. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "3ce66596f315fd3386b6998f0bba527faab34269c531b3eae63107f550400696"
+    },
+    {
+      "id": "skills-devops-codeql-fix-6667aa48",
+      "recordHash": "019049e7c90b952596ae864cc42ada6dbb17fd84c43dd6dbbdd5d6a06604611e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Разберёт конкретное замечание CodeQL или статического анализатора и направит исправление. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "62c5c44ce0997d6ba1ec5e2692b4900098eaac6e821941058baea55ffc692975"
+    },
+    {
+      "id": "skills-devops-data-pipeline-a40a8637",
+      "recordHash": "3d289d5169cb9c92bfb031409d6cd9bc2d68ce4951e95d669aa7ce69ad3cad22",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет спроектировать ETL/ELT, схему, преобразования, оркестрацию и контроль качества. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "220eb39bf677893a7e9cf7270c429d6bcd67cfbdbde955c61a002700c4b9f349"
+    },
+    {
+      "id": "skills-devops-database-migration-74c0ac9f",
+      "verdict": "approved",
+      "reason": "SKILL прямо описывает планирование и выполнение миграций и создание файлов миграции; фактический доступ и условия по-прежнему необходимы. Границы исполнения сохранены в презентации.",
+      "recordHash": "6a164a87c4d3f5dc22ca390273a2627abdb406b63539a92a8b597c73ce99d237",
+      "presentationHash": "f81239a6b1ecd435c185b96003fe1c11b54f6212c16275f0bd8d29993985fb97",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "skills-devops-database-review-c6ded265",
+      "recordHash": "133ff3f40e05c7a05b6debb4019738220cc0d4fc223102e4b624cb88d3160618",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Проверит изменения схемы, миграции и запросы на проблемы проектирования. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "2d83214921911697b0bd91ba3ce205692fa2c644217853aa4c840fb53d9e440d"
+    },
+    {
+      "id": "skills-devops-debugging-2c04ece1",
+      "recordHash": "d6f5851de4a5d4aa44cb93b0be989a3b292186ed3d849398ad85688fd53079d1",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет воспроизвести сбой, локализовать причину и проверить исправление. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "7e811c451ec2fe28fff491f163529ecea65b619f5d6a22e9f1fe65ee1d5a1dd1"
+    },
+    {
+      "id": "skills-devops-deploy-on-cloudru-vm-458aa6e5",
+      "recordHash": "22bae18b91651a4c8350d68567024c8fe2a1c7b778a654460dc33c65cd8ae8b2",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проанализирует репозиторий и проведёт развёртывание Docker Compose через cloudru-vm с проверкой доступности. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "396622a41ffa3cea5801fa04fc4fd8377505688cbb8c8e3724b45b3dd6a29461"
+    },
+    {
+      "id": "skills-devops-docker-compose-1a1fbd1d",
+      "recordHash": "e00498d8b17896012cdad654fb409211dfa9db7460e0a29938ffc4a413b6521a",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет составить или проверить конфигурацию Compose, связи сервисов и постоянные данные. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "baad871dfc3e87a2fae58124137914554db804ca5729af577896399e03a0725f"
+    },
+    {
+      "id": "skills-devops-frontend-implementation-ba11ce42",
+      "recordHash": "9fdc268a0fd802e3620d71513d50d2fb9c184e66fbe567ce0d4258a8241dbdb7",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет реализовать frontend-компоненты с учётом соглашений текущего проекта. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "4beb6c18b2ccfd96d4b28b6b610e9efbc4b55111ce6c98843e67952f83897d88"
+    },
+    {
+      "id": "skills-devops-git-conflict-resolve-5b7dc073",
+      "recordHash": "708bce946a1e3a66a37c51faa9be4f267c392915804ab498f250cdb730e19656",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Разберёт намерение обеих сторон и поможет разрешить конфликты merge или rebase. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "36c883adce273fe197d53391aa212066cc700348055557923682dcc9ad1a1e52"
+    },
+    {
+      "id": "skills-devops-github-actions-e6467f0d",
+      "recordHash": "ca205da2e8bb3e5e5aa977a92542beff10de2c1254d3962819ec419086eba106",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет спроектировать GitHub Actions с матрицей, кэшем, переиспользованием и безопасной передачей секретов. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "1b415b1c9de776367ee24ce4bd1cbb764e91e94c88401c3db4a46af2fb62878e"
+    },
+    {
+      "id": "skills-devops-graphql-schema-e6086ef0",
+      "recordHash": "3d377dee6499acc3b3042275834de32d9bcc494b4cdd5b4c5956dc69df2823ca",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет разобрать типы, resolver-контракты, пагинацию, ошибки и безопасность GraphQL. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "57714d97e6c4696ee58557b2865d4a781912e820c7809048f3bcc717034d712e"
+    },
+    {
+      "id": "skills-devops-incident-response-5efb9dba",
+      "recordHash": "e60685192b489d82d2e30ad1f7e35b6cfeaa70295679cef159dfc544037129fd",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Проведёт через оценку инцидента, снижение ущерба, восстановление и последующий разбор. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "88a42ce3fe0e97be905a1b2ff12a94416f7f4f3d0efab8f4dc948fafeb4f7124"
+    },
+    {
+      "id": "skills-devops-itsm-itil-0e4a9257",
+      "recordHash": "a9f9533137ea03ce14b76c6d061a7748e1691e687b91237e92fee489ea77bd25",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Предложит связанные Markdown-записи, состояния и приоритеты WSJF для сервисного управления. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "5640db762d8d2a68a9ae8e96e1446b63e9300b03a37e82527a8332bc0f47d0f8"
+    },
+    {
+      "id": "skills-devops-kubernetes-ce335c87",
+      "recordHash": "15c0f917b78ae6bcb686f168e4a8b2d11f6649e3094fcb262e2c85a6b96a286f",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет проектировать и проверять deployments, сеть, масштабирование и безопасность Kubernetes. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "report": "semantic-reviews-b1-complete.json",
+      "presentationHash": "8f180e441e5c2cdaed853722fdc632e68d243232d0afebb03aa479364f74dab4"
+    },
+    {
+      "id": "skills-devops-monorepo-management-a8928099",
+      "verdict": "approved",
+      "reason": "SKILL охватывает настройку workspace, создание пакетов, CI и публикацию, а не только проектирование; внешняя публикация требует прав. Границы исполнения сохранены в презентации.",
+      "recordHash": "bf6a81745d1f4f1fb7706c2ac2431c99108a2799ccdf335fe389bb70be54bc68",
+      "presentationHash": "d16e543e2662a654d0c2eaaa6faf3c87fb4af353adaf57107d472ce2f3598d43",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "skills-devops-nginx-config-395859fb",
+      "recordHash": "c96fcabdfe0e886af96e7c7ea5812444d94a9d277dc2e317f605772dfbe9e02b",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет составить или проверить reverse proxy, балансировку, TLS и ограничения запросов. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "68180ba5d39b61ed0aa1a6b1bbe7dad7f4e44c34a629fc2bfdd97d0dddd9c8bc"
+    },
+    {
+      "id": "skills-devops-observability-338720b5",
+      "verdict": "approved",
+      "reason": "SKILL предписывает проектировать и реализовывать наблюдаемость, создавая конфигурации, dashboard, правила alert и SLO. Границы исполнения сохранены в презентации.",
+      "recordHash": "f94c296c773497a92729f282fed0f55ee38c9f4ef041e70b3b661e2340c4b142",
+      "presentationHash": "6d6ca32d6113132c47131c6be3d2638d4e7e6c757ebeefe30f930041deda58de",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "skills-devops-playwright-testing-bdc49c55",
+      "recordHash": "c5a80a20a57853bb3efb4bdfc13784a1ba5fe2d865ac61b6ac215d740205bd87",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет написать Playwright-тесты, проверки, fixtures и включение в CI. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "21832e1d3d86196d82da001e652664d1ad5dd0a1d72a5d26d3cf00eade0abb90"
+    },
+    {
+      "id": "skills-devops-pr-review-ce0f7b73",
+      "recordHash": "2308e67ad5423f9f468cbed3d95d79dcdbaf32068ba12799cb814c0cdeabb6ca",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Разберёт корректность, стиль и риски конкретного pull request. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "83cbc4b92df18927354749a509e2e3d9d6187892a092618c06889185701523a2"
+    },
+    {
+      "id": "skills-devops-problem-management-30216b22",
+      "recordHash": "3dc1334fc7e840ebea700128ea113ad6026de65dee85dc6af43dfd5a9047e369",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет связать повторные инциденты с первопричинами и приоритизировать работу над известными ошибками. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "e3c90d839cbb0d681f6cc378356b860ceb3bf354b01529593944d4ff43c1f3ae"
+    },
+    {
+      "id": "skills-devops-provider-debug-6023905b",
+      "recordHash": "e3c7acf9f07800ba9711589645a5379b3f6a245e96c9138de4f7a362d8c307e8",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет диагностировать конфигурацию и соединение с AI-провайдером. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "ed87433020a495a702cc502b05f3bba6b33246a1241fa684e13875248e1b5aa6"
+    },
+    {
+      "id": "skills-devops-redis-patterns-db46b4ad",
+      "verdict": "approved",
+      "reason": "SKILL охватывает проектирование и реализацию Redis patterns с кодом, а не только выбор структур. Границы исполнения сохранены в презентации.",
+      "recordHash": "ff4759b3866c4d4e76d876cefa0f2799d719bfa4652234a374c8eb6a9ddf4763",
+      "presentationHash": "141c3047fdb0e5a02ee3b629572b0ee7c53245633d7e9ad714a5cdb275329ddc",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "skills-devops-retrospective-bfa4158d",
+      "recordHash": "17d45e669d4074485be21eca612747587130d44c5886ff92ba83de0ab65c511b",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет обсудить удачи и затруднения и оформить действия с ответственными. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "e220fe02fbff1354c8886dec0747109af1fa234dd8dd5d746b36d3d6b78ed30a"
+    },
+    {
+      "id": "skills-devops-risk-assessment-20cd49f9",
+      "recordHash": "b78b9908c3f5e3c9a64b7c29dff8b2d3f9e2c403fa512aeea997cbde5e3bcf8a",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет оценить вероятность и ущерб изменений, утечки секретов и риски зависимостей. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "7637fb1248be85a2d50b12ec26c23f044734d511d67d86ba980675dfa1045305"
+    },
+    {
+      "id": "skills-devops-security-audit-6a896b0d",
+      "recordHash": "f3d105f34ed8c28997163e31c6ae9f0adae5bc7939fbca7aed3a7dac4604c1b4",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Разберёт распространённые риски безопасности в изменениях кода. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "d9f3dbe1620d057ba39144b9a707e0b4972caee3e07bca05fa49fcb9103ec2bc"
+    },
+    {
+      "id": "skills-devops-terraform-3c58ffee",
+      "recordHash": "70a0af7cf1dfcc58faa555e96f4aac8527dcfc803bb9f670bcf7d204581152f6",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет спроектировать и проверить IaC, модули, provider-конфигурацию и управление state. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "5fb4f60d23dac9fa95acb757537cd7765ee780bdcf192671bd4efc62684acbf8"
+    },
+    {
+      "id": "skills-devops-test-writer-b3a0c247",
+      "recordHash": "c1a82117061c14fe011ffe271e3ac13a895b96e3e87ff62dbb41a91378c9e394",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет написать unit-, интеграционные или E2E-тесты для существующего и нового кода. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "9ea88c901b47d6a86ae20eacfffec357e81ebaf56e75948e17f4dc21a0702a0c"
+    },
+    {
+      "id": "skills-ecc-agent-architecture-audit-fca25e48",
+      "recordHash": "0fe9105873b2360112e83857b0960586d046dca70322642bbf36c0beac3fb9a3",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Аудирует слои агентной системы, инструменты, память, транспорт и рендеринг; ранжирует исправления по серьёзности. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "d167e73d7a5bfd4415e1cd0197028af7213024e1258aa091cd635aed980c7d2f"
+    },
+    {
+      "id": "skills-ecc-agent-eval-4fad4429",
+      "recordHash": "6a4ecd6d8546fed38b508da14b19ee76f939cfeb85c9ee8ef4c6e11c86fd53e1",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Определяет воспроизводимые задания и сравнивает агентов по прохождению проверок, времени, затратам и стабильности. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "8d9e516d80d115ec47a797261da1de285d0f71092af550ce142fa31ed07fdd50"
+    },
+    {
+      "id": "skills-ecc-agentic-engineering-c5d80a46",
+      "verdict": "approved",
+      "reason": "Eval-first loop включает выполнение реализации и повторный прогон проверок, не только декомпозицию. Границы исполнения сохранены в презентации.",
+      "recordHash": "bc4d32a91eda6cc52efb510676db61c9e09586fb2e1904d9180f96df5df75c6e",
+      "presentationHash": "811b14f69ed32b31e2fe2f863e0448ccbc5d433018465e6eff0ef879b614c1de",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "skills-ecc-ai-regression-testing-4d70ac29",
+      "recordHash": "3fa01b766448749ccfc7c1895e10bdebcbd7ad56e30a2656c73a9de8de4d8439",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Строит регрессионные сценарии с mock/sandbox-режимами, выявляя слепые зоны самопроверки AI. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "41020baabe50f4b264261ecd4fa99de5ec3d0d9103c90b59c87d9be3562449fd"
+    },
+    {
+      "id": "skills-ecc-architecture-decision-records-bc8b5013",
+      "recordHash": "c14be825a6720265595b4ad3d494af880fc6803642af186bcb51ce7e3ae2e529",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Фиксирует решения из рабочих сессий и сохраняет контекст, варианты и обоснование рядом с кодом. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "aba130abded0331145f9bfdfb4a8762276dfeec7bc7b239f59f399ec28464f7b"
+    },
+    {
+      "id": "skills-ecc-autonomous-loops-8660c516",
+      "recordHash": "f992ffe50cc9f9936aa74131439b51932e06d16214d028fd2485fdcf46e4696c",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Описывает подробные схемы автономных циклов от линейного запуска до оркестрации по RFC. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "7265aa2c731fff324a8a4a51cc920fb9f85c70a7042e2be0695b6fb415a3587a"
+    },
+    {
+      "id": "skills-ecc-backend-patterns-9dd9a844",
+      "recordHash": "816175aec68364f9331c6dcc90f1392c160ced08125fb9cbc7e558acf632b80e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Предлагает серверные паттерны API, доступа к данным, кеширования, фоновых задач и обработки ошибок. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "34d4404a2963074d70cf6ffacdb7135fbec14a1f9c0abf61a49d46809ba74bfa"
+    },
+    {
+      "id": "skills-ecc-benchmark-optimization-loop-624a5715",
+      "verdict": "approved",
+      "reason": "Цикл создаёт и исполняет варианты, проверяет корректность и продвигает лучший безопасный вариант. Границы исполнения сохранены в презентации.",
+      "recordHash": "ff68d29d9abe702212c01d0b2f91d0c37de4d4b6144c3af7d2b8b9d8c6698bc5",
+      "presentationHash": "7ffd4467be0e7e8d3c39aedc1c7c01e180aec6e26b74d9cac1ec7aed7492ebab",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "skills-ecc-brand-voice-12b8024b",
+      "recordHash": "1ae7f63c8dc5b401e0061fbc66648fa9aa0dc182dbcce887fa749e95be776ba2",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Извлекает устойчивые особенности письма из реальных материалов и оформляет профиль для повторного применения. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "a47122d40997a2ac00f8c319fcb1b2b52fa66a2ffa3add4d96e254463564530f"
+    },
+    {
+      "id": "skills-ecc-browser-qa-0b8ea06a",
+      "recordHash": "fb5b491c466c9418fa9dd9f91760216d215e310202641bee40f6b15b9417472c",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Автоматизирует smoke-проверки, взаимодействия, снимки и проверки доступности в браузере. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "b270ef7fec0e13532a50fa60dc9ff11d8e8d48fdb71bc8cf12ec391d847f5751"
+    },
+    {
+      "id": "skills-ecc-canary-watch-a3fe5a29",
+      "recordHash": "c9adb1ea1a10dc9129ced3603f33205f5d289e04f4abc3eb3a7f5cd25c6dd1e2",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Наблюдает HTTP, потоки, ассеты, консоль и метрики в ограниченном окне после изменения. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "da69dea6da7fc7f04a5020dba073a43a0d4c58808222b2ef95af1eb4261fc56c"
+    },
+    {
+      "id": "skills-ecc-continuous-agent-loop-9d764334",
+      "recordHash": "b7f948fcedaccd33945c5329e198d50c9dc5937c42b477c612becb34699e905d",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выбирает последовательную, параллельную или PR-управляемую схему и связывает существующие навыки проверок и восстановления. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "647560a9e3d62abb0a92415ba509927f4c638f4c883490199d299567fe133661"
+    },
+    {
+      "id": "skills-ecc-data-scraper-agent-af1b7eb0",
+      "recordHash": "81659dde8e442af03ba4cc32aa05dbb670bd997f4a09cc5dfee19cd76e42caee",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проектирует Python-сборщик с GitHub Actions, обогащением через LLM и хранением в Notion, Sheets или Supabase. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "c2fd0f1935b4064b8f8bfc74bea712f1ff0de34136e29a445ed187817c808363"
+    },
+    {
+      "id": "skills-ecc-django-tdd-ad1834c0",
+      "recordHash": "5f128afede9030b8d9e0d6fbf0b5276dc5f27ace7e27acae3ba527a5e2e041ea",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Применяет red–green–refactor с pytest-django, factory_boy и проверками Django REST Framework. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "319eb2556029c67aecfc4d8bacb4b998c43404d3bd7e1d221f0138e1fb3a92c8"
+    },
+    {
+      "id": "skills-ecc-docker-patterns-d78f32f7",
+      "recordHash": "3f7a58ccbb0517f197af458eabc810c711a67d0a0f920aa185e6ce3d060ccd66",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Помогает проектировать Dockerfile, Compose, сеть, тома и многоэтапную сборку. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "5199cd59757459c8b197f190e0f27a1ab11deb5fa4e9cfe82001313265f388d9"
+    },
+    {
+      "id": "skills-ecc-e2e-testing-5d1e7f67",
+      "recordHash": "56ca97f7eabe8aae49ef01f6ad0cb20ab4a3ad2834063348735db132fed4681b",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Организует сценарии, фикстуры, Page Object, конфигурацию CI и анализ нестабильных тестов. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "da7084045e47492b241f7c3034be1d5d91b2b216fe09d721ad9d38d76a35fbf3"
+    },
+    {
+      "id": "skills-ecc-enterprise-agent-ops-2c856b22",
+      "recordHash": "cc37bc12951f1cbe1e67ca0cde92ce17314805cf629b4f36784dc2e38a98112e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Описывает жизненный цикл, наблюдаемость, границы полномочий, таймауты и аудит агентных нагрузок. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "1953074aa956cf3c2706fab4ae9a8c3d53f8ec4c79bead39b080c5a7b11fcdb8"
+    },
+    {
+      "id": "skills-ecc-fastapi-patterns-b6d737bf",
+      "recordHash": "ad5b2030b17932d9266fc82d24464efd43e17afd747ecaa75e8a404b4a071814",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Описывает структуру FastAPI, зависимости, Pydantic v2, транзакции, аутентификацию и тестирование. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "3f0b522f44571ab584139da9564c7961f03d4c2cb7e2e7effc59e1084367951e"
+    },
+    {
+      "id": "skills-ecc-flutter-dart-code-review-bf71505b",
+      "recordHash": "f825597b7eacd995646b0df03aca352cb0baf6895ced21b3a4be0303741450cd",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проверяет виджеты, состояние, архитектуру, производительность, доступность и безопасность Flutter-приложений. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "ae33d2e1a101ddaefb200f3f8314178d3cb6efe35424a53476f2b8ba6aa98cd0"
+    },
+    {
+      "id": "skills-ecc-git-workflow-91d62415",
+      "recordHash": "c844e48e65dc4423651e060d9df098e56bf40908a330f5fd6310afc938ca251e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Сопоставляет стратегии ветвления, merge/rebase, соглашения коммитов и управление версиями. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "ba528b09a2a81e75e004a096eb97c49141a483e4a65f4f4dfea8daf98c8fe59d"
+    },
+    {
+      "id": "skills-edu-site-edu-site-generator-76f5e789",
+      "recordHash": "5c11f40dd1b4f47d980d4105f23df2687613c633cc36c211dbd7012ddc1706a6",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Создаёт модули, упражнения, итоговую проверку, достижения и адаптивный учебный интерфейс. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "d19111f6a931e5bff984d93ecd6d4d77b2593b4d890f233b5fba20f4fe70dcf3"
+    },
+    {
+      "id": "skills-feature-adr-challenge-panel-3daa87a5",
+      "recordHash": "ab6d0df1b5be8958123999cc79d1b9fd9fd42c8057959cd96bfba2e7f606c023",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Организует независимую проверку плана по вопросам владельца с перепроверкой серьёзных находок. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "68175012c0a6d0222880e3dfd13109c4c56a7dfba1ea774f3d42b2717ba37600"
+    },
+    {
+      "id": "skills-feature-adr-code-critic-b0d23ef1",
+      "recordHash": "0c5b2c67a4f3f11d697ff899f080f808e4297be9bf929b1a4f413d042b2c1961",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Даст приоритетный список проблем качества backend по принципам и инвариантам проекта. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "e1645fbbd6d948a2e5f811503c0d8851dce3e5c5b8ed80c4440b115ed3dc7d8e"
+    },
+    {
+      "id": "skills-feature-adr-code-impl-54ab875a",
+      "recordHash": "94a5021e3bb4d786887645d0c5fed988df5572b08ace68be81475a6b5eabfeed",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет применить принципы переиспользования, инварианты, безопасность и критерии готовности до реализации. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "cb529e37461cf2850bfdd4f05475a1923557f4221e8492863482185e9de9f537"
+    },
+    {
+      "id": "skills-feature-adr-code-skills-creator-11614d96",
+      "recordHash": "c82843a3cc567c4232d9dac343e8f9a6553eaca3a461dc15c4c4437e1063234e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выведет из аудита повторных ошибок принципы и подготовит два проектных SKILL.md с исходными материалами. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "94c4722218758724830469ebf760c5bc39ccaa6d0bab4fe3235857611dde1d8a"
+    },
+    {
+      "id": "skills-feature-adr-configure-feature-adr-fc936abb",
+      "recordHash": "0ef8cc282d0f3aae41013e6777b0f8eae98ba2a032ac38133491e6cb8994d582",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проведёт настройку видения, карты архитектуры, правил проверок и проектных ролей через движок dz. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "68fd8f4f518ed6f9fa74e8255f23e2b44c6fcae4bad87bc040996e985f45ea20"
+    },
+    {
+      "id": "skills-feature-adr-explore-cbd95e1a",
+      "recordHash": "6db7876e126a9dbe27d2c0b04fac8feca5b69f153e1b6308a0329511709338e5",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет через вопросы превратить неясный запрос в рабочую спецификацию. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "a29d13fa758a74bf5889a8cf0afdc256da23ace952369f3de58f567784fdaeb1"
+    },
+    {
+      "id": "skills-feature-adr-feature-adr-aba74aac",
+      "recordHash": "2cb567c27506b01b2e6d34de893cf9ff1d2f2b7692ed9343cb5a2ffb1ad68755",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Организует адаптивный процесс требований, ADR, планирования, реализации и проверки качества. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "f2719c6bc7f180eebed455d14908cc24cfb4d010d22ee4508ce1a00277791098"
+    },
+    {
+      "id": "skills-feature-adr-frontend-design-3a9a3ad9",
+      "recordHash": "c88a373eeb6a649645f61e916b11f9f621fb03eb1a6d1f161a51b1eb2dd5bdbe",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет выбрать визуальное направление и реализовать интерфейс в коде с вниманием к типографике и композиции. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "2433a1bb0bbad7b2143a389fa617667e47ab49d4d879fe5297b731b8f9b6dda6"
+    },
+    {
+      "id": "skills-feature-adr-knowledge-extractor-9ec7510b",
+      "recordHash": "8c92b4d5eced3280b0b9d2e01bfc7ca9fab4b6a9c59cdd8b93d3a7fd07944200",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Организует извлечение, классификацию и проверку паттернов, команд и правил с размещением в toolkit. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "03fb1bae17a75d451a7d6302491d83fd8430b9efce1b2f07fa692299def78508"
+    },
+    {
+      "id": "skills-feature-adr-problem-solver-enhanced-7b19d24b",
+      "recordHash": "834e9ab11333fe2c0d78c04937239601567ef35df33a117663685b3125c8b29a",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Соединит первые принципы, анализ причин, теорию игр и ТРИЗ для поиска решений сложной задачи. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "7151abdf01f7c09da8dae306484d9df28d0c2dd4927556434bb5ad3303f193be"
+    },
+    {
+      "id": "skills-feature-adr-system-grill-70fefd4c",
+      "recordHash": "54118f5b61b5ab6fec894fb08bcedecd69262900c34af71b6600f4b5eaadd8dc",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проведёт тренировку: сначала ваше предсказание, затем проверка по архитектурной карте и журнал понимания. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "a1d2a19260ca85a4df163223b60e0212517caccb33dfd170475b0032867b8a78"
+    },
+    {
+      "id": "skills-idea2prd-explore-1585519c",
+      "recordHash": "6944b14d7d27513897d4647daa63c01cb5a3c85a5b8159d1e30eff96165f14de",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выясняет реальную цель, ограничения, ресурсы и признаки успеха через уточняющие вопросы. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "109af21c4b6af6f909d8e4a6acc888d35cb24c8e611fe3c1652ef927b13e90e7"
+    },
+    {
+      "id": "skills-idea2prd-goap-research-ed25519-46607b9b",
+      "recordHash": "93596737fadd92b458082efa2e6f262335dbb6bb195975b5944061c4525f3285",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Описание, сценарии и ограничения согласуются с SKILL: Планирует исследование, связывает утверждения с источниками и различает доказательность и криптографическое происхождение.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "b1065074aa6fd8657ab9a1288cc34c124df8c484701c78cf87edc2367a7512fa"
+    },
+    {
+      "id": "skills-idea2prd-idea2prd-manual-94bc3792",
+      "verdict": "approved",
+      "reason": "Оркестратор создаёт конкретный пакет PRD, архитектурных документов, псевдокода и тестовых сценариев с подтверждениями. Границы исполнения сохранены в презентации.",
+      "recordHash": "a6759b45e2e509ce4d09cc6416704e07a97abb3ad337db3796135c974c9fc32b",
+      "presentationHash": "77d4b30dec923a697360d3b84bdf28d9b63378140a2d94b3e4b848f5694a2a95",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "skills-idea2prd-problem-solver-enhanced-fcb677b0",
+      "recordHash": "c6bc53bd1f39aba8bdc495a578072b8c7ea86d49f328075bf6a2822a4bbe6f44",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Описание, сценарии и ограничения согласуются с SKILL: Использует первые принципы, анализ причин, теорию игр и ТРИЗ для сравнения путей решения сложной задачи.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "461404fc5a18735a7fda8d47f2778c40a8ccf3f93dea3dc1c66c051b009d75c9"
+    },
+    {
+      "id": "skills-mcp-agentdb-memory-afbfd984",
+      "recordHash": "58042a05b0d5a2123f2f54e43667313bf740658a9886457898973753d8f203a0",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Использует MCP для хранения паттернов, семантического поиска, эпизодов обратной связи и графов связей.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "cffd97b6a6212447a0b4c2e2e1a4ded563429924fc1da4fb538aa700c76b0009"
+    },
+    {
+      "id": "skills-mcp-brave-search-6c6813b4",
+      "recordHash": "f9450776448a9fd4885beef0e1e063dd49fe54463391ab2e15a7c79c6ce498f0",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает подключение Brave Search MCP и поиск веб-страниц, локальных результатов, новостей и медиа.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "f5f9924f29943e3490d0fdd544a290897db0c39048e24aca7e56241fccc9a13c"
+    },
+    {
+      "id": "skills-mcp-clickup-164e73fc",
+      "recordHash": "79cbb89748d01fe8b36ae63fe9bb1a7a99390a4759013af3c10a9f10faf8379e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Помогает подключить MCP для задач, документов, комментариев и учёта времени в ClickUp.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "856e9ceff198876943f2c3aeeae03436befa3c25b4b4a9178e4d30c1c1dcd1a7"
+    },
+    {
+      "id": "skills-mcp-comfyui-c20bdf81",
+      "recordHash": "2ae927b19e97c5b94edda0f4cbcd8eb36fe599363825e550f697d822218690df",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает отдельную регистрацию закреплённого MCP-сервера и работу с workflow, моделями и очередью ComfyUI.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "c99f67133a4b8e14d2dbc1a1e1b69ac06ee10eee1972a3355a6c68982d2abd3f"
+    },
+    {
+      "id": "skills-mcp-context7-6e20ab9b",
+      "recordHash": "8d2ad8c465a8eee117abe5bf396618e1ac66aa26aa7832ddad7c97f029f13229",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Подключает Context7 MCP для разрешения имени библиотеки и поиска документации и примеров.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "7b2771bb0100d7ef672084acd2c4bd273c306db7bbf3d02479be7ed24f2ad32e"
+    },
+    {
+      "id": "skills-mcp-exa-search-7f89d074",
+      "recordHash": "d9ba904ab3ceefde77cf36e07759efc4c2cf1d91616002c75e406a44051a1faf",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает hosted или локальный MCP для семантического поиска, поиска кода и извлечения содержимого.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "2bd6a51a420eb06df1bd38cfd584ccd4cb9f14c71179139ebb7107bd892c9ef2"
+    },
+    {
+      "id": "skills-mcp-git-mcp-4c91cfb7",
+      "recordHash": "9452f3f3fc7790ab750d8a3a8bb80002140ef680c99ca8b11a1db6bf88253a45",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает MCP-операции статуса, diff, веток, коммитов, слияний и рабочих копий Git.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "4f881ad850f47cb483677e53963497b1074f99fbf9f3f0640b8061717257aa0a"
+    },
+    {
+      "id": "skills-mcp-gitlab-4f615da0",
+      "recordHash": "31ad73225cf57db974a19fe9226d9467fd7cb21045b61303d2e364e339c6d0ae",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Подключает MCP к проектам, MR, issues, pipeline, wiki и релизам GitLab.com или собственного сервера.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "e7de5f868fde2cc7cca8ec41edc3f9dfc7ca09ba5dd0faf290dace36aef9da50"
+    },
+    {
+      "id": "skills-mcp-gmail-21745be5",
+      "recordHash": "a10153acd251bc8765f8a8fccb5487b3c103a13191a0d68bc9d8eb7e1477da6f",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает Gmail MCP поверх gogcli для поиска, чтения, черновиков, ярлыков и других почтовых операций.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "48ed875683b3237b633df66e3543b2ac69df1e974ad1fefa2d92ba787fbbb9ae"
+    },
+    {
+      "id": "skills-mcp-google-calendar-497db93e",
+      "recordHash": "764717639d359fd1a6d39e99e7335db71b59484e3f2d05d483a1b5c3fc0152f8",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает MCP для чтения и изменения событий и проверки доступности нескольких календарей.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "0ffca148055fb6ddb3ce65e8ab459ae3071bc37ebe43a787cf3d6c1f66e878f1"
+    },
+    {
+      "id": "skills-mcp-google-sheets-9e4ebe88",
+      "recordHash": "b4d7e50b238ab571eb74031c5b807d58a9217cdbc1a9c0fafb880e2667431066",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Подключает MCP для диапазонов, создания таблиц, записи, форматирования, диаграмм и сводных таблиц.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "4d4f7702dd7ca7c640a700ae8cdb98a0d7da1860f3f14afab62bbc03d9c512fb"
+    },
+    {
+      "id": "skills-mcp-google-tasks-d5c00a90",
+      "recordHash": "baf65e5c9faa426df5e805d6e5d4df3d129404832de53532bee7e1c274ca3883",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает локальный stdio-сервер для создания, просмотра, завершения и организации задач.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "f5f72ca51fc1b4b505d2ba9d98d1c29a584f218960592a7f4c631d1614c60beb"
+    },
+    {
+      "id": "skills-mcp-jina-reader-6d9ed987",
+      "recordHash": "cf6aedfaed1fde367ed2c8fbc5a348b9b768e474c852245271ad0a06c342eaae",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает Jina Reader MCP для получения очищенного текста и структурированных данных по URL.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "826998c3dbe4f167cbce807e91115297b34b4d439197f465b3da093814c2aa34"
+    },
+    {
+      "id": "skills-mcp-notion-436f997a",
+      "recordHash": "5bd2d84a9348bd4c8fe6abcea7c7001ec7e6cd9dee89716d263b0c611bec407f",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает подключение MCP для поиска, чтения и изменения страниц, баз и блоков Notion.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "acd7600395ed6f023772eb6d5acfbcda23ecf592b00ac7b2e6d685275a5b3965"
+    },
+    {
+      "id": "skills-mcp-obsidian-9ff1ca7b",
+      "recordHash": "36d0ed8811591652dd602d0d0024bb05c8ee77e337a57011ccfdddf04bfdc764",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Связывает MCP с Local REST API для чтения, поиска, правки заметок, тегов и метаданных.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "7ecb236ec40d910370fbe27719fbe1f7d4d551122324d68b047092457642bc4b"
+    },
+    {
+      "id": "skills-mcp-reddit-2856ebdf",
+      "recordHash": "907e7ce98cf96b3a063ddc943f50d670f168300dd4409ae084d08e96c7771271",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает поиск постов, чтение веток и анализ публичных обсуждений через локальный MCP.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "773efb2a081235d5cda857dbeafa5ef5e8ac917ab2b67fdfee353346e3a53eb7"
+    },
+    {
+      "id": "skills-meta-adversarial-verifier-8f954c64",
+      "recordHash": "6103f0ae5752dfcf2f3eea79581f586cec9a5495722411ca40eeebf5dce72481",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проверяет достижимость, реальный ущерб и защитные механизмы, различая подтверждение, ложное срабатывание и неопределённость. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "ff06430dac3b0b6092097b169fb423a712677d7684b0c5ece2171ad7ed5117c7"
+    },
+    {
+      "id": "skills-meta-agentshield-scan-7e9c864f",
+      "recordHash": "a8b7bd6a14e8a4570fbc912b228ae018165eaf04d8632ab3891edbcac50d1d32",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Запускает AgentShield для поиска секретов, инъекций и рисков конфигурации, выдавая JSON для CI. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "3b57c9b674117b7392d162f35cbe628bee06de72c82034b8edbf5b9ac8e8bee5"
+    },
+    {
+      "id": "skills-meta-audit-ecff7de9",
+      "recordHash": "db2714b7fab560d86f0088fe5dba55064c1c9d0488f2b2bdd52b0d173a298ba7",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Исследует кодовую базу, проверяет находки и ранжирует исправления и возможности улучшения. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "c616b0e197e51e3c3fdd3209ea2687bce17b3584968fd2427ebb004008ac474a"
+    },
+    {
+      "id": "skills-meta-capture-adr-e8d5cd4b",
+      "recordHash": "258448303000c76849998db56752836159073c91d48149b7699133ac3f4d5be8",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Создаёт минимальную запись MADR в docs/decisions с очередным номером и отметкой needs-oversight. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "e91e4bc74816f623753e1fba8e4b4501817093394906c5b0fd2e3506c1e7fe3d"
+    },
+    {
+      "id": "skills-meta-context-window-management-bab6b4ee",
+      "recordHash": "cf5809f47e5640c0127488e7a16222a2f36dd7a4582feeb8225af9eb0d99977c",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выбирает стратегию сокращения, контрольной точки или резюмирования с учётом важности сведений. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "7bd92e24556b1797f2a48d2b39127a3430e1feecdc76536a0ba72285367c2f4f"
+    },
+    {
+      "id": "skills-meta-decision-mockups-8ade23f9",
+      "recordHash": "47c20e2ff74bf0f04958a7b08bfa5bc413faa4914cdde20b9376f88acbfc1cf7",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Излагает контекст и альтернативы простым языком, используя HTML или компактный текст для явных ответов.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "ef9e2f06ba28c333a7827497b3cc892a1952aa310ae14fc68552a89f2499a5bc"
+    },
+    {
+      "id": "skills-meta-design-thinking-08d3fa8b",
+      "verdict": "approved",
+      "reason": "Оркестратор выполняет этапы discovery, прототипирования, usability-тестирования и пилотной проверки; результат не ограничен планом. Границы исполнения сохранены в презентации.",
+      "recordHash": "482ab7a98eb7b645a483821b942a7eb54d0b7c974c70b8b14884f31ffef88dab",
+      "presentationHash": "ba8fd8bacb3086ffa4a9991ee624533a6b09f827d111cfe646a13279acd16aa0",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "skills-meta-design-tokens-981927d6",
+      "recordHash": "8d3c27fc389cd3f5cadaeae0a15a23d3bd55c8ff10bd9dea4039ed4277b3d67b",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Создаёт, проверяет и сравнивает контракт токенов, экспортируя его в Tailwind или W3C DTCG. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "1f0a40dc046523985c7fc0ff5d051600415d734007c950425a7a153ed3b81f64"
+    },
+    {
+      "id": "skills-meta-explore-0af324f8",
+      "recordHash": "4e45279ee06898b91350ada6fedf8794ba3eaad4dd49bb4dabe0d833d59e4b86",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выясняет реальную цель, ограничения, ресурсы и признаки успеха через уточняющие вопросы. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "f17f6c3094f219b071885ae3e43eb7b72d146f4905e0bfa705bb9b9b3c69ceaa"
+    },
+    {
+      "id": "skills-meta-external-comms-gate-9dfb7ff1",
+      "recordHash": "1acd9e8469249e30f29393e15b698280bf2eebac078a282ab03dee8b016e4195",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Проверяет исходящие тексты перед публикацией, отмечает риск утечки и предлагает редактуру. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "93fbd0f0a26517b1ee9143afa3ebcda94c50f0d5a1172b0883eddfafb2f2df8e"
+    },
+    {
+      "id": "skills-meta-feature-adr-d4d61401",
+      "verdict": "approved",
+      "reason": "Процесс включает шаг реализации кода и проверки, а не только планирование; режимы и зависимости ограничивают исполнение. Границы исполнения сохранены в презентации.",
+      "recordHash": "eecb8448013a6b755a0573e16a98e8943bb5d302331cbdcaccf8ec8ab9e031bb",
+      "presentationHash": "1c8d858ee2a4f9836baeccb2438a7dac9e76f0bba8cfb54d90c598ab0ad7b23d",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "skills-meta-goap-research-ed25519-c15912ae",
+      "recordHash": "f434dd44578b6c43abb5ac75531ba8fea288ed013b2365621bfdd39297ad71a0",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Планирует исследование, связывает утверждения с источниками и различает доказательность и криптографическое происхождение.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "f6f4ee8620d4cec5b1b959536790f3f7096d406dd35397904d8b2c45251a1472"
+    },
+    {
+      "id": "skills-meta-knowledge-extractor-13b2b0dd",
+      "recordHash": "4693ee62af17efcc66bb1e6a0bb4363f9ea3fc1d8be5c4d80e72a5117ed33d4e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Собирает знания, классифицирует, удаляет дубли, проверяет качество и размещает подходящие артефакты. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "f911a02b721935aca084a2e8681343b7a6fcdc824c1d5a4998d39d9c25c9da6e"
+    },
+    {
+      "id": "skills-meta-loop-plan-author-5da91697",
+      "verdict": "approved",
+      "reason": "Создаёт, проверяет и рендерит plan в исполняемый script; для исполнения указан host или portable runner. Границы исполнения сохранены в презентации.",
+      "recordHash": "9c2d3a93eaf526c65cdd3d17522f27922d24b892d2bd4eff0573329cc44926b1",
+      "presentationHash": "53e0f085605b513c30091ee967bc2123e66372ddc6d0a757b767f84c8f0f9d28",
+      "reviewer": "gpt-6.1-terra",
+      "report": "semantic-reviews-role-fixed.json"
+    },
+    {
+      "id": "skills-meta-problem-solver-enhanced-13842235",
+      "recordHash": "9e58549cd569285422abc1b7955dd263d89d6099c72d2bfb4911ca84da403a7b",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Использует первые принципы, анализ причин, теорию игр и ТРИЗ для сравнения путей решения сложной задачи.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "00aac58421884b959d9a03cb9bafbde39bf502595c9fd19900a87c6f3c99a628"
+    },
+    {
+      "id": "skills-meta-reflection-loop-76701653",
+      "recordHash": "c0a82a1189f3d9604b53fe10c30e38c8598348ea0340fcb397c2f3ac103a9c9a",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Сопоставляет черновик с критериями, вносит предметные правки и проверяет результат до трёх раундов. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "b655c69ad3c845e29f92dc330781c7532d8a88ad3e64c265718a623beeeef234"
+    },
+    {
+      "id": "skills-meta-session-recap-58a4a29c",
+      "recordHash": "155e5e7188e739a04291960374c414901c4961f1f7a941d2a8633741abe4c766",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Обновляет известные статусы чтением и выдаёт четыре пункта о цели и ходе текущей сессии. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "e006c7b11b11097a717a93907e5951e4eedc457e4f054508dffcd64e974a5e02"
+    },
+    {
+      "id": "skills-meta-skill-advisor-0e4ec21c",
+      "recordHash": "04e5af0be37b5341bd633e268d098ff7b6947150d608b4442891f138dcd2e60a",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Читает действующий каталог, ранжирует навыки и наборы, объясняет порядок применения и пробелы. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "3ef7cb56c09b846a6d4db8179bc1fcc312c84377b0ba262de059ddf32ca2085a"
+    },
+    {
+      "id": "skills-meta-skill-crystallizer-d5f00dd8",
+      "recordHash": "e2099ff06b726ad49a876a79fc897a173c0ec056fc87efbddc7253367dcc4b7e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Извлекает паттерны из трасс, составляет композиции и помогает ремонтировать слабые навыки с последующей проверкой. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "d36b463aaa270f3c044215c50e2b1786d0e40b2801a49bd1bc656a22e4aff0e8"
+    },
+    {
+      "id": "skills-meta-structured-reasoning-b6fcfdea",
+      "recordHash": "00c669ee7cee42649474e5f36f5684704e66d8ab8373e006dd3098f55b1a0a09",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Подбирает стратегию исследования вариантов, последовательного вывода или ограничения избыточного анализа. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "745e61f61a60f570dbf37bc6ab6f632b2ee9b3cb921a5a66cac9629599598d0b"
+    },
+    {
+      "id": "skills-meta-understand-anything-bridge-acad02c2",
+      "recordHash": "3852cf48f30125bae7b59072c2a75aaa090a7b83c99320653fded19a9ddaa6ac",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Читает граф Understand-Anything и передаёт контекст архитектуры и влияния изменений другим навыкам. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "f5c6fe55362cce486daeb9bffb3a055388f3e8d2f107b7db786a039f94ed6d91"
+    },
+    {
+      "id": "skills-news-goap-research-ed25519-8af3e2d0",
+      "recordHash": "36aa1250d82431f3f65b3462a0de5b259ed40cdf8e6a4b0d396b76b50f3902b1",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Планирует исследование, связывает утверждения с источниками и различает доказательность и криптографическое происхождение.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "dd8cae0fc0603ee08f6fcc7b269537f17dc371a4b7ff904ed191ec4bec543ba4"
+    },
+    {
+      "id": "skills-news-news-digest-ab498545",
+      "recordHash": "9f6c939dede470339505980ca4526eb0c84c32f995e575bc72cdadb6b85665e2",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Исследует несколько потоков по профилю темы и создаёт Markdown, при необходимости DOCX, с цитатами и индексом источников. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "c4ccb6d6f0168e8ca192407af1770ab97f30d65f021363fc852ad32b26ce38b3"
+    },
+    {
+      "id": "skills-news-news-monitor-9f1efc3b",
+      "recordHash": "77914b4c7a46ee5b58eb5a34c0290397858b9edd945bde512dd3a17a70303a97",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Сравнивает найденные события с сохранённым watermark и выдаёт новые дедуплицированные пункты с источниками. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "e7dc534a0842e9945a337d07b8aeb243e55a9c29a5784a9ed9c73d0484f8bea3"
+    },
+    {
+      "id": "skills-package-story-page-package-story-page-28455597",
+      "recordHash": "c1ddd46200a58de42e3757debad60a78a1eb7b8680e3a183742b93739f70175f",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет сделать краткую страницу об одном пакете на основе источников и примеров в самостоятельном HTML. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "f668c9b4e799962c321fd1a6e8a96aed4c2b523f219d503ec69a016d7c943507"
+    },
+    {
+      "id": "skills-pm-ab-test-analysis-9c9cb0fa",
+      "recordHash": "5ab66065cb4d0dbf021cae299322d47c5b9961a48bf9172f877536a3be5236e2",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет оценить значимость, размер выборки и интервалы с решением продолжить, остановить или выпускать. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "b3f9fa97c3bb09c26074a3d81a5a11c5295547d26c74f5a7ffb6fad408ac8997"
+    },
+    {
+      "id": "skills-pm-beachhead-segment-f92ddebe",
+      "recordHash": "0a0cbaaac27c4871c6fe98ee5a570774cc1c10774692f927ae0fecc1809825ca",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Сравнит стартовые сегменты по боли, готовности платить, достижимой доле и рекомендациям. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "434b7b4ecff55c085b4eda7db7e1f1568aaff85dcd152932c021071e09777e9a"
+    },
+    {
+      "id": "skills-pm-brainstorm-okrs-14da8888",
+      "recordHash": "808c142332c13eec1b5d95760e6a4958133b4921a5c7aed64562d935c3c45d2f",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет сформулировать качественные цели и измеримые ключевые результаты команды. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "5a3b07fcac007ae46c19d096020f46faaab2acd46a6fd849e41a9b1a024bb68e"
+    },
+    {
+      "id": "skills-pm-cohort-analysis-7165ea3f",
+      "recordHash": "e28e976b234fc162dd82f0abfc1fc863f39733296c31d084995875a57bdf9829",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет проанализировать удержание, принятие функций и различия пользовательских когорт. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "2f85622b654b73afe300329deeea71e733454880b3e7721755b678f1432294fd"
+    },
+    {
+      "id": "skills-pm-growth-loops-5d0a43e1",
+      "recordHash": "126705bcde1510e11ba94e63d51b361eef4e8e98995841823220dcffd9c513d9",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Разберёт вирусные, пользовательские, совместные, контентные и реферальные петли роста. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "4acf63b668dc949ea32150b05a890f7d095c4f5e21e86bb477ef225701831669"
+    },
+    {
+      "id": "skills-pm-gtm-strategy-b7856002",
+      "recordHash": "411496b86afbac97124177915d8609478c6fb26723aec1e8abb11d6ee833b686",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет собрать позиционирование, каналы, метрики и календарь запуска. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "ff7fc3792a47899f4e3dc8a9e6a782dc40c09e151c527b4daf46f502226c5104"
+    },
+    {
+      "id": "skills-pm-market-sizing-1454c0a6",
+      "recordHash": "d6b69c3845fd79da9400faa2e5cd879f2ec451a81a3673a1e0e479deb41fc9c0",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет оценить рынок сверху вниз и снизу вверх с разделением TAM, SAM и SOM. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "73db2c871e2292308d291afe40942995c934829357fbb1a3ea1b0a585640caf8"
+    },
+    {
+      "id": "skills-pm-metrics-dashboard-cc2a220b",
+      "recordHash": "dad4d638d10d993aca3acb42d83ccf456569db1189f7e47fd4dd37d56e1bb3e3",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет определить метрики, источники, визуализации и сигнальные пороги панели. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "19a44fa842b08e51b32c2e16d6e06ca28e69a002ef9320af0e2725d66f452cd6"
+    },
+    {
+      "id": "skills-pm-north-star-metric-5bdd7c7d",
+      "recordHash": "c63cf907358d8ae3e0257f9f903676798f8f9248d0e76525603f28e4bad9e8f9",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет выбрать главную метрику и несколько входных показателей с проверкой соответствия бизнес-модели. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "4eb1177794b76a2f050aaf453cd51b83751a542ea706852a907b6f6a7c6809a8"
+    },
+    {
+      "id": "skills-pm-opportunity-solution-tree-631c4177",
+      "recordHash": "e6735e068d3753881fc26a3ba0950e7fdd7a8a60da4cf3caf43fe85816db2e2e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет построить Opportunity Solution Tree: результат, возможности, решения и эксперименты. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "6ba2867f6c201814313116e877b1e52fd5835c951d0056ecf227a40b37d4e287"
+    },
+    {
+      "id": "skills-pm-outcome-roadmap-990d81fc",
+      "recordHash": "0725e53fdd469ac9f97204093ba8f6c43f035fc167441b5c218f9dcaca53c6ed",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Преобразует перечень поставок в карту ожидаемых пользовательских и бизнес-результатов. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "b3c1f1429262744e8b20b9c657129cdddf78e2ca78e57ce711cb76806b9013d5"
+    },
+    {
+      "id": "skills-pm-pricing-strategy-e32efd8e",
+      "recordHash": "8257ef46a948ff862de337a457a96e1c4622f290aec6098b5a1de0f77899fc69",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет сравнить модели монетизации, конкурентов, готовность платить и чувствительность к цене. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "699ebbede55874d0ab9ba76075ae16590a56498b1a34324ac6200cef5eada07f"
+    },
+    {
+      "id": "skills-pm-prioritization-frameworks-f35079cc",
+      "recordHash": "a184dc8aac27738882e7721bcf19b88fc679f0c72f3d22182665c389ad9fdf59",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Объяснит формулы, применимость и шаблоны нескольких методов приоритизации. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "7fb2de88c64a68ef289525aa674e0c1baa21fa1ce1a7721d37a5365cc5b8a178"
+    },
+    {
+      "id": "skills-pm-prioritize-features-684132ac",
+      "recordHash": "f5b7c2ab623fd3f610e25fe7edc14ad0849fb2718fa34ac4cf812c34052860d5",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет ранжировать идеи с учётом влияния, усилий, риска и стратегии и выделить приоритеты. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "2fec8ddbf4e3d494c935846affbcf428b964a220bc3e8c9ec335380ddfd38628"
+    },
+    {
+      "id": "skills-pm-product-strategy-9d2c0c0b",
+      "recordHash": "e36e457a9c8ed721d1d7a76a23f4c4820dd1eb45425596ebf53a439a8ad29a3c",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет заполнить Product Strategy Canvas из девяти разделов, включая рост, компромиссы и защищённость. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "2fccfd8e29c639ad0f273abab21406fde3adc9f589272379dba19d84664e8697"
+    },
+    {
+      "id": "skills-pm-sprint-plan-888b4bd6",
+      "recordHash": "01d30978f7b82e04e7da4727c3bf2d35d15258cd2eb618b745f2da7fb1495c2e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет оценить capacity, выбрать истории и сопоставить объём с возможностями команды. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "c486c16b9d30a9884d5767bddbdcd956ba8840bc05917248013aa9742bc3e8f1"
+    },
+    {
+      "id": "skills-pm-stakeholder-map-d2903aa6",
+      "recordHash": "6160c728d3e656a97d267cac6f7e0112274f48671505bf091420c27a88212776",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Сопоставит влияние и интерес сторон и предложит план коммуникаций по группам. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "0044b1c95c6df85c11e6370b36304112c8ef0eaf7e8f06ee60612f1ec3fd4053"
+    },
+    {
+      "id": "skills-pm-strategy-red-team-8080fdb3",
+      "recordHash": "58c2e54c273df4b3cfc45cca09f1e043acb69574cf7b61bd6702546abf98c1ac",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Проверит ключевые допущения стратегии и предложит дешёвые проверки с критериями отказа. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "bb58d59540e4c54775f20b9a538dd6dc37a49311ecd2c60ccc7e6ec9cd952735"
+    },
+    {
+      "id": "skills-presentation-storyteller-explore-fd33d531",
+      "recordHash": "2a9e4aace90f5960fcdefaf2b567942c562797574246c10345ffc97306724983",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет через вопросы превратить неясный запрос в рабочую спецификацию. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "5b46369aeaeb7847c82876a176c9fcaba071cd4c10da03a8639cc94f97eb4b00"
+    },
+    {
+      "id": "skills-presentation-storyteller-goap-research-ed25519-77ca5f2f",
+      "recordHash": "cf905c95101b155169173ea20a68460195ae3ff0beae2892fc756bc7e4724e2f",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует GOAP-исследование с оценкой источников и опциональными Ed25519-подписями происхождения. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "fbc418753a124682c51d792ea5c4f271df1c99189784a8c81b48003556390815"
+    },
+    {
+      "id": "skills-presentation-storyteller-presentation-storyteller-7ccca571",
+      "recordHash": "4c6914475d83d0036d33c799f5bd4adf7c7f69af99787bd634c810201a77ea60",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Подготовит план, Markdown-презентацию, ссылки на источники и связный рассказ для слайдов. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "78f20b2692cddb4547820ee1b937efa79e94fdc5bffb93ff666dac261efdce94"
+    },
+    {
+      "id": "skills-qe-brutal-honesty-review-230143fd",
+      "recordHash": "160cbf5247aab3587d6e93d9d3f5b188816efb734651342002c45afd4ebb8e0a",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Даст прямой разбор недостатков с причинами и направлением исправления. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "9c4a649ae88f2e75997ce24b8fc3a7576f32d920415588b5aedc47c33fd6e6b4"
+    },
+    {
+      "id": "skills-qe-qcsd-cicd-swarm-4ffc7bc4",
+      "recordHash": "9ef71ea4f856ce70f5ff0bc31ae32e601f31a212d42b33da08e7c7db1c99723d",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует QCSD-проверку артефактов CI, регрессионного риска и готовности выпуска. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "d320a35a3a689e2f1d70cfdaab4033e111722e83414ca9b6be58a3fb3578a247"
+    },
+    {
+      "id": "skills-qe-qcsd-development-swarm-2fdc713c",
+      "recordHash": "17e7bcea841f499ef58648478a0d3d8eec894b7559b41b3028f77fbe6d3bd75e",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует QCSD-разбор сложности, TDD и покрытия во время разработки. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "d4291fce1c5da1a90e6509bb612aea3fa2a540f1fde8e4582190119b7bcbd73b"
+    },
+    {
+      "id": "skills-qe-qcsd-ideation-swarm-7be02c3c",
+      "recordHash": "948cce29b9f2ec8471cc9355ce41fd6c4b48b6c854b07490000d0f623460e236",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует оценку критериев HTSM, рисков и тестируемости требований до написания кода. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "245e86903843df51ef3eb6048439a1ad93cfa78918c5ee4842a890be93b8f444"
+    },
+    {
+      "id": "skills-qe-qcsd-production-swarm-dc49f5ca",
+      "recordHash": "3fc582645fbd8da7bed5142f1d7b3c93c6f17781947c1fd2717132af391c27d9",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует QCSD-оценку телеметрии, инцидентов и обратной связи после релиза. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "710c7e64d647e658c6b8208c95948c4ac10948ad7027b6b6e691d0661c5ee24a"
+    },
+    {
+      "id": "skills-qe-qcsd-refinement-swarm-83b167a2",
+      "recordHash": "f90c709ee9b5a3463557a6c24f695ca38803ec71d74234544ed125cd34331b61",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует refinement по SFDIPOT, BDD и INVEST с выводом о готовности историй. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "3bacdf5c14c319994dcdca156a97758caf761d164c060dafc67ba4502dfc5f2d"
+    },
+    {
+      "id": "skills-qe-qe-browser-dbe04a5f",
+      "recordHash": "6a96678db1458f93a8281fbd7ef96b22ff7ffadced815dfa24e563f044ae2f69",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Описывает QE-обёртку над Vibium для браузерных действий, утверждений и сравнения изображений. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "f933b27c5d5693c6d5a70557a630c96490721c613ec7d61d9d0acce78de17d33"
+    },
+    {
+      "id": "skills-qe-qe-chaos-resilience-3f35fee5",
+      "recordHash": "585720a83577443b862803e0a79c204018823b8e1d4b75e0a84fce25eb533c13",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Направляет использование AQE для внесения сбоев, нагрузочных испытаний и проверки восстановления. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "18dbf4839c969cb592a8a23a53c152c392ab9ba0b56e820d958a8ad9671b1d2a"
+    },
+    {
+      "id": "skills-qe-qe-code-intelligence-4835c8f7",
+      "recordHash": "07e9bc671c287399525afb27ddd6b2cb4cee07b5f0ca61c534ec8d3ff228b0a4",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Направляет использование AQE для индексации кода, семантического поиска и анализа зависимостей. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "d4bedbdd267d825b6e6e4fbdd2e1e59261f005fff31eeefdb71a23359e31f5b2"
+    },
+    {
+      "id": "skills-qe-qe-coverage-analysis-84d39b96",
+      "recordHash": "4cc3e211e3de41385c37cd1ea849f2e12b574835becf6f7ef5dc8cb81a4a22c4",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет использовать AQE для анализа покрытия и приоритизации пробелов по критичности. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "aec9f0083108854b960ce253e24fa154a7a96233347cf6752fcdf21391ee9b6d"
+    },
+    {
+      "id": "skills-qe-qe-defect-intelligence-f23d662d",
+      "recordHash": "cff384d175dec1b019a9995c45fa94f2a83c68a7aee6b4c8de5ff01913bf1bde",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Направляет анализ истории дефектов, частоты изменений и сложности для оценки рискованных мест. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "a18638c7354b1c065e34f9da61a129f82d23f422a899ddacaf2abb68d395ff42"
+    },
+    {
+      "id": "skills-qe-qe-iterative-loop-8960593f",
+      "recordHash": "9963b50e09656925c7c5e09b40c9442938ba122638c11eaeb3b0a1a3c394dd81",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Описывает итеративный QE-цикл исправлений и проверок по явному критерию остановки. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "2d3fe71e1106b53c1a19eded745d7863f9ce26929eda213a2895122af871e3de"
+    },
+    {
+      "id": "skills-qe-qe-learning-optimization-dcd88ae2",
+      "recordHash": "8f49fdc5f3c7a203047ab1132ce45b0891489f8b10d8ab66383f847dd4d3d654",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Направляет обучение, перенос паттернов и сравнение настроек QE-агентов по метрикам. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "4979f418c6069f369b16d38950a0ff016bda150e2f7b24b9eb3b37a15a448a34"
+    },
+    {
+      "id": "skills-qe-qe-quality-assessment-9fc96418",
+      "recordHash": "6106f5a5d0e11db3b234b3fe322399dff10714b2016e96482f5615d43adfca4a",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Направляет оценку сложности, линтинга, запахов кода и состояния тестов средствами AQE. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "70bc34ee0038392cc1bbc45f4f7d03fd7ca86918e97e90a4b64e7a8c4442ad86"
+    },
+    {
+      "id": "skills-qe-qe-requirements-validation-310ed305",
+      "recordHash": "e22e2b6169b4169ffe824ccfdac41ae2fc827b150d84104ddb35bc540f559e93",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет проверить критерии, связать требования с тестами и подготовить Gherkin-сценарии в QE-процессе. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "2ba2dce5d1189875495a57e603213f8ae1bc7398f65cb82ab918e384137c661c"
+    },
+    {
+      "id": "skills-qe-qe-test-execution-7009c81e",
+      "recordHash": "48d0f452c150294961c9019b900c0d7a44aeb0107b03014e32d083359628a8c7",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Направляет запуск тестов через AQE с разделением нагрузки, повторами и отчётностью. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "0bfb94c0dfbcdbdafa38ba1ec2ae285e211f45743bb9db649635cc02e834efd2"
+    },
+    {
+      "id": "skills-qe-qe-test-generation-645598e6",
+      "recordHash": "02c1e45c826d9fc222be257943b0d75df61fd041c786e1279b9e0e5759b5152f",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Направляет создание unit-, интеграционных и E2E-тестов по коду с помощью AQE. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "8b4340c85132dfe4bf2e2960f41ad3dad1236ddb30fc361bb4c548b0522391ea"
+    },
+    {
+      "id": "skills-qe-qe-visual-accessibility-4aa8bd95",
+      "recordHash": "16ee76450cb8c81b104ea6ea535f9685d09889e8b02f24a69b0a5c7172c7e5a3",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Направляет QE-проверки изображений, адаптивности и доступности через браузерные инструменты. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "8c951a1320038d951283901e847861bb930ea5caa385fda9624126f452a3c4ef"
+    },
+    {
+      "id": "skills-qe-sfdipot-product-factors-9be0c1a8",
+      "recordHash": "2091af8ac78aaf6d044f8d279eba602b50c7b7f0b28e97fea6ae4d8b4fe87d10",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Разберёт продуктовые факторы SFDIPOT и предложит приоритетные идеи проверок. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "bc6da149e04945b12d4a439e3988e4e285534a9539fd1d38ad78da86a8286c41"
+    },
+    {
+      "id": "skills-qe-six-thinking-hats-2b600e91",
+      "recordHash": "72dc7cdfe9aa7b9b4538a0186dbe260dc95f601624ce5a8fd038bb23c6b97090",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет рассмотреть факты, риски, пользу, идеи, эмоции и процесс по методу шести шляп. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "b650930e75f8849448bd8f8a869ea81babbcd03c570ee656a4190df6a29054f5"
+    },
+    {
+      "id": "skills-qe-systematic-debugging-c9ab6034",
+      "recordHash": "4fdff550862697c61a7d695f1b6de28563556b7c0c14efe1a18e883452ef815d",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Проведёт системную диагностику ошибки или падения теста перед предложением исправления. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "38ceaefbfb1a62ef25dcc8004142b0e1e6837da1ae68b2147a4f315b30d0ed08"
+    },
+    {
+      "id": "skills-qe-validate-aa98f767",
+      "recordHash": "668b2f9424b6ca1fa9eb84640ead6bde1598da86fe358a644d7647a47a6c66ce",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Требует выполнить подходящие проверки и прочитать их результат до заявления об успехе. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "41d2f462498a0e7669ed5a349f5daaa49b72e0283b2230ce8d68857cd020389b"
+    },
+    {
+      "id": "skills-reasoning-agents-md-creator-9cfa89ee",
+      "recordHash": "e4abd37a164aac90e9a18f20a5ef6b70075df78cdb54fe5b4667a2663050e591",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет подготовить per-repo AGENTS.md с зависимостями, обязанностями пакетов и ограничениями архитектуры. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "017dafb386501ee0eea11e285bfcc61bdec61331072d2bfaa221adb33be27ffd"
+    },
+    {
+      "id": "skills-reasoning-investigate-a24701a4",
+      "recordHash": "32dbabe03618c8cf602077c4dddad0978c880188f299b8a453e66acffdd18769",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Проведёт системный поиск первопричины и подготовит объяснение проблемы. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "dde8ee51845d90b3d7a45747353ee3f75d8d794aec83e75fb417e1c7cfd05ed0"
+    },
+    {
+      "id": "skills-reasoning-karpathy-guidelines-684e7364",
+      "recordHash": "d43c1405f0673e37be4e0b9ce2f98a48b5cc11d115cb15658d18117a67fa0368",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет применять поведенческие правила: простота, точечные изменения и проверяемый результат. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "046bb99ec5afb55fbd43768c36c30752313802bda48b75ed917cee7ed5437595"
+    },
+    {
+      "id": "skills-reasoning-solid-10305975",
+      "recordHash": "46d2b5877f8d230de2e85993066cc23e46308fb297754f1f0722ba85799c808c",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет применять SOLID, TDD и практики чистого кода при реализации и проектировании. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "64eb77f6973a62f6e0c62f35912b04f2da33dfb32d2497aadb7ddd19bbb9a56a"
+    },
+    {
+      "id": "skills-reverse-engineering-explore-0cbc2e1c",
+      "recordHash": "2a6d8b1246c8b77e87c6f61c605ba01bb0f1d4db794f96af47301f26ad16db52",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Выясняет реальную цель, ограничения, ресурсы и признаки успеха через уточняющие вопросы. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "53ae8f17cc76efc1b4a348fe1a4010386808f9e6f3b87374d7e7ce86f06ce4f7"
+    },
+    {
+      "id": "skills-reverse-engineering-goap-research-ed25519-3a44d641",
+      "recordHash": "cb300f2a4b93c58d7377cbcb3dc99c9112cf69c8b4bc1f7c008427c47e102ba0",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Планирует исследование, связывает утверждения с источниками и различает доказательность и криптографическое происхождение.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "de3456193346e2e59e36777f1461f175fb89dcc63727470323e9a9063c585782"
+    },
+    {
+      "id": "skills-reverse-engineering-problem-solver-enhanced-970c5012",
+      "recordHash": "2bfaf9c724f4afb1374f9aef29c256e2a588c7b566a630df9bc7de71ebf56b95",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Использует первые принципы, анализ причин, теорию игр и ТРИЗ для сравнения путей решения сложной задачи.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "342f291dfc636a262c731987bad75314a56282e594d16b1b46b05f6f1def2845"
+    },
+    {
+      "id": "skills-reverse-engineering-reverse-engineering-unicorn-1ff98a5c",
+      "recordHash": "a1d6ccb5fa186090efbd0497d148b8014b105bafd464fc29a2833aa3c39db213",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Собирает факты о продукте, клиентах, рынке, экономике и росте; синтезирует план запуска и в нужном режиме CJM-прототип.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "710c5523b01715eef7c5291b461f7a9efd15b39e4937c25d6a87f6c1401dd538"
+    },
+    {
+      "id": "skills-taste-design-taste-frontend-6856c4ba",
+      "recordHash": "3323558b106bbd7e7df5c3674833e7d9a17a618545092e137be2984770d789a0",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Выводит визуальное направление из брифа, проверяет исходный дизайн и реализует осмысленную типографику, композицию и систему стилей.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "0ba14441ce981538d7cf62f87bd8dcb8171e5b4cf0e2194cb9b5ceecfc51ae56"
+    },
+    {
+      "id": "skills-transcript-site-transcript-site-generator-2e78ef86",
+      "recordHash": "5ce0973bcabd5700d5a08942c7afbbca7d43478f4388c6a8ae3340141cb7b3f7",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет превратить транскрипт в адаптивный статический сайт без этапа сборки, подготовленный для GitHub Pages. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "8fa8e1116defe56f995a178344fbdcb6e1d25967b39eb27831edb5e317c670c6"
+    },
+    {
+      "id": "skills-tutorial-factory-package-tutorial-factory-8072e340",
+      "recordHash": "2161b4d5a990781a24edfc601e70adb9c2f21f7b8fd877a7f765a2139ef3d7f2",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Собирает курс по исходникам пакета, использует готовую методическую базу и детерминированный renderer с verifier. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "d7075b9197eeba5aa741df55ed32357b3486a1f263f8b964a1f707015963658d"
+    },
+    {
+      "id": "skills-web3-bankr-f1d0decb",
+      "recordHash": "001ac9171a654625d033e6e528121578669f29910e2fda7017634a691600e1f0",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает CLI и REST для синхронного чтения кошелька и асинхронного выполнения агентных операций.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "4f9bcbab596638723b26e9c564630314244b751d931b64321bf8b9f5493d1e7d"
+    },
+    {
+      "id": "skills-web3-ens-primary-name-6730b6a8",
+      "recordHash": "5e394e14c602fed4522026f80caedd4fbb86162ed234a2601b775861faf86804",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает Reverse Registrar, проверку двунаправленной связи имени с адресом и настройки аватара.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "b87f79dfeb5207ece7637b5972e9df23e74ba44310ef691edeb1ac1cf18f1d9f"
+    },
+    {
+      "id": "skills-web3-erc-8004-a26ff88c",
+      "recordHash": "62e869386a68c89e87d5ae1946466b7864dc719cba957fd880c92723096049f4",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает ERC-721 идентификатор агента и отдельные интерфейсы репутации и независимой валидации.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "5c62751f242891b02ca972736cd7aab8e9b682f72e4bc8b68e69ecc8c822d029"
+    },
+    {
+      "id": "skills-web3-hydrex-75c9668e",
+      "recordHash": "aab08123baeff080272566fba65ea1e46f53dbbbe32484c5a24e459fb4cbb5d4",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает SDK Hydrex для блокировок, голосования по эпохам, ICHI vaults и учёта вознаграждений на Base.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "499c8708c0478568743b8e874a8b5799c15f01fefec027f5169ede9af5f40cad"
+    },
+    {
+      "id": "skills-web3-neynar-4d77bfe3",
+      "recordHash": "22e5cc2ddbfeb62fc1e55181d393c1baee2c7c1c768b9bd5508fb43352313788",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает API пользователей, лент, casts, реакций и связей Farcaster с управляемым signer для записи.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "f292d69be64970d3f8f2fc7cff030a8b0b584b34c8b2d281e6e7071406ce80c3"
+    },
+    {
+      "id": "skills-web3-quicknode-92f904ee",
+      "recordHash": "d796ea04d0611ea19f46e70611a17fd7a78cc5d123cf512ad050f49eb5686518",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает JSON-RPC и дополнительные методы данных с режимами доступа по ключу или оплатой запроса x402.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "b4c36035d88fe17740771effc9f58bdf719e29bdcd7aab7cf79973d773017982"
+    },
+    {
+      "id": "skills-web3-quotient-d570a063",
+      "recordHash": "c302b228ebfd4562d15c8645eb294c349ea878b40f12c026fa9ddef2a6823cc8",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает предполагаемый read-only API рыночных данных и x402-доступ, отделяя данные модели от исполнения сделок.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "3534393ed356eef128f9c7846e7d621f8872bb3f687cf43c414b4be7fe27f306"
+    },
+    {
+      "id": "skills-web3-siwa-15d553f9",
+      "recordHash": "8f7ded040c92437ae3e263bbf57729fe19487c21bcf91b28a78de9d0a1a41294",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает подпись запроса аутентификации, серверную проверку и ограниченные capability-права.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "5bd6f51f05453def7539e2488f872615ea48a5a742042cee368f90c2bc2df8c0"
+    },
+    {
+      "id": "skills-web3-symbiosis-ec448e59",
+      "recordHash": "d5f10d8553acc6e5b5689fc11c46e34bd86c098f84029cb9c6d78cac2fa6aa11",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает получение маршрута, разрешение расходования, отправку и отслеживание межсетевого обмена.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "94c02c91f4194fd0055d31dd1432c2ea084907e1bd23a6dfd8d7aae91e578a2a"
+    },
+    {
+      "id": "skills-web3-trails-862c7506",
+      "recordHash": "f49a096f72f3078e8de454b6ac3495313ace45a032b2e132b4dc14fe7ed13b3c",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает разрешение, commit, исполнение и отслеживание intents, а также чтение данных pools и vaults.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "72e4bb8753fc4ea6a2cdfcdd932de6e76b594a0fc44808faf6a8cf1e8dcef385"
+    },
+    {
+      "id": "skills-web3-veil-8bd0fbdf",
+      "recordHash": "10b69550413f5f63c4dae597d9790824cd80c47624b98f7e9178450fd0ea13cf",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает Veil Cash, CLI и SDK для работы с ZK-пулом ETH и USDC на Base.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "13be48346a8cf29f6d19918cf35f0004de108877e8816df8c2c1e7cd64c57075"
+    },
+    {
+      "id": "skills-web3-zerion-c07cdc9a",
+      "recordHash": "5dff8284fe27ba1b44db2f03409e7f8646eb1cce14a84dee1cbb1b41d10b0d68",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение и условия использования: Описывает интерпретированные позиции, историю, PnL и котировки, нормализованные между сетями.",
+      "report": "semantic-reviews-a2.json",
+      "presentationHash": "806c1e831f849d94c9a1eab1907b413f255ef7b61ef08eddf64ae49a0be2b7e2"
+    },
+    {
+      "id": "skills-website-cloner-clone-website-eac4b4db",
+      "recordHash": "1f7f4060400b7a2bfac93c8f220ce5dd0ce4cf44ac03318f16c2bdb11636d915",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует разбор секций, стилей и ресурсов и сборку визуальной копии с адаптивностью и mock-данными. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "886d11e11e4ecee1bc12c37bb2c12baeb0e7eba3dd9b1605ec14f76a896eda66"
+    },
+    {
+      "id": "trip-planner-explore-244a45d1",
+      "recordHash": "8644c8fbb09ee1f4c211c84c2a2a46e9063330ebaba787600c484591e8e68c48",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Поможет через вопросы превратить неясный запрос в рабочую спецификацию. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "c81be3838f5509a69baaf503bab139eace267d509961ff830a0284da8274755e"
+    },
+    {
+      "id": "trip-planner-frontend-design-3dd0bc97",
+      "recordHash": "5e85177b79cc650a410df3883ace249390c0bcbe86aca41444590d18c5ffe4b8",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Поможет выбрать визуальное направление и реализовать интерфейс в коде с вниманием к типографике и композиции. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "df2c46d4e7a168af55762cc52760434b37db7f73f6569e263f46281c1b1b1343"
+    },
+    {
+      "id": "trip-planner-goap-research-ed25519-cac1484b",
+      "recordHash": "97734affd4de3a2de8ff981aa0398fde1d54b1860aede6d1f3b1df4ba207e1d5",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "SKILL подтверждает назначение: Организует GOAP-исследование с оценкой источников и опциональными Ed25519-подписями происхождения. Ограничение и следующий шаг согласуются с указанным сценарием.",
+      "report": "semantic-reviews-b2.json",
+      "presentationHash": "d56297923614bd80bb8282731398afc2321cad34057aabeba81207491dec371c"
+    },
+    {
+      "id": "trip-planner-trip-planner-87c87607",
+      "recordHash": "f0ba237d2e79d646c42e12cd2266bd946eadf184875b310297eb58b0c5ad01b0",
+      "verdict": "approved",
+      "reviewer": "gpt-6.1-terra",
+      "reason": "Цитата из описания SKILL подтверждает назначение: Организует проверку мест и составление самостоятельного HTML-маршрута с таймлайном и ссылками на карты. Остальные поля записи не изменены.",
+      "report": "semantic-reviews-delta-2.json",
+      "presentationHash": "9fcbb98a9e6f96277430553a2a5b80eef2bc689ee1a0c6532afd2a12a2e5b526"
+    }
+  ]
+}

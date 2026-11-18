@@ -1,0 +1,705 @@
+{
+  "schema": "dz-scenario-catalog/1",
+  "records": [
+    {
+      "id": "meta-capture-adr",
+      "package": {
+        "name": "@dzhechkov/skills-meta",
+        "version": "0.9.75",
+        "manifest": "packages/skills-meta/package.json"
+      },
+      "skillIds": [
+        "capture-adr"
+      ],
+      "title": "Зафиксировать принятое архитектурное решение",
+      "queries": [
+        "Запиши в ADR уже принятое архитектурное решение"
+      ],
+      "intent": "Сохранить решение из контекста обсуждения.",
+      "whenToUse": [
+        "Архитектурно значимое решение уже принято."
+      ],
+      "whenNotToUse": [
+        "Решение ещё обсуждается или требуется полноценное проектирование."
+      ],
+      "outcome": "Краткий ADR с контекстом, выбором и последствиями, помеченный для проверки человеком.",
+      "prerequisites": [
+        "Контекст и принятое решение доступны."
+      ],
+      "steps": [
+        "Убедиться, что значимое архитектурное решение принято.",
+        "Извлечь название, контекст (причины и рассмотренные альтернативы), решение и последствия; недостающие сведения оставить для уточнения.",
+        "Создать пронумерованный файл в docs/decisions и сообщить о необходимости проверки."
+      ],
+      "limitations": [
+        "Автоматически созданная запись требует подтверждения человеком."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-meta/package.json",
+          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+        },
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "sha256": "ea409786fa3cfaee8e24a0ed6841400965a27801e9662f86cc7cd3efba981857"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "quote": "  Lightweight ADR capture mid-conversation without full ceremony. Detects architectural decisions"
+        },
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "quote": "- When the decision is still being debated — wait until the decision is actually made"
+        },
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "quote": "Extract the four required fields from the conversation context:"
+        },
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "quote": "`needs-oversight` tag is always added for auto-captured ADRs. A human should review and"
+        },
+        {
+          "path": "packages/skills-meta/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-meta\","
+        },
+        {
+          "path": "packages/skills-meta/package.json",
+          "quote": "  \"version\": \"0.9.75\","
+        },
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "quote": "If any field cannot be confidently inferred from the conversation, emit a `needs-oversight`"
+        },
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "quote": "4. Write file: `docs/decisions/{NNNN}-{slug}.md`"
+        },
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "quote": "| **Context** | 1-2 sentences | Why this decision point arose; what alternatives existed |"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "meta-knowledge-harvest",
+      "package": {
+        "name": "@dzhechkov/skills-meta",
+        "version": "0.9.75",
+        "manifest": "packages/skills-meta/package.json"
+      },
+      "skillIds": [
+        "knowledge-extractor"
+      ],
+      "title": "Извлечь опыт из завершённого проекта",
+      "queries": [
+        "Извлеки повторно используемые практики из завершённого проекта"
+      ],
+      "intent": "Найти и оформить повторно используемые знания проекта.",
+      "whenToUse": [
+        "Есть завершённый проект для анализа."
+      ],
+      "whenNotToUse": [
+        "Нужен анализ ещё не завершённого проекта."
+      ],
+      "outcome": "Отчёт о находках, проверенных и размещённых повторно используемых шаблонах, правилах и других материалах.",
+      "prerequisites": [
+        "Путь к существующей директории проекта; среда для описанного процесса с агентами."
+      ],
+      "steps": [
+        "Проверить путь и извлечь шаблоны, команды, правила и фрагменты с помощью агентов.",
+        "Классифицировать и убрать дубли; показать находки пользователю для проверки.",
+        "Провести проверки качества, разместить одобренные материалы и подготовить отчёт."
+      ],
+      "limitations": [
+        "Источник описывает многоагентный процесс с обязательной проверкой пользователем и изменением файлов."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-meta/package.json",
+          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "sha256": "2b7e6f3a7037104b8fa23b86c113733e047a9a9f0e8b4f16c4cde8a6341c8525"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "  Multi-agent knowledge harvesting system that extracts reusable patterns, commands,"
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "   - If `{TARGET_PATH}` does not exist → report error and stop"
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "Loop until user says \"ок\"."
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "Findings passing all gates → status `approved`."
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "2. Auto-place by category:"
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "| Extracting from incomplete phases | Artifact lacks promise tag or checkpoint | Only harvest from completed projects |"
+        },
+        {
+          "path": "packages/skills-meta/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-meta\","
+        },
+        {
+          "path": "packages/skills-meta/package.json",
+          "quote": "  \"version\": \"0.9.75\","
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "| 02-classify | Assign categories, deduplicate, cross-ref | 0 (inline) | — |"
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "- **Harvest report** — session summary with metrics (extracted → approved → placed counts, gate pass rates)"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "devops-database-migration",
+      "package": {
+        "name": "@dzhechkov/skills-devops",
+        "version": "0.3.18",
+        "manifest": "packages/skills-devops/package.json"
+      },
+      "skillIds": [
+        "database-migration"
+      ],
+      "title": "Спланировать миграцию схемы базы",
+      "queries": [
+        "Спланируй миграцию схемы базы данных с откатом"
+      ],
+      "intent": "Подготовить изменение схемы и план отката.",
+      "whenToUse": [
+        "Нужно изменить схему существующей базы."
+      ],
+      "whenNotToUse": [
+        "Нужно исследовать производительность SQL или устранить текущую аварию."
+      ],
+      "outcome": "План изменения схемы, отката, проверки и координации с развёртыванием приложения.",
+      "prerequisites": [
+        "Описание текущей схемы, целевого изменения и стека."
+      ],
+      "steps": [
+        "Выбрать инструмент с учётом языка, базы и поддержки отката.",
+        "Определить изменение схемы и необходимость переноса существующих данных.",
+        "Подготовить план отката, тестирования и последовательность развёртывания."
+      ],
+      "limitations": [
+        "Цель отсутствия простоя и потери данных не является гарантией результата."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-devops/package.json",
+          "sha256": "3a6d66b689bcbeb15f8b69b6673a30fb5293b1f73666fe1722be831219b0c0cb"
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "sha256": "7237328a8c83e89a595fdd99f8178126fd01be5d84ec3b683824d14d7428ca4d"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "description: \"Plans and executes database migrations — schema changes, data migrations, zero-downtime strategies, and rollback plans.\""
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "- Writing rollback plans for irreversible schema changes"
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "- Reviewing SQL query performance (use the database-review skill)"
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "- Debugging a production database outage (use the incident-response skill)"
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "Choose the right migration tool for your stack. All tools in this table follow the same core pattern: numbered migration files applied in order, with up/down operations."
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "3. **Evaluate rollback support** -- some tools generate rollbacks automatically, others require manual down migrations"
+        },
+        {
+          "path": "packages/skills-devops/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-devops\","
+        },
+        {
+          "path": "packages/skills-devops/package.json",
+          "quote": "  \"version\": \"0.3.18\","
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "2. **Check database support** -- ensure your specific database version is supported"
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "- **Data migration:** When a schema change requires existing rows to be updated. Often paired with a schema migration"
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "- Coordinating migration timing with application deploys"
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "### Step 8: Testing"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "devops-observability",
+      "package": {
+        "name": "@dzhechkov/skills-devops",
+        "version": "0.3.18",
+        "manifest": "packages/skills-devops/package.json"
+      },
+      "skillIds": [
+        "observability"
+      ],
+      "title": "Спроектировать наблюдаемость сервиса",
+      "queries": [
+        "Помоги настроить метрики, трассировку, SLO и оповещения сервиса"
+      ],
+      "intent": "Спланировать наблюдаемость сервиса.",
+      "whenToUse": [
+        "Нужно определить сигналы, SLO и оповещения."
+      ],
+      "whenNotToUse": [
+        "Нужно реагировать на действующий инцидент."
+      ],
+      "outcome": "Проект метрик, логов, трассировки, дашбордов, SLO и правил оповещения с учётом нужд сервиса.",
+      "prerequisites": [
+        "Описание сервисов, текущих сигналов и требований к надёжности."
+      ],
+      "steps": [
+        "Оценить текущие сигналы, инфраструктуру и потребности команды.",
+        "Определить инструментацию, метрики, логи и трассировку по необходимости.",
+        "Спроектировать дашборды, SLI/SLO и оповещения."
+      ],
+      "limitations": [
+        "Набор инструментов и глубина внедрения зависят от системы."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-devops/package.json",
+          "sha256": "3a6d66b689bcbeb15f8b69b6673a30fb5293b1f73666fe1722be831219b0c0cb"
+        },
+        {
+          "path": "packages/skills-devops/observability/SKILL.md",
+          "sha256": "b8baf0a141a5f521e6597d2b69b06ebf4979deec5bd514195e6be6decf9ae754"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-devops/observability/SKILL.md",
+          "quote": "description: \"Designs observability stacks — metrics, logs, traces, dashboards, alerting, and SLO/SLI definitions.\""
+        },
+        {
+          "path": "packages/skills-devops/observability/SKILL.md",
+          "quote": "- Responding to an active production incident (use the incident-response skill)"
+        },
+        {
+          "path": "packages/skills-devops/observability/SKILL.md",
+          "quote": "Evaluate the current state and choose the right tool for each pillar. Not every system needs all three from day one — start with what gives the most signal for the least effort."
+        },
+        {
+          "path": "packages/skills-devops/observability/SKILL.md",
+          "quote": "Evaluate the current state and choose the right tool for each pillar. Not every system needs all three from day one — start with what gives the most signal for the least effort."
+        },
+        {
+          "path": "packages/skills-devops/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-devops\","
+        },
+        {
+          "path": "packages/skills-devops/package.json",
+          "quote": "  \"version\": \"0.3.18\","
+        },
+        {
+          "path": "packages/skills-devops/observability/SKILL.md",
+          "quote": "Current metrics collection:     [none / basic / comprehensive]"
+        },
+        {
+          "path": "packages/skills-devops/observability/SKILL.md",
+          "quote": "- Adding OpenTelemetry instrumentation to an existing codebase"
+        },
+        {
+          "path": "packages/skills-devops/observability/SKILL.md",
+          "quote": "### Step 8: SLOs and SLIs"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "mcp-gmail-search",
+      "package": {
+        "name": "@dzhechkov/skills-mcp",
+        "version": "0.3.11",
+        "manifest": "packages/skills-mcp/package.json"
+      },
+      "skillIds": [
+        "gmail"
+      ],
+      "title": "Найти письма в Gmail",
+      "queries": [
+        "Найди письма от поставщика в Gmail"
+      ],
+      "intent": "Найти сообщения по запросу в почтовом ящике.",
+      "whenToUse": [
+        "Нужен поиск писем Gmail."
+      ],
+      "whenNotToUse": [
+        "Нужно анализировать локальную историю Git."
+      ],
+      "outcome": "Найденные письма с идентификаторами, темами, отправителями, датами и фрагментами; при необходимости полное содержание.",
+      "prerequisites": [
+        "Настроены внешний Gmail MCP-сервер и gogcli; выполнена авторизация Gmail."
+      ],
+      "steps": [
+        "Составить запрос по отправителю, дате, содержанию или метке.",
+        "Получить список результатов через MCP.",
+        "При необходимости открыть полное содержание выбранных сообщений."
+      ],
+      "limitations": [
+        "Навык использует внешний MCP-сервер и базовый CLI; доступ зависит от авторизации."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-mcp/package.json",
+          "sha256": "ac3a772642140dbd5f487c6784b689725b9901fb29adf44d663c70c87a2ff595"
+        },
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "sha256": "757763fb0c86004c3caa32db0d5d8dcecdf69b5a97d2de1a0cacd07f88b2885f"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "quote": "Gmail integration via the [gogcli-mcp-gmail](https://github.com/chrischall/gogcli-mcp) MCP server (built on [gogcli](https://github.com/openclaw/gogcli)). Provides full email management: search, read, send, draft, label, forward, autoreply, and bulk operations."
+        },
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "quote": "- **Package:** `gogcli-mcp-gmail`"
+        },
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "quote": "1. Install gogcli (the underlying Google Suite CLI — see [github.com/openclaw/gogcli](https://github.com/openclaw/gogcli)):"
+        },
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "quote": "3. Authenticate with your Gmail account:"
+        },
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "quote": "Search emails using Gmail query syntax. Returns message IDs, subjects, senders, dates, and snippets."
+        },
+        {
+          "path": "packages/skills-mcp/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-mcp\","
+        },
+        {
+          "path": "packages/skills-mcp/package.json",
+          "quote": "  \"version\": \"0.3.11\","
+        },
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "quote": "- **Email search** — finding specific messages by sender, date, content, labels"
+        },
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "quote": "- **Reading emails** — retrieving full message content for processing"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "qe-chaos-latency",
+      "package": {
+        "name": "@dzhechkov/skills-qe",
+        "version": "0.3.15",
+        "manifest": "packages/skills-qe/package.json"
+      },
+      "skillIds": [
+        "qe-chaos-resilience"
+      ],
+      "title": "Проверить восстановление после сетевой задержки",
+      "queries": [
+        "Проверь, как сервис восстанавливается после сетевой задержки"
+      ],
+      "intent": "Подготовить контролируемый эксперимент устойчивости.",
+      "whenToUse": [
+        "Нужно проверить реакцию сервиса на сетевую задержку."
+      ],
+      "whenNotToUse": [
+        "Нужен анализ отчёта покрытия тестами."
+      ],
+      "outcome": "Отчёт контролируемого эксперимента: состояние сервиса, реакция на задержку и время восстановления.",
+      "prerequisites": [
+        "Тестируемый сервис и среда эксперимента; для автоматического пути — доступный внешний runtime AQE."
+      ],
+      "steps": [
+        "Определить целевой сервис, задержку и условия прекращения эксперимента.",
+        "Провести контролируемое воздействие через доступный AQE и наблюдать показатели состояния.",
+        "Проверить восстановление и зафиксировать результаты."
+      ],
+      "limitations": [
+        "Навык описывает использование внешнего AQE; наличие пакета навыков само по себе не обеспечивает запуск эксперимента."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-qe/package.json",
+          "sha256": "77c3f9fb3cab6c4ad6f8cf38085b50923872d2268e673c1c38a503f26986f5e1"
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "sha256": "5835fe7e2d0139f75205f86e1d3f5c08abfef650a44264ebd6eb3ef4d1926204"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "description: \"Injects controlled faults (network partition, latency, process kill, disk pressure) into distributed systems and validates recovery behavior. Use when testing circuit breakers, failover paths, retry logic, or building confidence in system resilience through chaos engineering.\""
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "Guide the use of v3's chaos engineering capabilities including controlled fault injection, load/stress testing, resilience validation, and disaster recovery testing."
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "aqe chaos run --experiment network-latency --target api-service"
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "  - Inject 500ms network latency"
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "  - Measure recovery time"
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "  - Document findings"
+        },
+        {
+          "path": "packages/skills-qe/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-qe\","
+        },
+        {
+          "path": "packages/skills-qe/package.json",
+          "quote": "  \"version\": \"0.3.15\","
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "  - Monitor service health metrics"
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "  abort_conditions:"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "pm-ab-test-analysis",
+      "package": {
+        "name": "@dzhechkov/skills-pm",
+        "version": "0.1.6",
+        "manifest": "packages/skills-pm/package.json"
+      },
+      "skillIds": [
+        "ab-test-analysis"
+      ],
+      "title": "Проанализировать результаты A/B-теста",
+      "queries": [
+        "Проанализируй результаты A/B-теста и предложи решение"
+      ],
+      "intent": "Оценить результаты эксперимента и обосновать решение.",
+      "whenToUse": [
+        "Есть результаты A/B-теста и описание его метрик."
+      ],
+      "whenNotToUse": [
+        "Нужно только выбрать идеи для будущего бэклога."
+      ],
+      "outcome": "Анализ эффекта, статистической и практической значимости, защитных метрик и рекомендация по варианту.",
+      "prerequisites": [
+        "Данные контрольной и тестовой групп, гипотеза и метрики."
+      ],
+      "steps": [
+        "Уточнить гипотезу, метрики, длительность и распределение трафика.",
+        "Проверить размер выборки и возможное нарушение рандомизации; рассчитать эффект и доверительный интервал.",
+        "Проверить защитные метрики и обосновать рекомендацию внедрить, продлить, остановить или исследовать результат."
+      ],
+      "limitations": [
+        "Вывод зависит от качества данных и корректности условий эксперимента."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-pm/package.json",
+          "sha256": "030b78a847d0c8a67a16dffc1d7e3421e23a0335ff20938ae7f048ff0d0e14cf"
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "sha256": "76e60c63a4645165ad193706bac746958884eb55239784fc2a35e56fa28aab0e"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "description: \"Analyze A/B test results with statistical significance, sample size validation, confidence intervals, and ship/extend/stop recommendations. Use when evaluating experiment results, checking if a test reached significance, interpreting split test data, or deciding whether to ship a variant.\""
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "   - What was the hypothesis?"
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "   - **Sample size**: Is the sample large enough for the expected effect size?"
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "   - **Confidence interval**: 95% CI for the difference"
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "   - Did any guardrail metrics (revenue, engagement, page load time) degrade?"
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "   **Recommendation**: [Ship / Extend / Stop / Investigate]"
+        },
+        {
+          "path": "packages/skills-pm/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-pm\","
+        },
+        {
+          "path": "packages/skills-pm/package.json",
+          "quote": "  \"version\": \"0.1.6\","
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "   - What is the traffic split?"
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "   - **Randomization**: Any evidence of sample ratio mismatch (SRM)?"
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "   - **Practical significance**: Is the lift meaningful for the business?"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "reasoning-agents-md",
+      "package": {
+        "name": "@dzhechkov/skills-reasoning",
+        "version": "0.1.6",
+        "manifest": "packages/skills-reasoning/package.json"
+      },
+      "skillIds": [
+        "agents-md-creator"
+      ],
+      "title": "Создать архитектурные инструкции для нескольких репозиториев",
+      "queries": [
+        "Создай AGENTS.md для каждого сервиса и общий индекс"
+      ],
+      "intent": "Подготовить архитектурные инструкции для агентов в нескольких репозиториях.",
+      "whenToUse": [
+        "Несколько репозиториев нуждаются в конкретных архитектурных границах."
+      ],
+      "whenNotToUse": [
+        "Нужны небольшие правки сильного существующего AGENTS.md."
+      ],
+      "outcome": "AGENTS.md для каждого репозитория с границами пакетов, измерениями крупных файлов и инвариантами, а также общий индекс.",
+      "prerequisites": [
+        "Доступ к репозиториям и подходящая среда для параллельного анализа и проверки."
+      ],
+      "steps": [
+        "Обнаружить репозитории, согласовать список и измерить крупные файлы.",
+        "Подготовить инструкции о зависимостях, ответственности пакетов и инвариантах.",
+        "Проверить качество и фактические утверждения, исправить ошибки и подготовить общий индекс."
+      ],
+      "limitations": [
+        "Примеры команд и механика работы с агентами зависят от среды; требуется адаптация."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-reasoning/package.json",
+          "sha256": "5991fca16c6b4bd12cbe0472d20020ec5e65a7d4b15416ec186568c9587d7f93"
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "sha256": "dbcb63c2f678966b2de30c1fa5e186c3312f59df71c01fa20481afacdbc89a1f"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "  Use to produce per-repository AGENTS.md files for a multi-repo"
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "  already strong and just needs minor edits."
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "  Output: one AGENTS.md per repo, plus a parent index linking them."
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "- **Measurement commands in Phase 3** are stack-specific examples"
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "  harness (Codex CLI, Aider, Cursor), parallel sub-agents may"
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "### VV-Factual — claims verification"
+        },
+        {
+          "path": "packages/skills-reasoning/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-reasoning\","
+        },
+        {
+          "path": "packages/skills-reasoning/package.json",
+          "quote": "  \"version\": \"0.1.6\","
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "### 1.2 Confirm the list with the user"
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "- **LOC of the largest files** — sort all source files by line"
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "### VV-Quality — content quality"
+        }
+      ],
+      "courseUrl": null
+    }
+  ]
+}

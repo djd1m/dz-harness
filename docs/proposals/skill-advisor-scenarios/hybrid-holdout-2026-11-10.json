@@ -1,0 +1,675 @@
+{
+  "schema": "hybrid-development-holdout/1",
+  "frozenAt": "2026-11-10T08:34:56.679847+00:00",
+  "scope": "New catalog-aware development holdout; no retrieval results seen before freezing; not an externally independent benchmark. Exact-name cases task-qualified. Labels apply only to approved scenarios.",
+  "cases": [
+    {
+      "id": "x01",
+      "kind": "ru-paraphrase",
+      "query": "Есть замысел сервиса для владельцев собак, но пока непонятно, кому и зачем он нужен. Помоги разобраться и сформулировать задание.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-explore-product"
+        ]
+      ]
+    },
+    {
+      "id": "x02",
+      "kind": "ru-paraphrase",
+      "query": "Нужно добавить в наш продукт командные рабочие пространства: пройти от требований и выбора подхода до кода и проверки.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-feature-adr"
+        ]
+      ]
+    },
+    {
+      "id": "x03",
+      "kind": "ru-paraphrase",
+      "query": "Возьми приложение из репозитория и запусти его на виртуальной машине Cloud.ru, чтобы я получил работающий URL.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "devops-cloudru-deploy"
+        ]
+      ]
+    },
+    {
+      "id": "x04",
+      "kind": "ru-paraphrase",
+      "query": "Посмотри наши файлы workflow в GitHub: нет ли лишних запусков, небезопасных прав и упущенных возможностей кеширования?",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "devops-github-actions"
+        ]
+      ]
+    },
+    {
+      "id": "x05",
+      "kind": "ru-paraphrase",
+      "query": "Выясни, кто и когда изменял расчет скидки в pricing.ts и чем он отличается между release и main.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "mcp-git-research"
+        ]
+      ]
+    },
+    {
+      "id": "x06",
+      "kind": "ru-paraphrase",
+      "query": "Найди актуальную справку по публичной библиотеке Zod и пример проверки вложенных объектов.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "mcp-context7-docs"
+        ]
+      ]
+    },
+    {
+      "id": "x07",
+      "kind": "ru-paraphrase",
+      "query": "Для нового обработчика платежей подготовь проверки успешного ответа, неверной суммы и сбоя внешнего сервиса.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "qe-generate-tests"
+        ]
+      ]
+    },
+    {
+      "id": "x08",
+      "kind": "ru-paraphrase",
+      "query": "Вот отчёт о проверенных ветках. Объясни, какие оставшиеся участки опаснее всего оставить без тестов.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "qe-coverage-gaps"
+        ]
+      ]
+    },
+    {
+      "id": "x09",
+      "kind": "ru-paraphrase",
+      "query": "Собери за последние семь дней обзор событий в ИИ с тематическими разделами и проверенными ссылками.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "news-period-digest"
+        ]
+      ]
+    },
+    {
+      "id": "x10",
+      "kind": "ru-paraphrase",
+      "query": "Проверь, что нового выпустили поставщики моделей с нашей предыдущей проверки; полного обзора не нужно.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "news-monitor-delta"
+        ]
+      ]
+    },
+    {
+      "id": "x11",
+      "kind": "ru-paraphrase",
+      "query": "У нас пять разработчиков и две недели. Из списка задач собери реалистичный объём работы с зависимостями и целью.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "pm-sprint-plan"
+        ]
+      ]
+    },
+    {
+      "id": "x12",
+      "kind": "ru-paraphrase",
+      "query": "Из двадцати идей продукта выбери пять, которыми команде выгоднее заняться первыми, и объясни компромиссы.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "pm-feature-priority"
+        ]
+      ]
+    },
+    {
+      "id": "x13",
+      "kind": "ru-paraphrase",
+      "query": "Хочу создать новый агентный навык по ревью схем данных: нужна структура, справочники, пример и самопроверка.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "bto-build"
+        ]
+      ]
+    },
+    {
+      "id": "x14",
+      "kind": "ru-paraphrase",
+      "query": "Перед испытанием уже написанного навыка проведи коллегиальную оценку его устройства по эталонам и предложи улучшения.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "bto-evaluate"
+        ]
+      ]
+    },
+    {
+      "id": "x15",
+      "kind": "ru-paraphrase",
+      "query": "Иногда заказ получает две квитанции. Разберись по логам и пути данных, воспроизведи причину, код не исправляй.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "reasoning-diagnose"
+        ]
+      ]
+    },
+    {
+      "id": "x16",
+      "kind": "ru-paraphrase",
+      "query": "Раздели перегруженный модуль заказов на понятные ответственности, сохранив поведение с помощью тестов.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "reasoning-refactor"
+        ]
+      ]
+    },
+    {
+      "id": "x17",
+      "kind": "ru-paraphrase",
+      "query": "Разбери открытые данные конкурента: кто платит, как устроена экономика и как запустить похожий бизнес за три месяца.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "reverse-business"
+        ]
+      ]
+    },
+    {
+      "id": "x18",
+      "kind": "ru-paraphrase",
+      "query": "По сайту конкурента восстанови путь покупателя от первого визита до оплаты и покажи места трения.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "reverse-cjm"
+        ]
+      ]
+    },
+    {
+      "id": "x19",
+      "kind": "ru-paraphrase",
+      "query": "Из документации по очередям сделай автономный учебник в одном HTML-файле с упражнениями, викторинами и прогрессом.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "tutorial-create"
+        ]
+      ]
+    },
+    {
+      "id": "x20",
+      "kind": "ru-paraphrase",
+      "query": "Перед передачей уже созданного HTML-курса проверь структуру, заимствования, смысл и работу интерактива в браузере.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "tutorial-check"
+        ]
+      ]
+    },
+    {
+      "id": "x21",
+      "kind": "ru-paraphrase",
+      "query": "Воссоздай внешний вид и взаимодействия этой страницы по URL, включая мобильную версию; сервер не нужен.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "website-clone-page"
+        ]
+      ]
+    },
+    {
+      "id": "x22",
+      "kind": "ru-paraphrase",
+      "query": "Нужно воспроизвести интерфейсы трёх разных сайтов по их адресам, отдельно исследовать каждый и сравнить результат визуально.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "website-clone-multiple"
+        ]
+      ]
+    },
+    {
+      "id": "x23",
+      "kind": "ru-paraphrase",
+      "query": "Подготовь убедительную презентацию для продажи нашего B2B-продукта: тезисы, источники и сценарий выступления.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "presentation-sales"
+        ]
+      ]
+    },
+    {
+      "id": "x24",
+      "kind": "ru-paraphrase",
+      "query": "Есть набор слайдов и лимит десять минут. Подготовь связанную речь и индекс источников с учётом времени.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "presentation-speaker"
+        ]
+      ]
+    },
+    {
+      "id": "x25",
+      "kind": "ru-paraphrase",
+      "query": "Мы уже выбрали PostgreSQL вместо MongoDB. Зафиксируй причины, рассмотренные варианты и последствия в короткой записи решения.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-capture-adr"
+        ]
+      ]
+    },
+    {
+      "id": "x26",
+      "kind": "ru-paraphrase",
+      "query": "В проекте накопились полезные команды и подходы. Извлеки повторно используемые знания, проверь их и разложи по нужным местам.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-knowledge-harvest"
+        ]
+      ]
+    },
+    {
+      "id": "x27",
+      "kind": "ru-paraphrase",
+      "query": "Нужен согласуемый порядок изменения схемы БД с заполнением старых строк, совместимостью приложения и возможностью отката; пока только план.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "devops-database-migration"
+        ]
+      ]
+    },
+    {
+      "id": "x28",
+      "kind": "ru-paraphrase",
+      "query": "Спроектируй, по каким сигналам следить за здоровьем нашего API: метрики, логи, трассы, пороги и панели.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "devops-observability"
+        ]
+      ]
+    },
+    {
+      "id": "x29",
+      "kind": "ru-paraphrase",
+      "query": "Найди через подключённую почту Gmail письма от страховщика за август и покажи последнее целиком.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "mcp-gmail-search"
+        ]
+      ]
+    },
+    {
+      "id": "x30",
+      "kind": "ru-paraphrase",
+      "query": "Организуй контролируемый опыт с замедлением сети: измерь, как сервис реагирует и сколько восстанавливается.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "qe-chaos-latency"
+        ]
+      ]
+    },
+    {
+      "id": "x31",
+      "kind": "ru-paraphrase",
+      "query": "Вот результаты двух вариантов оплаты: оцени эффект, достоверность, защитные показатели и стоит ли раскатывать победителя.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "pm-ab-test-analysis"
+        ]
+      ]
+    },
+    {
+      "id": "x32",
+      "kind": "ru-paraphrase",
+      "query": "Для пяти репозиториев составь AGENTS.md с границами модулей, инвариантами и общим указателем для агентов.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "reasoning-agents-md"
+        ]
+      ]
+    },
+    {
+      "id": "x33",
+      "kind": "en-paraphrase",
+      "query": "Trace why the same receipt is emailed twice. Produce a root-cause report with evidence; do not change the code.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "reasoning-diagnose"
+        ]
+      ]
+    },
+    {
+      "id": "x34",
+      "kind": "en-paraphrase",
+      "query": "Turn this backlog and team availability into a feasible two-week iteration with a clear goal and dependencies.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "pm-sprint-plan"
+        ]
+      ]
+    },
+    {
+      "id": "x35",
+      "kind": "en-paraphrase",
+      "query": "Create a self-contained HTML learning module from these docs with exercises, quizzes and saved progress.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "tutorial-create"
+        ]
+      ]
+    },
+    {
+      "id": "x36",
+      "kind": "en-paraphrase",
+      "query": "Find my insurer’s latest message in the connected Gmail mailbox and show its full contents.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "mcp-gmail-search"
+        ]
+      ]
+    },
+    {
+      "id": "x37",
+      "kind": "en-paraphrase",
+      "query": "Design the health signals, tracing, dashboards and alert thresholds for this API. I only need the design.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "devops-observability"
+        ]
+      ]
+    },
+    {
+      "id": "x38",
+      "kind": "en-paraphrase",
+      "query": "We already chose Postgres over MongoDB. Write down the decision, alternatives and consequences for human review.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-capture-adr"
+        ]
+      ]
+    },
+    {
+      "id": "x39",
+      "kind": "en-paraphrase",
+      "query": "Use this coverage report to rank the most risky untested branches before we add more tests.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "qe-coverage-gaps"
+        ]
+      ]
+    },
+    {
+      "id": "x40",
+      "kind": "en-paraphrase",
+      "query": "Assess these experiment results: practical effect, statistical significance, guardrail metrics and rollout advice.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "pm-ab-test-analysis"
+        ]
+      ]
+    },
+    {
+      "id": "x41",
+      "kind": "exact-name",
+      "query": "Подбери @dzhechkov/skills-devops для публикации репозитория на VM Cloud.ru.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "devops-cloudru-deploy"
+        ]
+      ]
+    },
+    {
+      "id": "x42",
+      "kind": "exact-name",
+      "query": "Какой сценарий из @dzhechkov/skills-mcp поможет получить справку API через Context7?",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "mcp-context7-docs"
+        ]
+      ]
+    },
+    {
+      "id": "x43",
+      "kind": "exact-name",
+      "query": "Мне из @dzhechkov/skills-qe нужен сценарий генерации тестов для изменённого кода.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "qe-generate-tests"
+        ]
+      ]
+    },
+    {
+      "id": "x44",
+      "kind": "exact-name",
+      "query": "Хочу применить feature-adr из @dzhechkov/skills-meta для реализации новой функции.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-feature-adr"
+        ]
+      ]
+    },
+    {
+      "id": "x45",
+      "kind": "exact-name",
+      "query": "Нужен @dzhechkov/skills-bto, чтобы построить новый навык с примером и справочными материалами.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "bto-build"
+        ]
+      ]
+    },
+    {
+      "id": "x46",
+      "kind": "exact-name",
+      "query": "Хочу @dzhechkov/skills-tutorial-factory для создания самостоятельного интерактивного HTML-курса.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "tutorial-create"
+        ]
+      ]
+    },
+    {
+      "id": "x47",
+      "kind": "multi-intent",
+      "query": "Разберись, откуда берутся повторные счета, не исправляя код, и отдельно определи рисковые пробелы в существующем покрытии тестами.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "reasoning-diagnose",
+          "qe-coverage-gaps"
+        ]
+      ]
+    },
+    {
+      "id": "x48",
+      "kind": "multi-intent",
+      "query": "Сначала помоги выбрать пять приоритетных функций, затем по доступности команды составь план двухнедельного спринта.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "pm-feature-priority",
+          "pm-sprint-plan"
+        ]
+      ]
+    },
+    {
+      "id": "x49",
+      "kind": "multi-intent",
+      "query": "Зафиксируй уже принятое архитектурное решение коротким ADR и отдельно спроектируй мониторинг сервиса.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-capture-adr",
+          "devops-observability"
+        ]
+      ]
+    },
+    {
+      "id": "x50",
+      "kind": "multi-intent",
+      "query": "Найди через Gmail письмо с описанием проекта, затем помоги уточнить эту пока размытую идею до постановки задачи.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "mcp-gmail-search",
+          "meta-explore-product"
+        ]
+      ]
+    },
+    {
+      "id": "x51",
+      "kind": "partial",
+      "query": "Найди в Gmail письмо банка и переведи ему деньги через банковский API.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "mcp-gmail-search"
+        ]
+      ]
+    },
+    {
+      "id": "x52",
+      "kind": "partial",
+      "query": "Подготовь план миграции схемы и немедленно выполни её в боевой базе.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "devops-database-migration"
+        ]
+      ]
+    },
+    {
+      "id": "x53",
+      "kind": "partial",
+      "query": "Воссоздай внешний вид страницы и подключи настоящий сервер авторизации с базой пользователей.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "website-clone-page"
+        ]
+      ]
+    },
+    {
+      "id": "x54",
+      "kind": "partial",
+      "query": "Найди в Context7 справку библиотеки и переведи 5000 рублей с моего банковского счёта.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "mcp-context7-docs"
+        ]
+      ]
+    },
+    {
+      "id": "x55",
+      "kind": "unsupported",
+      "query": "Переведи 5000 рублей с моего банковского счёта на карту друга.",
+      "expectedDecision": "no-match",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "x56",
+      "kind": "unsupported",
+      "query": "Поставь диагноз по результатам МРТ колена и назначь лекарства.",
+      "expectedDecision": "no-match",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "x57",
+      "kind": "unsupported",
+      "query": "Купи два авиабилета до Казани и оплати моей картой.",
+      "expectedDecision": "no-match",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "x58",
+      "kind": "unsupported",
+      "query": "Закажи доставку продуктов домой и выбери временной слот.",
+      "expectedDecision": "no-match",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "x59",
+      "kind": "unsupported",
+      "query": "Разверни приложение в Kubernetes на AWS EKS, без Cloud.ru и без виртуальной машины.",
+      "expectedDecision": "no-match",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "x60",
+      "kind": "unsupported",
+      "query": "Нарисуй акварельный портрет моего кота в виде PNG.",
+      "expectedDecision": "no-match",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "x61",
+      "kind": "ambiguous",
+      "query": "Помоги с этим.",
+      "expectedDecision": "clarify",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "x62",
+      "kind": "ambiguous",
+      "query": "Нужно что-то улучшить, но я пока не выбрал ни объект, ни цель.",
+      "expectedDecision": "clarify",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "x63",
+      "kind": "ambiguous",
+      "query": "Подбери мне подходящие пакеты.",
+      "expectedDecision": "clarify",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "x64",
+      "kind": "ambiguous",
+      "query": "Что взять?",
+      "expectedDecision": "clarify",
+      "acceptableScenarioSets": []
+    }
+  ]
+}
