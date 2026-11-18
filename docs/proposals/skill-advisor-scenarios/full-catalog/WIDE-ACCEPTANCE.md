@@ -29,3 +29,5 @@ The selector can see source context, while the result cards render the selected 
 ## Native QE history
 
 Read-only inspection with installed CLI 0.8.49 reported `native-history-absent-not-zero`. Prior reviewed records survive. Inspection of published CLI 0.8.61, core 0.8.68 and skills-meta 0.9.75 found no supported command to import those reviews into the native journal. Their current admission checks still refuse initialization over surviving review evidence. Formal native QE remains open independently of the semantic result.
+
+The [subsequent requirements repair](REQUIREMENTS-REPAIR.md) changed candidate handling and visible evidence. It includes a separate pinned three-mode search comparison and a small live sample. This earlier wide result remains the release baseline.

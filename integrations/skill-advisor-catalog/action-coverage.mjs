@@ -1,3 +1,4 @@
+import {ChoiceError} from './choice-error.mjs';
 import {stems} from '../../packages/harness-core/dist/stem.js';
 
 /** A bounded, host-owned coverage check for explicitly coordinated actions. */
@@ -15,6 +16,7 @@ const heads = [
  'спланируй','спланировать','спроектируй','спроектировать','сравни','сравнить','уточни','уточнить',
 ].join('|');
 const modifiers = '(?:(?:separately|physically|then|please|first|second|third|fourth|also|затем|сначала|отдельно|также|пожалуйста|гарантированно|вручную|физически)(?:,\\s+|\\s+)){0,3}';
+const leadingModifiers = new RegExp(`^${modifiers}`, 'iu');
 const actionStart = new RegExp(`^${modifiers}(?:${heads})(?![\\p{L}\\p{N}_-])`, 'iu');
 const connector = '(?:and(?:\\s+then)?|then|и(?:\\s+(?:затем|потом))?|а\\s+(?:затем|потом|также|ещё|отдельно)|затем|потом)';
 const separators = new RegExp(`[;:\\n]|[.!?](?=\\s|$)|,?\\s+${connector}\\s+(?=${modifiers}(?:${heads})(?![\\p{L}\\p{N}_-]))|,\\s*(?=${modifiers}(?:${heads})(?![\\p{L}\\p{N}_-]))`, 'giu');
@@ -23,6 +25,9 @@ const politeLead = /^(?:(?:please\s+)?(?:i\s+(?:need|want)\s+(?:you\s+)?to|help\
 const explicitList = /(?:\b(?:i|we)\s+(?:need|want)\s+(two|three|four|[2-4])\s+(?:(?:distinct|separate|independent)\s+)?(?:methods|actions|deliverables|tasks)\s*:|(?:нужны|требуются)\s+(два|две|три|четыре|[2-4])\s+(?:(?:отдельных|самостоятельных)\s+)?(?:действия|задачи|метода|результата)\s*:)/iu;
 const explicitCount = new Map([['two',2],['два',2],['две',2],['three',3],['три',3],['four',4],['четыре',4]]);
 export const directlyPhysical = /^(?:physically\s+(?:carry|deliver|distribute|move|lift|fold|tune)\b|(?:физически|вручную)\s+(?:перенес\p{L}*|достав\p{L}*|перемест\p{L}*|прикрут\p{L}*|слож\p{L}*))/iu;
+const negatedAction = /^(?:do not\b|don['’]t\b|never\b|skip\b|omit\b|не(?!\p{L}))/iu;
+const numberedMarker = /(?:^|(?<=[\s:;]))\(([1-9]\d*)\)\s+/gu;
+const skillNames = text => new Set(text.toLowerCase().match(/[a-z0-9]+(?:[-_][a-z0-9]+)+/g) ?? []);
 const searchWords = /[\p{L}\p{N}]+/gu;
 const weakTerms = new Set('the and from what which who when where with into for are was has have this that their our your after before then also including separately please generate create assess make choose how what как кого чего какой этом этот затем потом после перед чтобы можно помоги нужн способ'.split(' '));
 
@@ -32,6 +37,24 @@ export function extractRequestedActions(query,{allowSingle=false}={}) {
  const declared = masked.match(explicitList);
  const count = declared ? (declared[1] ?? declared[2]).toLowerCase() : null;
  const expected = count ? explicitCount.get(count) ?? Number(count) : 0;
+ const numbered = [...masked.matchAll(numberedMarker)];
+ // A sequential inline list after a heading carries its own action boundaries.
+ if (numbered.length >= 2 && /^[\s\S]*[:\n]\s*$|^\s*$/u.test(masked.slice(0, numbered[0].index)) &&
+     numbered.every((marker, index) => Number(marker[1]) === index + 1)) {
+  const actions = numbered.map((marker,index) => {
+   const start = marker.index + marker[0].length;
+   const end = numbered[index+1]?.index ?? query.length;
+   return query.slice(start,end).trim().replace(/[;\s]+$/u,'');
+  });
+  if (actions.some(text=>!text) || expected > actions.length) return {actions:[],overflow:false,incomplete:true};
+  const requested = actions.filter(text=>{
+   const normalized = text.replace(politeLead,'').replace(leadingModifiers,'');
+   return !negatedAction.test(normalized) && !answerFormat.test(normalized);
+  });
+  if (requested.length > actionLimit) return {actions:[],overflow:true};
+  return {actions:requested.length >= (allowSingle ? 1 : 2)
+   ? requested.map((text,index)=>({id:`a${index+1}`,text})) : [],overflow:false};
+ }
  if (expected > actionLimit) return {actions:[],overflow:true};
  const actions = [];
  let start = 0;
@@ -81,11 +104,13 @@ export function retainActionCandidates(query, baseline, raw, clauseSearch) {
   const terms = (action.text.toLowerCase().match(searchWords) ?? []).filter(word=>word.length>2&&!weakTerms.has(word));
   const stemsByAction = new Set(stems(terms.join(' ')));
   const lexical = clauseSearch(terms.join(' ')).filter(hit=>hit.matches.some(term=>term.length>3&&!weakTerms.has(term)));
-  // A validated full-query result whose registered skill name directly matches the action can
-  // remain eligible when its approved prose is primarily in another language.
+  // Exact registered names can recover a skill that package grouping already dropped.
+  const names = skillNames(action.text);
+  const exact = [...validatedRaw.values(),...lexical].filter(({record})=>
+   record.skillIds?.some(id=>names.has(id.toLowerCase())));
   const bySkillName = baseline.candidates.find(({record})=>stems((record.skillIds??[]).join(' '))
    .some(term=>term.length>3&&!weakTerms.has(term)&&stemsByAction.has(term)));
-  const candidates = [...lexical.slice(0,1),...(bySkillName ? [bySkillName] : []),...lexical.slice(1)];
+  const candidates = [...exact,...lexical.slice(0,1),...(bySkillName ? [bySkillName] : []),...lexical.slice(1)];
   return {...action,hits:[...new Map(candidates.map(hit=>[hit.id,hit])).values()].slice(0,2)};
  });
  const retained = new Map();
@@ -118,26 +143,34 @@ export function retainActionCandidates(query, baseline, raw, clauseSearch) {
  };
 }
 
-export function applyActionCoverage(retrieval, choice) {
+export function applyActionCoverage(retrieval, choice, details = []) {
  const actions = retrieval.actions ?? [];
  if (!actions.length) return {...choice,coveredActions:[]};
- if (!Array.isArray(choice.coverage) || choice.coverage.length !== actions.length) throw Error('Incomplete action coverage');
+ if (!Array.isArray(choice.coverage) || choice.coverage.length !== actions.length) throw new ChoiceError('action-coverage','Incomplete action coverage');
  const coverage = new Map();
  for (const row of choice.coverage) {
-  if (!row || coverage.has(row.actionId)) throw Error('Duplicate or invalid action coverage');
+  if (!row || coverage.has(row.actionId)) throw new ChoiceError('action-coverage','Duplicate or invalid action coverage');
   const action = actions.find(candidate => candidate.id === row.actionId);
-  if (!action || (row.scenarioId !== null && !action.candidateIds.includes(row.scenarioId))) throw Error('Unbound action coverage');
+  if (!action) throw new ChoiceError('action-eligibility','Unbound action coverage');
+  if (row.scenarioId !== null) {
+   const candidate = retrieval.candidates.find(hit=>hit.id===row.scenarioId);
+   const documented = candidate?.record.kind && candidate.record.kind !== 'package-overview' &&
+    details.some(detail=>detail.actionId===row.actionId && detail.scenarioId===row.scenarioId);
+   if (directlyPhysical.test(action.text) || (!action.candidateIds.includes(row.scenarioId) && !documented)) {
+    throw new ChoiceError('action-eligibility','Unbound action coverage');
+   }
+  }
   coverage.set(row.actionId,row.scenarioId);
  }
- const coveredActions = actions.map(action=>({text:action.text,scenarioId:coverage.get(action.id)}));
+ const coveredActions = actions.map(action=>({id:action.id,text:action.text,scenarioId:coverage.get(action.id)}));
  const scenarioIds = [...new Set(coveredActions.flatMap(action=>action.scenarioId===null ? [] : [action.scenarioId]))];
- if (choice.scenarioIds.length !== scenarioIds.length || choice.scenarioIds.some(id => !scenarioIds.includes(id))) throw Error('Unbound action selection');
+ if (choice.scenarioIds.length !== scenarioIds.length || choice.scenarioIds.some(id => !scenarioIds.includes(id))) throw new ChoiceError('action-selection','Unbound action selection');
  const gaps = coveredActions.filter(action=>action.scenarioId===null).map(action=>action.text.slice(0,160).trimEnd());
  const combined = [...new Set([...gaps,...choice.missingParts])];
  const missingParts = combined.filter(quote=>!combined.some(other=>other!==quote&&other.includes(quote)));
- if (missingParts.length > actionLimit) throw Error('Too many stated gaps');
- if (scenarioIds.length && ['no-match','clarify'].includes(choice.decision)) throw Error('Unexpected coverage decision');
- if (choice.decision==='partial' && scenarioIds.length && !missingParts.length) throw Error('Missing scope for partial coverage');
+ if (missingParts.length > actionLimit) throw new ChoiceError('missing-parts','Too many stated gaps');
+ if (scenarioIds.length && ['no-match','clarify'].includes(choice.decision)) throw new ChoiceError('action-decision','Unexpected coverage decision');
+ if (choice.decision==='partial' && scenarioIds.length && !missingParts.length) throw new ChoiceError('missing-parts','Missing scope for partial coverage');
  const decision = scenarioIds.length ? (missingParts.length ? 'partial' : 'recommend') : (choice.decision==='clarify' ? 'clarify' : 'no-match');
  return {...choice,decision,scenarioIds,coveredActions,missingParts:decision==='clarify' ? [] : missingParts};
 }

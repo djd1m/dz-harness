@@ -65,5 +65,5 @@ export async function createHybridAnswer({apiKey,searchUrl,onEvent=()=>{}}){
  const context=buildSourceContext(catalog),projection=buildSourceProjection(catalog,context);
  const client=createEmbeddingClient({apiKey,...advisorIdentity(catalog,projection.documents),responseModelIds:['baai/bge-m3','parasail-bge-m3']});
  const retriever=createHybridRetriever({catalog,searchUrl,embed:client.embed,onEvent,projection});
- return liveAnswer(apiKey,{catalog,retriever,sourceContext:context});
+ return liveAnswer(apiKey,{catalog,retriever,sourceContext:context,onEvent});
 }

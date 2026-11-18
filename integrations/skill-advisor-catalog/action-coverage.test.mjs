@@ -178,3 +178,37 @@ test('identifying a method for a new outcome stays a distinct action', () => {
  const text = 'Review our API latency, and identify the method for testing CSV exports.';
  assert.deepEqual(extractRequestedActions(text).actions.map(action=>action.text),['Review our API latency','identify the method for testing CSV exports']);
 });
+
+test('numbered PR deliverables keep both explicitly named skills from the original ranking', () => {
+ const names = [
+  'skills-devops-pr-review-ce0f7b73',
+  'skills-devops-test-writer-b3a0c247',
+  'skills-devops-ci-fix-4748f1fb',
+  'skills-devops-debugging-2c04ece1',
+ ];
+ const raw = names.map((id,index)=>projection.resolve({id,score:4-index}));
+ const baseline = {candidates:[raw[0],raw[3]],diagnostics:{}};
+ const task = 'Нужны два результата для одного PR: (1) pr-review — замечания с file:line и серьёзностью; (2) ci-fix — разбор красного job по логу, воспроизведение и исправление причины.';
+ const result = retainActionCandidates(task,baseline,raw,projection.clauseSearch);
+ assert.deepEqual(result.actions.map(action=>action.candidateIds[0]),[names[0],names[2]]);
+ assert(result.candidates.some(hit=>hit.id===names[2]));
+ assert(result.actions.every(action=>task.includes(action.text)));
+});
+
+test('quoted lists cannot set action boundaries and a numbered list stays bounded', () => {
+ const text = 'Review this example: «(1) publish raw input; (2) create slides».';
+ assert.deepEqual(extractRequestedActions(text).actions,[]);
+ const longer = 'Required: (1) write a summary; (2) collect feedback; (3) inspect responses; (4) deliver the summary.';
+ assert.equal(extractRequestedActions(longer).overflow,true);
+});
+
+test('numbered negations and output instructions remain in the query without required action slots', () => {
+ const text = 'Tasks: (1) generate questions (2) assess answers (3) do not publish the score';
+ assert.deepEqual(extractRequestedActions(text).actions.map(action=>action.text),['generate questions','assess answers']);
+ const formatting = 'Tasks: (1) generate questions (2) assess answers (3) please identify the method for each review';
+ assert.deepEqual(extractRequestedActions(formatting).actions.map(action=>action.text),['generate questions','assess answers']);
+ const bound = 'Tasks: (1) generate questions (2) assess answers (3) review the notes (4) please do not publish the score';
+ assert.deepEqual(extractRequestedActions(bound).actions.map(action=>action.text),['generate questions','assess answers','review the notes']);
+ const russian = 'Задачи: (1) подготовь вопросы (2) оцени ответы (3) пожалуйста не публикуй оценку';
+ assert.deepEqual(extractRequestedActions(russian).actions.map(action=>action.text),['подготовь вопросы','оцени ответы']);
+});

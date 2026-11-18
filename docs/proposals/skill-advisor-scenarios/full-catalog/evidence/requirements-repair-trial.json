@@ -1,0 +1,1424 @@
+{
+  "schema": "advisor-requirements-repair-trial/1",
+  "frozenSha256": "ef9a51aa4a54306c451792077032d3795633aef979e9b234c2001d59116a0d64",
+  "candidateIndex": {
+    "revision": "5f3f0f2c160fd00df167539c8a465d6dd42f8ca79a8523917af2e7154a24fcd9",
+    "model": "baai/bge-m3",
+    "dimensions": 1024,
+    "lexicalizerId": "dz-ru-en-stems-v1"
+  },
+  "model": "anthropic/claude-haiku-5.5",
+  "startedAt": "2026-11-18T20:10:08.667Z",
+  "completedAt": "2026-11-18T20:11:30.866Z",
+  "additionalCapUsd": 0.06,
+  "additionalSpendUsd": 0.032993088999999996,
+  "cumulativeSpendUsd": 0.978587193,
+  "sourceSha256": {
+    "harness/integrations/skill-advisor-catalog/acceptance-evaluate.mjs": "207a522483850a8ccc82fdb2af018f8128fce8e2467b2124d4573cc14ca69a32",
+    "harness/integrations/skill-advisor-catalog/action-coverage.mjs": "f88068c78f4d03807e9692105edeeb367ccd5df97c56f875c86e7545ab708e3e",
+    "harness/integrations/skill-advisor-catalog/answer-details.mjs": "3d2ac5444750375767b4c616706283c61f2cf97b891ad462486ad721637ed221",
+    "harness/integrations/skill-advisor-catalog/answer-evaluate.mjs": "d1e0a1fabe544ed8722a7ad9fb9760ea29ef8b0a477b332baaa6ca4f19a005ea",
+    "harness/integrations/skill-advisor-catalog/answer.mjs": "d15986715ed195d4ff09ef89ad62dbd53584323071d9dca60c807ab7108b94bd",
+    "harness/integrations/skill-advisor-catalog/browser-8h-check.mjs": "2d5811095157cf222a11541ff8e1fca5e18ea822bd794feb00ae817d8f96fc2d",
+    "harness/integrations/skill-advisor-catalog/catalog-inventory.mjs": "602996c63a36bda270ccc8fb0fd31cce2bebbc963f387f98c14b9c458a6a3232",
+    "harness/integrations/skill-advisor-catalog/catalog.mjs": "fd849a0fc4b7b70c77265e61a4e88620010413539d097cd27fa333080e426c67",
+    "harness/integrations/skill-advisor-catalog/choice-error.mjs": "f5c52f785fe940995afe63764be9a9561cfc92044d6d849b0f4ae5d05348b47e",
+    "harness/integrations/skill-advisor-catalog/cli.mjs": "cf2178f173a0f35866f14cdb2d5207146a5e479b76401a3ac21d8eed3145077f",
+    "harness/integrations/skill-advisor-catalog/dialogue.mjs": "d5b12aa576920f2b0d229745cf898e94b09c42524f6360a12c16926cd54bf389",
+    "harness/integrations/skill-advisor-catalog/draft-catalog.mjs": "4f4dcb2760268d0485ff27921526436da8dbb0ae07d021e41514b2a65fa10d89",
+    "harness/integrations/skill-advisor-catalog/evaluate.mjs": "236b73abd09f605e5905c166675677413ef37ec9700969f55beeed00f78d129c",
+    "harness/integrations/skill-advisor-catalog/evaluation-budget.mjs": "99813428ce130cf8ccc2bd062f50f959eeabb04bd918ffac9caf622b9fb3306e",
+    "harness/integrations/skill-advisor-catalog/evaluation-matching.mjs": "3e256921dffcf67b0607188cb29be65f17db3c1c1d56e56c71dea20b35e28742",
+    "harness/integrations/skill-advisor-catalog/full-evaluate.mjs": "e40b99ac80a65811cf3499fcd92dda73c1f313111283ca90024d4dfef3127ac7",
+    "harness/integrations/skill-advisor-catalog/historical-catalog.mjs": "b98d0d927cd74b5b0c044abd72a8c540b5155f3e70defbbbaecd196a1e57bb73",
+    "harness/integrations/skill-advisor-catalog/hybrid-advisor.mjs": "8f7613be88f76ae871724c5a98f8d6bfe170bfae7f63561b6f9a0e47c8bc3bd9",
+    "harness/integrations/skill-advisor-catalog/package-retrieval.mjs": "fdcfd3c5c5c7ffff06c7d9d36fafe471db6469319318c294cfeab2621286b418",
+    "harness/integrations/skill-advisor-catalog/preview-server.mjs": "7bd86775cf22434356328d346277db2b713e87f90175f06d4f267b888a4d8742",
+    "harness/integrations/skill-advisor-catalog/refresh-catalog.mjs": "721806f7f999c850f4480afb91a7a4c435e167abc8c3fe98b9a46cfda06bfb0a",
+    "harness/integrations/skill-advisor-catalog/request-ledger.mjs": "3b678322457c45a30cb542a39115a329f9a60f8905b6d1614e67a00118d03304",
+    "harness/integrations/skill-advisor-catalog/scoring.mjs": "37953e4bf63ddab543a39a56fc3a5662e80f92a9a6ae1679a733589be2535185",
+    "harness/integrations/skill-advisor-catalog/search.mjs": "98ea88ad47b3765ea4dd32332477bc8d3dd690a3ce9dbcde944bd97bf10864e8",
+    "harness/integrations/skill-advisor-catalog/selector.mjs": "2214adcfba13cfa4e5c69611a428afd46db3c590a83c1f44c817bb60096bee6b",
+    "harness/integrations/skill-advisor-catalog/source-context.mjs": "ddaf9612f96d8c2b16ff922a88587d16e2156c5d5fee60dd83783715d51b881b",
+    "harness/integrations/skill-advisor-catalog/source-projection.mjs": "043ce9532e9470c91521baf269a278f80e9da1d5421b6b7f713b7c6cc2c02ac8",
+    "site/src/lib/advisor/client.js": "35b03713a99e802a37389d183b32153e24e38d0bb1dd9f311ad52c3bacd5be85",
+    "site/deploy/advisor-containers/prepare.mjs": "4efa3cbbcf63f05909790c26716b3190f8259fa7fd0689bd1339a760b062b069",
+    "site/deploy/advisor-containers/start-advisor.mjs": "65c851f8573ac49b19c1c9a23f55b9aed6ec23dee4202976243bd75299673667"
+  },
+  "browser": [
+    {
+      "width": 390,
+      "groundedCard": true,
+      "plainText": true,
+      "oldResponseCompatible": true,
+      "gapVisible": true
+    },
+    {
+      "width": 1440,
+      "groundedCard": true,
+      "plainText": true,
+      "oldResponseCompatible": true,
+      "gapVisible": true
+    }
+  ],
+  "cases": [
+    {
+      "case": {
+        "id": "H01",
+        "kind": "positive",
+        "query": "У нас два переносимых навыка и вручную написанный AGENTS.md. Подбери интеграцию, которая соберёт их в один управляемый блок корневого файла и сохранит авторские разделы.",
+        "targetPackage": "@dzhechkov/adapter-agents-md",
+        "acceptablePackages": [
+          "@dzhechkov/adapter-agents-md"
+        ],
+        "essential": [
+          "Собрать выбранные навыки в один корневой AGENTS.md.",
+          "Сохранить текст вне управляемого блока и объяснить потерю файловых assets."
+        ],
+        "sourcePaths": [
+          "packages/adapter-agents-md/README.md"
+        ],
+        "cohort": "known",
+        "requiredSkills": [
+          {
+            "package": "adapter-agents-md",
+            "skillId": null
+          }
+        ],
+        "unsupported": []
+      },
+      "review": {
+        "id": "H01",
+        "ok": false,
+        "reason": "Partial: exact adapter-agents-md package, single AGENTS.md, explicit loss of scripts/references/assets, and a verbatim pinned README quote explaining fenced-block ownership. The visible answer does not establish root-level aggregation of all selected skills; preservation outside the fence is only implied by ownership, not stated. The pinned README explicitly contains both facts, but those unseen sentences cannot complete the rendered answer."
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/adapter-agents-md",
+            "scenarios": [
+              {
+                "summary": "Библиотечный адаптер преобразует канонический навык в формат AGENTS.md (единый AGENTS.md).",
+                "boundary": "Один Markdown теряет frontmatter, progressive disclosure, границы файлов и перенос scripts/references/assets; это осознанно lossy-формат.",
+                "nextAction": "Изучите контракт адаптера AGENTS.md и вызов compile; обычная установка идёт через dz init.",
+                "details": [
+                  {
+                    "action": null,
+                    "quote": "Because `AGENTS.md` is often **hand-authored**, aggregation into the real file (at the operations layer) uses `@dzhechkov/core`'s `mergeAgentsMd`, which owns only a fenced block:"
+                  }
+                ]
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "choiceReason": null,
+      "retrieval": {
+        "hybrid": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "adapter-agents-md-package-7c454bd5",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-continuous-agent-loop-9d764334",
+            "skills-12factor-overview-0b0f0465",
+            "skills-12factor-12factor-codebase-repo-mapping-eefbabe5",
+            "skills-12factor-12factor-logs-as-streams-90ff35a9",
+            "health-advisor-overview-0968b6f3",
+            "health-advisor-health-advisor-case-state-e3b970c7",
+            "health-advisor-health-advisor-clinical-targets-3aac4dd7",
+            "skills-reasoning-overview-81482c09",
+            "skills-reasoning-agents-md-creator-9cfa89ee"
+          ]
+        },
+        "dense": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "adapter-agents-md-package-7c454bd5",
+            "skills-reasoning-overview-81482c09",
+            "skills-reasoning-agents-md-creator-9cfa89ee",
+            "adapter-gemini-package-d11ff56d",
+            "adapter-codex-package-6f89ec38",
+            "core-package-af0c08d6"
+          ]
+        },
+        "fts": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": false,
+          "candidateIds": [
+            "skills-12factor-overview-0b0f0465",
+            "skills-12factor-12factor-codebase-repo-mapping-eefbabe5",
+            "skills-12factor-12factor-logs-as-streams-90ff35a9",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-continuous-agent-loop-9d764334",
+            "health-advisor-overview-0968b6f3",
+            "health-advisor-health-advisor-case-state-e3b970c7",
+            "health-advisor-health-advisor-clinical-targets-3aac4dd7",
+            "evidence-wiki-overview-edf3985c",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-code-skills-creator-11614d96",
+            "skills-feature-adr-system-grill-70fefd4c"
+          ]
+        }
+      },
+      "selected": [
+        "adapter-agents-md-package-7c454bd5"
+      ]
+    },
+    {
+      "case": {
+        "id": "H06",
+        "kind": "positive",
+        "query": "Для Gemini CLI собери выбранные навыки в корневой GEMINI.md: существующие заметки команды должны остаться, повторный запуск не должен добавлять второй блок.",
+        "targetPackage": "@dzhechkov/adapter-gemini",
+        "acceptablePackages": [
+          "@dzhechkov/adapter-gemini"
+        ],
+        "essential": [
+          "Aggregate selected skills into root GEMINI.md.",
+          "Preserve authored content outside an idempotent managed block."
+        ],
+        "sourcePaths": [
+          "packages/adapter-gemini/README.md"
+        ],
+        "cohort": "known",
+        "requiredSkills": [
+          {
+            "package": "adapter-gemini",
+            "skillId": null
+          }
+        ],
+        "unsupported": []
+      },
+      "review": {
+        "id": "H06",
+        "ok": false,
+        "reason": "Partial functional match: the visible quote explicitly says authored GEMINI.md content is preserved and the fenced merge is idempotent. However the recommendation is harness-cli, not required adapter-gemini, and no visible text establishes aggregation of selected skills into a root GEMINI.md. The displayed quote is not verbatim in the pinned adapter-gemini README; its preservation/idempotence claim is substantively supported there. Functional overlap does not satisfy exact package selection."
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/harness-cli",
+            "scenarios": [
+              {
+                "summary": "Команда dz устанавливает и проверяет навыки и поддерживает несколько агентных платформ.",
+                "boundary": "CLI управляет установкой и проверками; предметные возможности добавляются отдельными пакетами.",
+                "nextAction": "Откройте инструкции harness-cli, выберите платформу и проверьте доступные параметры dz init.",
+                "details": [
+                  {
+                    "action": null,
+                    "quote": "it **reuses the same fenced-block merge**, so it preserves any user-authored `GEMINI.md` content and is idempotent"
+                  }
+                ]
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/harness-cli/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "choiceReason": null,
+      "retrieval": {
+        "hybrid": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "adapter-gemini-package-d11ff56d",
+            "harness-cli-package-ec6546b1",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-data-scraper-agent-af1b7eb0",
+            "skills-ecc-git-workflow-91d62415",
+            "skills-book-clean-code-overview-554fd912",
+            "health-advisor-overview-0968b6f3",
+            "health-advisor-health-advisor-fitness-analyzer-4e961943",
+            "health-advisor-health-advisor-health-trend-analyzer-63d87884"
+          ]
+        },
+        "dense": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "adapter-gemini-package-d11ff56d",
+            "harness-cli-package-ec6546b1",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-git-workflow-91d62415",
+            "skills-ecc-data-scraper-agent-af1b7eb0",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-code-impl-54ab875a",
+            "skills-feature-adr-knowledge-extractor-9ec7510b",
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-deploy-on-cloudru-vm-458aa6e5",
+            "skills-devops-github-actions-e6467f0d"
+          ]
+        },
+        "fts": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "adapter-gemini-package-d11ff56d",
+            "health-advisor-overview-0968b6f3",
+            "health-advisor-health-advisor-fitness-analyzer-4e961943",
+            "health-advisor-health-advisor-health-trend-analyzer-63d87884",
+            "harness-cli-package-ec6546b1",
+            "evidence-wiki-overview-edf3985c",
+            "evidence-wiki-concept-wiki-generator-5d81f0bc",
+            "keysarium-overview-e81e1bb8",
+            "keysarium-presentation-storyteller-0aa6fcc1",
+            "keysarium-knowledge-extractor-9b316b7e"
+          ]
+        }
+      },
+      "selected": [
+        "harness-cli-package-ec6546b1"
+      ]
+    },
+    {
+      "case": {
+        "id": "C03",
+        "kind": "compound",
+        "query": "Нужны два результата для одного PR: (1) pr-review — замечания с file:line и серьёзностью; (2) ci-fix — разбор красного job по логу, воспроизведение и исправление причины. Просто ревью не заменяет вторую задачу.",
+        "acceptableDecisions": [
+          "recommend"
+        ],
+        "essential": [
+          "Distinguish actionable PR review from diagnosis and root-cause repair of failed CI.",
+          "Name pr-review and ci-fix, both from skills-devops."
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/pr-review/SKILL.md",
+          "packages/skills-devops/ci-fix/SKILL.md"
+        ],
+        "acceptablePackages": [
+          [
+            "@dzhechkov/skills-devops"
+          ]
+        ],
+        "cohort": "known",
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "pr-review"
+          },
+          {
+            "package": "skills-devops",
+            "skillId": "ci-fix"
+          }
+        ],
+        "unsupported": []
+      },
+      "review": {
+        "id": "C03",
+        "ok": true,
+        "reason": "Both exact skills pr-review and ci-fix appear under skills-devops. Separate scenarios distinguish PR correctness/style/risk review from diagnosis of primary CI failure and code/test/environment classification. Visible details connect file:line/severity to PR review and reproduction/root-cause repair to CI; the quotes are verbatim in their respective pinned SKILL.md files. The ci-fix quote supports actual repair, not merely review. Action labels repeat the request, but the selected skill sources independently establish severity grouping and local reproduction."
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Навык pr-review. Разберёт корректность, стиль и риски конкретного pull request.",
+                "boundary": "Ревью не является доказательством прохождения тестов или разрешением на выпуск.",
+                "nextAction": "Передайте дифф и описание ожидаемого поведения.",
+                "details": [
+                  {
+                    "action": "pr-review — замечания с file:line и серьёзностью",
+                    "quote": "Cite the exact file and line number (`src/auth.ts:42`)"
+                  }
+                ]
+              },
+              {
+                "summary": "Навык ci-fix. Поможет выделить первичную ошибку в журнале CI и отличить дефект кода от теста или окружения.",
+                "boundary": "Для диагностики нужны журналы и конфигурация; настройка CI с нуля — другая задача.",
+                "nextAction": "Покажите первый сбой, workflow и версии инструментов.",
+                "details": [
+                  {
+                    "action": "ci-fix — разбор красного job по логу, воспроизведение и исправление причины. Просто ревью не заменяет вторую задачу.",
+                    "quote": "Find the actual failure (not the noise), figure out if the bug is in code, test, or environment, and fix it at the right layer."
+                  }
+                ]
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-devops/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "choiceReason": null,
+      "retrieval": {
+        "hybrid": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-pr-review-ce0f7b73",
+            "skills-devops-ci-fix-4748f1fb",
+            "skills-12factor-12factor-logs-as-streams-90ff35a9",
+            "p-replicator-brutal-honesty-review-33781c43",
+            "skills-devops-overview-a6cd470c",
+            "skills-qe-overview-7fb6f43e",
+            "skills-qe-brutal-honesty-review-230143fd",
+            "skills-qe-validate-aa98f767",
+            "p-replicator-overview-0b410b50",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-system-grill-70fefd4c",
+            "skills-feature-adr-code-impl-54ab875a"
+          ]
+        },
+        "dense": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-pr-review-ce0f7b73",
+            "skills-devops-ci-fix-4748f1fb",
+            "skills-12factor-12factor-logs-as-streams-90ff35a9",
+            "p-replicator-brutal-honesty-review-33781c43",
+            "skills-devops-overview-a6cd470c",
+            "design-thinking-overview-4f2174c6",
+            "design-thinking-reflection-loop-22eac04f",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-code-impl-54ab875a",
+            "skills-feature-adr-configure-feature-adr-fc936abb",
+            "skills-12factor-overview-0b0f0465",
+            "skills-12factor-12factor-admin-processes-b5f0fc39"
+          ]
+        },
+        "fts": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-pr-review-ce0f7b73",
+            "skills-devops-ci-fix-4748f1fb",
+            "skills-12factor-12factor-logs-as-streams-90ff35a9",
+            "p-replicator-brutal-honesty-review-33781c43",
+            "skills-qe-overview-7fb6f43e",
+            "skills-qe-brutal-honesty-review-230143fd",
+            "skills-qe-validate-aa98f767",
+            "p-replicator-overview-0b410b50",
+            "p-replicator-sparc-prd-mini-1c38d20c",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-system-grill-70fefd4c"
+          ]
+        }
+      },
+      "selected": [
+        "skills-devops-pr-review-ce0f7b73",
+        "skills-devops-ci-fix-4748f1fb"
+      ]
+    },
+    {
+      "case": {
+        "id": "H52",
+        "kind": "positive",
+        "query": "Переработай лендинг портфолио: настрой выразительность, плотность и интенсивность движения, проверь доступность и reduced motion.",
+        "targetPackage": "@dzhechkov/skills-taste",
+        "acceptablePackages": [
+          "@dzhechkov/skills-taste"
+        ],
+        "essential": [
+          "Redesign portfolio landing page with deliberate visual and motion choices",
+          "Address accessibility and reduced motion"
+        ],
+        "sourcePaths": [
+          "packages/skills-taste/README.md"
+        ],
+        "cohort": "known",
+        "requiredSkills": [
+          {
+            "package": "skills-taste",
+            "skillId": "design-taste-frontend"
+          }
+        ],
+        "unsupported": []
+      },
+      "review": {
+        "id": "H52",
+        "ok": false,
+        "reason": "incomplete-completion error, with no rendered answer. No visible recommendation of design-taste-frontend or coverage of deliberate design/motion choices, accessibility, or reduced motion; retrieval/internal IDs cannot substitute."
+      },
+      "answer": null,
+      "error": "incomplete-completion",
+      "choiceReason": null,
+      "retrieval": {
+        "hybrid": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "health-advisor-health-advisor-rehabilitation-analyzer-463ba334",
+            "skills-ecc-browser-qa-0b8ea06a",
+            "skills-ecc-django-tdd-ad1834c0",
+            "skills-taste-overview-c63b8b64",
+            "skills-taste-design-taste-frontend-6856c4ba",
+            "skills-qe-overview-7fb6f43e",
+            "skills-qe-qe-visual-accessibility-4aa8bd95",
+            "health-advisor-overview-0968b6f3",
+            "health-advisor-health-advisor-fitness-analyzer-4e961943",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-frontend-design-3a9a3ad9"
+          ]
+        },
+        "dense": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "health-advisor-health-advisor-rehabilitation-analyzer-463ba334",
+            "skills-ecc-browser-qa-0b8ea06a",
+            "skills-ecc-django-tdd-ad1834c0",
+            "skills-taste-overview-c63b8b64",
+            "skills-taste-design-taste-frontend-6856c4ba",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-frontend-design-3a9a3ad9",
+            "skills-feature-adr-code-critic-b0d23ef1",
+            "design-thinking-overview-4f2174c6",
+            "design-thinking-frontend-design-700c552c"
+          ]
+        },
+        "fts": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "health-advisor-health-advisor-rehabilitation-analyzer-463ba334",
+            "skills-ecc-browser-qa-0b8ea06a",
+            "skills-ecc-django-tdd-ad1834c0",
+            "skills-taste-overview-c63b8b64",
+            "skills-taste-design-taste-frontend-6856c4ba",
+            "skills-qe-overview-7fb6f43e",
+            "skills-qe-qe-visual-accessibility-4aa8bd95",
+            "skills-qe-qcsd-development-swarm-2fdc713c",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-mcp-overview-3c308972",
+            "skills-mcp-google-calendar-497db93e",
+            "skills-mcp-google-sheets-9e4ebe88",
+            "health-advisor-overview-0968b6f3",
+            "health-advisor-health-advisor-fitness-analyzer-4e961943"
+          ]
+        }
+      },
+      "selected": []
+    },
+    {
+      "case": {
+        "id": "fresh-compose-details",
+        "query": "Нужен Docker Compose для web и PostgreSQL: база должна сохраняться в именованном томе, а web ждать успешного healthcheck базы. Какой навык выбрать?",
+        "kind": "positive",
+        "essential": [
+          "Recommend docker-compose",
+          "Identify named volume for PostgreSQL persistence",
+          "Identify service_healthy dependency on the database"
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/docker-compose/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "docker-compose"
+          }
+        ],
+        "unsupported": [],
+        "cohort": "fresh"
+      },
+      "review": {
+        "id": "fresh-compose-details",
+        "ok": false,
+        "reason": "Partial: exact docker-compose skill under skills-devops and a verbatim pinned source quote on multi-service configuration, volumes, and health checks. Neither summary, boundary, nextAction nor details identifies a named PostgreSQL persistence volume or a service_healthy database dependency. Generic storage and health-check language does not convey either requested mechanism; both are explicitly available in the pinned source."
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Навык docker-compose. Поможет составить или проверить конфигурацию Compose, связи сервисов и постоянные данные.",
+                "boundary": "Работа с конфигурацией не подтверждает успешный запуск на целевом сервере.",
+                "nextAction": "Передайте список сервисов, порты и требования к хранению данных.",
+                "details": [
+                  {
+                    "action": null,
+                    "quote": "Designs and reviews Docker Compose configurations — multi-service setups, networking, volumes, health checks, and production hardening."
+                  }
+                ]
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-devops/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "choiceReason": null,
+      "retrieval": {
+        "hybrid": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-docker-compose-1a1fbd1d",
+            "skills-devops-playwright-testing-bdc49c55",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-docker-patterns-d78f32f7",
+            "health-advisor-overview-0968b6f3",
+            "health-advisor-goap-research-ed25519-4e63a891",
+            "health-advisor-health-advisor-health-trend-analyzer-63d87884",
+            "harness-presets-package-641c226b",
+            "skills-book-fundamental-software-architecture-overview-dfce55d4",
+            "skills-book-fundamental-software-architecture-fundamental-software-architecture-guide-0ec0f7af"
+          ]
+        },
+        "dense": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-docker-compose-1a1fbd1d",
+            "skills-devops-deploy-on-cloudru-vm-458aa6e5",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-docker-patterns-d78f32f7",
+            "health-advisor-overview-0968b6f3",
+            "health-advisor-goap-research-ed25519-4e63a891",
+            "health-advisor-health-advisor-drug-interaction-checker-24312c8e",
+            "skills-meta-overview-559f6001",
+            "skills-meta-goap-research-ed25519-c15912ae",
+            "skills-meta-decision-mockups-8ade23f9",
+            "skills-news-overview-5162d2e0",
+            "skills-news-goap-research-ed25519-8af3e2d0"
+          ]
+        },
+        "fts": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-docker-compose-1a1fbd1d",
+            "skills-devops-playwright-testing-bdc49c55",
+            "harness-presets-package-641c226b",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-docker-patterns-d78f32f7",
+            "skills-book-fundamental-software-architecture-overview-dfce55d4",
+            "skills-book-fundamental-software-architecture-fundamental-software-architecture-guide-0ec0f7af",
+            "keysarium-overview-e81e1bb8",
+            "keysarium-ai-factory-mapper-b03fc0eb",
+            "keysarium-analyst-manual-full-cccdd912"
+          ]
+        }
+      },
+      "selected": [
+        "skills-devops-docker-compose-1a1fbd1d"
+      ]
+    },
+    {
+      "case": {
+        "id": "fresh-observability-details",
+        "query": "Which skill should I use to build a Grafana golden-signals dashboard? I need a real dashboard JSON file and portable datasource variables.",
+        "kind": "positive",
+        "essential": [
+          "Recommend observability",
+          "Mention writing an actual dashboard JSON file",
+          "Mention a datasource variable instead of a hardcoded UID"
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/observability/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "observability"
+          }
+        ],
+        "unsupported": [],
+        "cohort": "fresh"
+      },
+      "review": {
+        "id": "fresh-observability-details",
+        "ok": false,
+        "reason": "Partial: exact observability skill under skills-devops and a verbatim pinned source quote explicitly requiring a real dashboard file and recorded path. The visible answer does not identify JSON format, and completely omits a datasource variable instead of a hardcoded UID. The pinned source contains the JSON example and ${DS_PROM} rule, but these are not rendered. Real-file detail improves specificity without satisfying all essentials."
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Навык observability. Поможет выбрать метрики, логи, трассировки, панели и сигналы по SLO/SLI.",
+                "boundary": "Это проектирование наблюдаемости; сбор телеметрии требует инструментирования сервисов.",
+                "nextAction": "Опишите критические потоки и доступный стек мониторинга.",
+                "details": [
+                  {
+                    "action": null,
+                    "quote": "Write a real dashboard file and record its PATH:"
+                  }
+                ]
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-devops/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "choiceReason": null,
+      "retrieval": {
+        "hybrid": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-observability-338720b5",
+            "skills-devops-data-pipeline-a40a8637",
+            "skills-book-ai-apps-overview-86b16c2c",
+            "skills-book-ai-apps-aiagents-observability-and-drift-6971df35",
+            "skills-book-ai-apps-aiagents-release-gates-and-rollout-0c95e14f",
+            "skills-meta-overview-559f6001",
+            "skills-meta-understand-anything-bridge-acad02c2",
+            "skills-meta-explore-0af324f8",
+            "skills-idea2prd-overview-743a9412",
+            "skills-idea2prd-explore-1585519c",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-explore-cbd95e1a",
+            "skills-feature-adr-system-grill-70fefd4c"
+          ]
+        },
+        "dense": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-observability-338720b5",
+            "skills-devops-incident-response-5efb9dba",
+            "harness-cli-package-ec6546b1",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-system-grill-70fefd4c",
+            "skills-feature-adr-configure-feature-adr-fc936abb",
+            "skills-book-ai-apps-overview-86b16c2c",
+            "skills-book-ai-apps-aiagents-observability-and-drift-6971df35",
+            "skills-book-ai-apps-aiagents-multi-agent-infrastructure-fe208d15",
+            "adapter-gemini-package-d11ff56d"
+          ]
+        },
+        "fts": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-observability-338720b5",
+            "skills-devops-playwright-testing-bdc49c55",
+            "skills-idea2prd-overview-743a9412",
+            "skills-idea2prd-explore-1585519c",
+            "skills-meta-overview-559f6001",
+            "skills-meta-explore-0af324f8",
+            "skills-meta-understand-anything-bridge-acad02c2",
+            "skills-reverse-engineering-overview-ef8844ba",
+            "skills-reverse-engineering-explore-0cbc2e1c",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-explore-cbd95e1a",
+            "skills-feature-adr-frontend-design-3a9a3ad9"
+          ]
+        }
+      },
+      "selected": [
+        "skills-devops-observability-338720b5"
+      ]
+    },
+    {
+      "case": {
+        "id": "fresh-hermes-preserve",
+        "query": "Which package compiles a canonical skill for Hermes while preserving bundled scripts, references, and assets, and where does the resulting SKILL.md go?",
+        "kind": "positive",
+        "essential": [
+          "Recommend adapter-hermes",
+          "Identify .hermes/skills/<id>/SKILL.md as the output path",
+          "State bundled scripts, references, and assets are preserved"
+        ],
+        "sourcePaths": [
+          "packages/adapter-hermes/README.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "adapter-hermes",
+            "skillId": null
+          }
+        ],
+        "unsupported": [],
+        "cohort": "fresh"
+      },
+      "review": {
+        "id": "fresh-hermes-preserve",
+        "ok": false,
+        "reason": "No rendered answer: invalid-choice (detail-quote); retrieval includes adapter-hermes but no visible recommendation, path, or preservation statement. Pinned adapter-hermes README confirms .hermes/skills/<id>/SKILL.md and bundled scripts/, references/, assets/."
+      },
+      "answer": null,
+      "error": "invalid-choice",
+      "choiceReason": "detail-quote",
+      "retrieval": {
+        "hybrid": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-meta-overview-559f6001",
+            "skills-meta-capture-adr-e8d5cd4b",
+            "skills-meta-skill-advisor-0e4ec21c",
+            "adapter-hermes-package-65c3101b",
+            "adapter-claude-package-59d2c9f3",
+            "adapter-gemini-package-d11ff56d",
+            "skills-tutorial-factory-overview-eaa022b4",
+            "skills-tutorial-factory-package-tutorial-factory-8072e340"
+          ]
+        },
+        "dense": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-meta-overview-559f6001",
+            "skills-meta-capture-adr-e8d5cd4b",
+            "skills-meta-explore-0af324f8",
+            "harness-core-package-19287df7",
+            "adapter-hermes-package-65c3101b",
+            "harness-cli-package-ec6546b1",
+            "skills-devops-overview-a6cd470c"
+          ]
+        },
+        "fts": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "adapter-claude-package-59d2c9f3",
+            "adapter-hermes-package-65c3101b",
+            "adapter-copilot-package-21c8a5a9",
+            "skills-meta-overview-559f6001",
+            "skills-web3-overview-929b4442",
+            "skills-web3-veil-8bd0fbdf"
+          ]
+        }
+      },
+      "selected": []
+    },
+    {
+      "case": {
+        "id": "fresh-presentation",
+        "query": "Нужна презентация с проверенными источниками и сценарием выступления для каждого слайда. Какой навык выбрать и какие Markdown-файлы он создаёт?",
+        "kind": "positive",
+        "essential": [
+          "Recommend presentation-storyteller",
+          "Identify presentation-outline.md, presentation-full.md, and sources-index.md",
+          "Mention a speaker script for every slide"
+        ],
+        "sourcePaths": [
+          "packages/skills-presentation-storyteller/README.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-presentation-storyteller",
+            "skillId": "presentation-storyteller"
+          }
+        ],
+        "unsupported": [],
+        "cohort": "fresh"
+      },
+      "review": {
+        "id": "fresh-presentation",
+        "ok": false,
+        "reason": "Partial: recommends presentation-storyteller and names presentation-outline.md and presentation-full.md; it omits sources-index.md and does not explicitly say there is a speaker script for every slide. Pinned README documents all three files and the per-slide script."
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-presentation-storyteller",
+            "scenarios": [
+              {
+                "summary": "Навык presentation-storyteller. Подготовит план, Markdown-презентацию, ссылки на источники и связный рассказ для слайдов.",
+                "boundary": "Нужны исследовательские зависимости и источники; результат не равен оформленному PPTX-файлу.",
+                "nextAction": "Опишите аудиторию, цель выступления и исходные материалы.",
+                "details": [
+                  {
+                    "action": null,
+                    "quote": "Выходные файлы: presentation-outline.md (план), presentation-full.md (презентация),"
+                  }
+                ]
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/presentation-storyteller/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "choiceReason": null,
+      "retrieval": {
+        "hybrid": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-presentation-storyteller-overview-0e503c5d",
+            "skills-presentation-storyteller-presentation-storyteller-7ccca571",
+            "skills-presentation-storyteller-goap-research-ed25519-77ca5f2f",
+            "keysarium-overview-e81e1bb8",
+            "keysarium-presentation-storyteller-0aa6fcc1",
+            "keysarium-ai-factory-mapper-b03fc0eb",
+            "skills-academic-overview-74144a5f",
+            "skills-academic-defense-evaluator-ad971909",
+            "skills-academic-question-generator-346a6e99",
+            "skills-news-overview-5162d2e0",
+            "skills-news-news-digest-ab498545",
+            "memory-package-0318b63f"
+          ]
+        },
+        "dense": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-presentation-storyteller-overview-0e503c5d",
+            "skills-presentation-storyteller-presentation-storyteller-7ccca571",
+            "skills-presentation-storyteller-goap-research-ed25519-77ca5f2f",
+            "keysarium-overview-e81e1bb8",
+            "keysarium-presentation-storyteller-0aa6fcc1",
+            "keysarium-ai-factory-mapper-b03fc0eb",
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-itsm-itil-0e4a9257",
+            "skills-academic-overview-74144a5f",
+            "skills-academic-defense-evaluator-ad971909",
+            "skills-academic-document-checker-840c59dd",
+            "skills-news-overview-5162d2e0",
+            "skills-news-news-digest-ab498545"
+          ]
+        },
+        "fts": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-presentation-storyteller-overview-0e503c5d",
+            "skills-presentation-storyteller-presentation-storyteller-7ccca571",
+            "skills-presentation-storyteller-goap-research-ed25519-77ca5f2f",
+            "keysarium-overview-e81e1bb8",
+            "keysarium-presentation-storyteller-0aa6fcc1",
+            "keysarium-ai-factory-mapper-b03fc0eb",
+            "skills-academic-overview-74144a5f",
+            "skills-academic-defense-evaluator-ad971909",
+            "skills-academic-question-generator-346a6e99",
+            "memory-package-0318b63f",
+            "skills-news-overview-5162d2e0",
+            "skills-news-news-digest-ab498545"
+          ]
+        }
+      },
+      "selected": [
+        "skills-presentation-storyteller-presentation-storyteller-7ccca571"
+      ]
+    },
+    {
+      "case": {
+        "id": "fresh-compose-proxy",
+        "query": "Подскажи навыки для двух задач: собрать локальное окружение web + PostgreSQL в Docker Compose и настроить Nginx как reverse proxy перед web.",
+        "kind": "compound",
+        "essential": [
+          "Recommend docker-compose for the local multi-service environment",
+          "Recommend nginx-config for the reverse proxy"
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/docker-compose/SKILL.md",
+          "packages/skills-devops/nginx-config/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "docker-compose"
+          },
+          {
+            "package": "skills-devops",
+            "skillId": "nginx-config"
+          }
+        ],
+        "unsupported": [],
+        "cohort": "fresh"
+      },
+      "review": {
+        "id": "fresh-compose-proxy",
+        "ok": true,
+        "reason": "Rendered scenarios recommend docker-compose for Compose services and nginx-config for reverse proxy, matching both pinned skill descriptions."
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Навык docker-compose. Поможет составить или проверить конфигурацию Compose, связи сервисов и постоянные данные.",
+                "boundary": "Работа с конфигурацией не подтверждает успешный запуск на целевом сервере.",
+                "nextAction": "Передайте список сервисов, порты и требования к хранению данных.",
+                "details": [
+                  {
+                    "action": "собрать локальное окружение web + PostgreSQL в Docker Compose",
+                    "quote": "Designs and reviews Docker Compose configurations — multi-service setups, networking, volumes, health checks, and production hardening."
+                  }
+                ]
+              },
+              {
+                "summary": "Навык nginx-config. Поможет составить или проверить reverse proxy, балансировку, TLS и ограничения запросов.",
+                "boundary": "Применение и проверка требуют доступа к серверу и сертификатам.",
+                "nextAction": "Передайте текущую конфигурацию, домены и upstream-сервисы.",
+                "details": [
+                  {
+                    "action": "настроить Nginx как reverse proxy перед web",
+                    "quote": "Designs and reviews Nginx configurations — reverse proxy, load balancing, SSL/TLS, rate limiting, and security headers."
+                  }
+                ]
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-devops/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "choiceReason": null,
+      "retrieval": {
+        "hybrid": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "cloudru-hub-package-dd5eac9a",
+            "skills-devops-nginx-config-395859fb",
+            "skills-devops-docker-compose-1a1fbd1d",
+            "skills-devops-overview-a6cd470c",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-docker-patterns-d78f32f7",
+            "p-replicator-overview-0b410b50",
+            "p-replicator-knowledge-extractor-35fb9d25",
+            "keysarium-overview-e81e1bb8",
+            "keysarium-ai-factory-mapper-b03fc0eb"
+          ]
+        },
+        "dense": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "cloudru-hub-package-dd5eac9a",
+            "skills-devops-nginx-config-395859fb",
+            "skills-devops-docker-compose-1a1fbd1d",
+            "skills-devops-overview-a6cd470c",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-docker-patterns-d78f32f7",
+            "skills-website-cloner-overview-00770712",
+            "skills-website-cloner-clone-website-eac4b4db",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-code-impl-54ab875a",
+            "skills-feature-adr-code-skills-creator-11614d96"
+          ]
+        },
+        "fts": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "cloudru-hub-package-dd5eac9a",
+            "skills-devops-nginx-config-395859fb",
+            "skills-devops-docker-compose-1a1fbd1d",
+            "skills-devops-overview-a6cd470c",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-docker-patterns-d78f32f7",
+            "keysarium-overview-e81e1bb8",
+            "keysarium-ai-factory-mapper-b03fc0eb",
+            "keysarium-analyst-manual-full-cccdd912",
+            "skills-12factor-overview-0b0f0465",
+            "skills-12factor-12factor-admin-processes-b5f0fc39",
+            "skills-12factor-12factor-dev-prod-parity-6f779997"
+          ]
+        }
+      },
+      "selected": [
+        "skills-devops-docker-compose-1a1fbd1d",
+        "skills-devops-nginx-config-395859fb"
+      ]
+    },
+    {
+      "case": {
+        "id": "fresh-ci-e2e",
+        "query": "I need browser E2E coverage with Playwright and a GitHub Actions workflow to run it on pull requests. Which skills fit the two parts?",
+        "kind": "compound",
+        "essential": [
+          "Recommend playwright-testing for browser E2E coverage",
+          "Recommend github-actions for the GitHub Actions workflow"
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/playwright-testing/SKILL.md",
+          "packages/skills-devops/github-actions/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "playwright-testing"
+          },
+          {
+            "package": "skills-devops",
+            "skillId": "github-actions"
+          }
+        ],
+        "unsupported": [],
+        "cohort": "fresh"
+      },
+      "review": {
+        "id": "fresh-ci-e2e",
+        "ok": true,
+        "reason": "Rendered scenarios recommend playwright-testing for Playwright tests and github-actions for workflow configuration; pinned skill files support E2E and GitHub Actions respectively."
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Навык playwright-testing. Поможет написать Playwright-тесты, проверки, fixtures и включение в CI.",
+                "boundary": "Для подтверждения результата нужен запуск браузеров и доступное тестовое приложение.",
+                "nextAction": "Передайте пользовательский сценарий, адрес стенда и структуру тестов.",
+                "details": [
+                  {
+                    "action": null,
+                    "quote": "Designs and implements Playwright E2E tests — page objects, fixtures, assertions, visual regression, and CI integration."
+                  }
+                ]
+              },
+              {
+                "summary": "Навык github-actions. Поможет спроектировать GitHub Actions с матрицей, кэшем, переиспользованием и безопасной передачей секретов.",
+                "boundary": "Запуск требует репозитория и доступных runner; текст workflow не доказывает успешный прогон.",
+                "nextAction": "Опишите сборку, тесты и целевые версии окружения.",
+                "details": [
+                  {
+                    "action": null,
+                    "quote": "Designs and reviews GitHub Actions workflows — CI/CD pipelines, matrix builds, caching, secrets, reusable workflows, and security hardening."
+                  }
+                ]
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-devops/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "choiceReason": null,
+      "retrieval": {
+        "hybrid": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-playwright-testing-bdc49c55",
+            "skills-devops-github-actions-e6467f0d",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-e2e-testing-5d1e7f67",
+            "skills-ecc-data-scraper-agent-af1b7eb0",
+            "skills-qe-overview-7fb6f43e",
+            "skills-qe-qe-browser-dbe04a5f",
+            "skills-qe-qe-requirements-validation-310ed305",
+            "skills-decision-mockups-overview-9144579b",
+            "skills-website-cloner-overview-00770712"
+          ]
+        },
+        "dense": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-playwright-testing-bdc49c55",
+            "skills-devops-github-actions-e6467f0d",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-e2e-testing-5d1e7f67",
+            "skills-ecc-data-scraper-agent-af1b7eb0",
+            "skills-qe-overview-7fb6f43e",
+            "skills-qe-qe-browser-dbe04a5f",
+            "skills-qe-qcsd-ideation-swarm-7be02c3c",
+            "skills-idea2prd-overview-743a9412",
+            "skills-idea2prd-explore-1585519c",
+            "skills-idea2prd-idea2prd-manual-94bc3792",
+            "scout-package-833bff4f"
+          ]
+        },
+        "fts": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-e2e-testing-5d1e7f67",
+            "skills-ecc-data-scraper-agent-af1b7eb0",
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-playwright-testing-bdc49c55",
+            "skills-devops-github-actions-e6467f0d",
+            "skills-decision-mockups-overview-9144579b",
+            "skills-website-cloner-overview-00770712",
+            "skills-website-cloner-clone-website-eac4b4db",
+            "p-replicator-overview-0b410b50",
+            "p-replicator-explore-ecc90278"
+          ]
+        }
+      },
+      "selected": [
+        "skills-devops-playwright-testing-bdc49c55",
+        "skills-devops-github-actions-e6467f0d"
+      ]
+    },
+    {
+      "case": {
+        "id": "fresh-gap-mail",
+        "query": "Подбери навык для Docker Compose окружения web + PostgreSQL, а ещё организуй физическую доставку распечатанной схемы курьером. Если для доставки нет подтверждённого навыка, скажи об этом прямо.",
+        "kind": "compound",
+        "essential": [
+          "Recommend docker-compose for the web and PostgreSQL environment",
+          "Explicitly state that no documented skill for arranging physical courier delivery was established"
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/docker-compose/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "docker-compose"
+          }
+        ],
+        "unsupported": [
+          "организуй физическую доставку распечатанной схемы курьером"
+        ],
+        "cohort": "fresh"
+      },
+      "review": {
+        "id": "fresh-gap-mail",
+        "ok": false,
+        "reason": "Partial: rendered scenario recommends docker-compose and missingParts repeats the courier request, but these fields do not explicitly state that no documented skill for arranging physical courier delivery was established. Pinned docker-compose skill supports the technical recommendation."
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Навык docker-compose. Поможет составить или проверить конфигурацию Compose, связи сервисов и постоянные данные.",
+                "boundary": "Работа с конфигурацией не подтверждает успешный запуск на целевом сервере.",
+                "nextAction": "Передайте список сервисов, порты и требования к хранению данных.",
+                "details": [
+                  {
+                    "action": null,
+                    "quote": "Designs and reviews Docker Compose configurations — multi-service setups, networking, volumes, health checks, and production hardening."
+                  }
+                ]
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-devops/"
+          }
+        ],
+        "missingParts": [
+          "организуй физическую доставку распечатанной схемы курьером"
+        ],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "choiceReason": null,
+      "retrieval": {
+        "hybrid": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-docker-compose-1a1fbd1d",
+            "skills-devops-deploy-on-cloudru-vm-458aa6e5",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-docker-patterns-d78f32f7",
+            "core-package-af0c08d6",
+            "skills-12factor-overview-0b0f0465",
+            "skills-12factor-12factor-dev-prod-parity-6f779997",
+            "skills-meta-overview-559f6001",
+            "skills-meta-decision-mockups-8ade23f9"
+          ]
+        },
+        "dense": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-docker-compose-1a1fbd1d",
+            "skills-devops-deploy-on-cloudru-vm-458aa6e5",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-docker-patterns-d78f32f7",
+            "skills-mcp-overview-3c308972",
+            "harness-cli-package-ec6546b1",
+            "harness-presets-package-641c226b"
+          ]
+        },
+        "fts": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-12factor-overview-0b0f0465",
+            "skills-12factor-12factor-dev-prod-parity-6f779997",
+            "skills-12factor-12factor-admin-processes-b5f0fc39",
+            "skills-meta-overview-559f6001",
+            "skills-meta-decision-mockups-8ade23f9",
+            "skills-decision-mockups-overview-9144579b",
+            "skills-decision-mockups-decision-mockups-d1152848",
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-docker-compose-1a1fbd1d",
+            "skills-devops-playwright-testing-bdc49c55",
+            "keysarium-overview-e81e1bb8",
+            "keysarium-ai-factory-mapper-b03fc0eb",
+            "keysarium-analyst-manual-full-cccdd912"
+          ]
+        }
+      },
+      "selected": [
+        "skills-devops-docker-compose-1a1fbd1d"
+      ]
+    },
+    {
+      "case": {
+        "id": "fresh-gap-concert",
+        "query": "Recommend a skill for an Nginx reverse proxy and also reserve a violinist for an in-person office concert. If the catalog does not establish a booking capability, say so explicitly.",
+        "kind": "compound",
+        "essential": [
+          "Recommend nginx-config for the reverse proxy",
+          "Explicitly state that no documented skill for booking the violinist was established"
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/nginx-config/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "nginx-config"
+          }
+        ],
+        "unsupported": [
+          "reserve a violinist for an in-person office concert"
+        ],
+        "cohort": "fresh"
+      },
+      "review": {
+        "id": "fresh-gap-concert",
+        "ok": false,
+        "reason": "Partial: rendered scenario recommends nginx-config for reverse proxy and missingParts repeats the violinist request, but these fields do not explicitly state that no documented booking skill was established. Pinned nginx-config skill supports the technical recommendation."
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Навык nginx-config. Поможет составить или проверить reverse proxy, балансировку, TLS и ограничения запросов.",
+                "boundary": "Применение и проверка требуют доступа к серверу и сертификатам.",
+                "nextAction": "Передайте текущую конфигурацию, домены и upstream-сервисы.",
+                "details": [
+                  {
+                    "action": null,
+                    "quote": "Designs and reviews Nginx configurations — reverse proxy, load balancing, SSL/TLS, rate limiting, and security headers."
+                  }
+                ]
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-devops/"
+          }
+        ],
+        "missingParts": [
+          "reserve a violinist for an in-person office concert"
+        ],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "choiceReason": null,
+      "retrieval": {
+        "hybrid": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-nginx-config-395859fb",
+            "skills-devops-docker-compose-1a1fbd1d",
+            "skills-meta-overview-559f6001",
+            "skills-meta-skill-advisor-0e4ec21c",
+            "skills-meta-session-recap-58a4a29c",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-code-impl-54ab875a",
+            "skills-feature-adr-code-critic-b0d23ef1",
+            "skills-reverse-engineering-overview-ef8844ba",
+            "skills-reverse-engineering-goap-research-ed25519-3a44d641",
+            "skills-reverse-engineering-explore-0cbc2e1c",
+            "p-replicator-overview-0b410b50",
+            "p-replicator-sparc-prd-mini-1c38d20c"
+          ]
+        },
+        "dense": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-nginx-config-395859fb",
+            "skills-devops-database-migration-74c0ac9f",
+            "skills-reverse-engineering-overview-ef8844ba",
+            "skills-reverse-engineering-explore-0cbc2e1c",
+            "skills-reverse-engineering-problem-solver-enhanced-970c5012",
+            "skills-book-ai-apps-overview-86b16c2c",
+            "skills-book-ai-apps-aiagents-agent-ux-96ff6925",
+            "skills-book-ai-apps-aiagents-improvement-loops-4dfa9a67",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-code-impl-54ab875a",
+            "skills-feature-adr-code-critic-b0d23ef1",
+            "skills-ecc-overview-3bdf1e3f",
+            "skills-ecc-brand-voice-12b8024b"
+          ]
+        },
+        "fts": {
+          "rawSkillsComplete": true,
+          "shortlistSkillsComplete": true,
+          "candidateIds": [
+            "skills-devops-overview-a6cd470c",
+            "skills-devops-nginx-config-395859fb",
+            "skills-devops-security-audit-6a896b0d",
+            "p-replicator-overview-0b410b50",
+            "p-replicator-sparc-prd-mini-1c38d20c",
+            "p-replicator-goap-research-ed25519-c1cf3e67",
+            "skills-meta-overview-559f6001",
+            "skills-meta-skill-advisor-0e4ec21c",
+            "skills-meta-session-recap-58a4a29c",
+            "skills-feature-adr-overview-35190d6c",
+            "skills-feature-adr-code-critic-b0d23ef1",
+            "skills-feature-adr-code-impl-54ab875a",
+            "skills-reverse-engineering-overview-ef8844ba",
+            "skills-reverse-engineering-goap-research-ed25519-3a44d641",
+            "skills-reverse-engineering-explore-0cbc2e1c"
+          ]
+        }
+      },
+      "selected": [
+        "skills-devops-nginx-config-395859fb"
+      ]
+    }
+  ]
+}

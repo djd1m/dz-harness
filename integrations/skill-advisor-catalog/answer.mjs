@@ -1,3 +1,4 @@
+import {ChoiceError} from './choice-error.mjs';
 import { recordHash } from './catalog.mjs';
 import { pickerInput } from './search.mjs';
 
@@ -25,12 +26,12 @@ export function answerContract(presentation, sourceContext=null) {
     materialize: (retrieval, choice) => {
       if (!choice || !['recommend', 'partial', 'clarify', 'no-match'].includes(choice.decision) ||
           !['plan', 'execute', 'learn', 'analyze'].includes(choice.intent) || !Array.isArray(choice.scenarioIds) ||
-          new Set(choice.scenarioIds).size !== choice.scenarioIds.length) throw Error('Invalid answer choice');
+          new Set(choice.scenarioIds).size !== choice.scenarioIds.length) throw new ChoiceError('answer-shape','Invalid answer choice');
       const picked = ['recommend', 'partial'].includes(choice.decision);
-      if (picked ? choice.scenarioIds.length < 1 || choice.scenarioIds.length > 3 : choice.scenarioIds.length !== 0) throw Error('Invalid answer count');
+      if (picked ? choice.scenarioIds.length < 1 || choice.scenarioIds.length > 3 : choice.scenarioIds.length !== 0) throw new ChoiceError('answer-shape','Invalid answer count');
       const records = choice.scenarioIds.map(id => {
         const candidate = retrieval.candidates.find(c => c.id === id);
-        if (!candidate || !presentation.has(id)) throw Error('Unknown candidate');
+        if (!candidate || !presentation.has(id)) throw new ChoiceError('scenario-id','Unknown candidate');
         return structuredClone(candidate.record);
       });
       const forcedPartial = choice.decision === 'recommend' && choice.intent === 'execute' &&
@@ -50,8 +51,14 @@ export function renderAnswer(output, presentation, courses) {
     if (!p || p.recordHash !== recordHash(r)) throw Error('Stale rendering context');
     if (!packages.has(r.package.name)) packages.set(r.package.name, []);
     const skillNames = r.skillIds?.join(', ');
+    const quotes = (output.details ?? []).filter(detail => detail.scenarioId === r.id);
+    const actions = (output.coveredActions ?? []).filter(action => action.scenarioId === r.id);
+    const details = actions.length ? actions.map(action => ({
+      action: action.text.length > 160 ? action.text.slice(0, 159).trimEnd() + '…' : action.text,
+      quote: quotes.find(detail => detail.actionId === action.id)?.quote ?? null,
+    })) : quotes.map(({quote}) => ({action:null,quote}));
     packages.get(r.package.name).push({
-      ...p, summary: skillNames ? `Навык ${skillNames}. ${p.summary}` : p.summary,
+      ...p, ...(details.length ? {details} : {}), summary: skillNames ? `Навык ${skillNames}. ${p.summary}` : p.summary,
     });
   }
   const items = [...packages].map(([name, cards]) => {
@@ -62,7 +69,7 @@ export function renderAnswer(output, presentation, courses) {
       if (url.protocol !== 'https:' || url.hostname !== 'djd1m.github.io' || !url.pathname.startsWith('/dz-harness/tutorials/') || url.port || url.search || url.hash || url.username || url.password) throw Error('Invalid course URL');
       courseUrl = url.href;
     }
-    return { package: name, scenarios: cards.map(p => ({ summary: p.summary, boundary: p.boundary, nextAction: p.nextAction })), courseUrl };
+    return { package: name, scenarios: cards.map(p => ({ summary: p.summary, boundary: p.boundary, nextAction: p.nextAction, ...(p.details ? {details:p.details} : {}) })), courseUrl };
   });
   return { decision: output.decision, lead, items };
 }

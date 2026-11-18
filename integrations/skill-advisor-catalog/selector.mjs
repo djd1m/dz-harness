@@ -1,3 +1,4 @@
+import {ChoiceError} from './choice-error.mjs';
 import {readOpenRouterBudgetFailure} from '../hybrid-retrieval/openrouter.mjs';
 import { pickerInput, pickerInstructions, materialize } from './search.mjs';
 
@@ -35,6 +36,11 @@ export async function selectScenarios(retrieval, { model, apiKey, fetchImpl = fe
   catch { throw new SelectorError('invalid-json', body); }
   let output;
   try { output = contract.materialize(retrieval, choice); }
-  catch { throw new SelectorError('invalid-choice', body); }
+  catch (error) {
+    if (!(error instanceof ChoiceError)) throw error;
+    const rejection = new SelectorError('invalid-choice', body);
+    rejection.choiceReason = error.reason;
+    throw rejection;
+  }
   return { output, modelCalled: true, usage: body.usage, actualModel: body.model };
 }

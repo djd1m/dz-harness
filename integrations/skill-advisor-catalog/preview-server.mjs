@@ -49,12 +49,15 @@ export function createPreview({answer,fontsDirectory,requestBudget=30,requestLed
  server.requestTimeout=15000;server.headersTimeout=10000;
  return server;
 }
-export function liveAnswer(apiKey,{catalog=currentCatalog(),retriever=null,sourceContext=null}={}){if(catalog.excluded.length)throw Error('Catalog exclusions');
+export function liveAnswer(apiKey,{catalog=currentCatalog(),retriever=null,sourceContext=null,onEvent=()=>{}}={}){if(catalog.excluded.length)throw Error('Catalog exclusions');
  const presentation=approvedPresentation(catalog,read('full-catalog/presentation.json'),read('full-catalog/presentation-reviews.json'));
  const contract=dialogueContract(presentation,sourceContext??buildSourceContext(catalog)),courses=read('course-map.json');
  return async query=>{
   const candidates=retriever?await retriever(query):retrieve(catalog,query);
-  const result=await selectScenarios(candidates,{model:'anthropic/claude-haiku-5.5',apiKey,contract});
+  const result=await selectScenarios(candidates,{model:'anthropic/claude-haiku-5.5',apiKey,contract}).catch(error=>{
+   if(error.choiceReason)onEvent({event:'advisor.invalid_choice',reason:error.choiceReason});
+   throw error;
+  });
   const answer=renderDialogue(result.output,presentation,courses);
   return candidates.meta?{...answer,retrieval:candidates.meta}:answer;
  };

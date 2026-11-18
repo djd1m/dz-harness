@@ -25,7 +25,14 @@ async function run(initial, clarification = '') {
   }
   for (const item of data.items) {
    const article = text('article', '', 'result-item'); article.append(text('h3', item.package));
-   for (const scenario of item.scenarios) article.append(text('p', scenario.summary), text('p', 'Ограничение: ' + scenario.boundary, 'boundary'), text('p', 'Следующий шаг: ' + scenario.nextAction));
+   for (const scenario of item.scenarios) {
+    article.append(text('p', scenario.summary));
+    for (const detail of Array.isArray(scenario.details) ? scenario.details : []) {
+     if (detail?.action) article.append(text('p', 'Подходит для: ' + detail.action));
+     if (detail?.quote) article.append(text('p', 'В документации: «' + detail.quote + '»', 'boundary'));
+    }
+    article.append(text('p', 'Ограничение: ' + scenario.boundary, 'boundary'), text('p', 'Следующий шаг: ' + scenario.nextAction));
+   }
    if (item.courseUrl) { const a = text('a', 'Посмотреть курс', 'course-link'); a.href = item.courseUrl; a.target = '_blank'; a.rel = 'noopener noreferrer'; article.append(a); }
    section.append(article);
   }

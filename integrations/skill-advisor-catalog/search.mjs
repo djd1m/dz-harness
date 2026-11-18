@@ -1,3 +1,4 @@
+import {ChoiceError} from './choice-error.mjs';
 // Baseline retrieval reuses the registry's RU/EN stemmer; no new vector service.
 import { stems } from '../../packages/harness-core/dist/stem.js';
 
@@ -39,15 +40,15 @@ export function pickerInput(retrieval) {
 export function materialize(retrieval, choice) {
   if (!choice || !['recommend', 'clarify', 'no-match'].includes(choice.decision) ||
       !Array.isArray(choice.scenarioIds) || choice.scenarioIds.some(id => typeof id !== 'string') ||
-      new Set(choice.scenarioIds).size !== choice.scenarioIds.length) throw Error('Invalid picker result');
+      new Set(choice.scenarioIds).size !== choice.scenarioIds.length) throw new ChoiceError('picker-shape','Invalid picker result');
   if (choice.decision !== 'recommend') {
-    if (choice.scenarioIds.length) throw Error('Non-recommendation contains picks');
+    if (choice.scenarioIds.length) throw new ChoiceError('picker-shape','Non-recommendation contains picks');
     return { decision: choice.decision, records: [], scope: 'retrieved scenario candidates' };
   }
-  if (!choice.scenarioIds.length || choice.scenarioIds.length > 2) throw Error('Invalid shortlist length');
+  if (!choice.scenarioIds.length || choice.scenarioIds.length > 2) throw new ChoiceError('picker-shape','Invalid shortlist length');
   const records = choice.scenarioIds.map(id => {
     const candidate = retrieval.candidates.find(item => item.id === id);
-    if (!candidate) throw Error('Unretrieved scenario ID');
+    if (!candidate) throw new ChoiceError('scenario-id','Unretrieved scenario ID');
     return structuredClone(candidate.record);
   });
   return { decision: 'recommend', records, scope: 'documentation-grounded scenarios; execution not verified' };
