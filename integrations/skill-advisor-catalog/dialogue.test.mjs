@@ -37,3 +37,13 @@ test('a no-match can disclose an exact unsupported action without inventing an a
  assert.throws(()=>contract.materialize(task,{...noMatch,missingParts:['Отправить уведомление']}),/Unbound/);
  assert.deepEqual(contract.materialize(task,{...noMatch,missingParts:[]}).missingParts,[]);
 });
+
+test('fixed physical limitation requires a stated physical action and a grounded unsupported fragment', () => {
+ const choice = {decision:'no-match',intent:'execute',scenarioIds:[],clarification:null,limitReason:'physical-action'};
+ const manual = 'Физически перенесите коробки из комнаты в коридор';
+ const result = contract.materialize({query:manual,candidates:[]},{...choice,missingParts:[manual]});
+ assert.match(renderDialogue(result,p,{entries:[]}).lead,/нужен исполнитель на месте/);
+ const design = 'Спроектируй интерфейс управления упаковщиком';
+ const other = contract.materialize({query:design,candidates:[]},{...choice,missingParts:[design]});
+ assert.doesNotMatch(renderDialogue(other,p,{entries:[]}).lead,/физической работы/);
+});

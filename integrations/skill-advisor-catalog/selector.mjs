@@ -12,6 +12,8 @@ export class SelectorError extends Error {
 /** Empty search is not a semantic classification. Only blank input bypasses the model. */
 export async function selectScenarios(retrieval, { model, apiKey, fetchImpl = fetch,
   contract = { instructions: pickerInstructions, input: pickerInput, materialize } }) {
+  const preflight = contract.preflight?.(retrieval);
+  if (preflight) return {output:preflight,modelCalled:false};
   if (!retrieval.query.trim()) {
     return { output: contract.materialize(retrieval, { decision: 'clarify', intent: 'learn', scenarioIds: [], missingParts: [], clarification: 'task-object' }), modelCalled: false };
   }

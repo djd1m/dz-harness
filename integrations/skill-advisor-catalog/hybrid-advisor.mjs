@@ -4,6 +4,7 @@ import {buildSourceProjection,advisorDocuments} from './source-projection.mjs';
 import {buildSourceContext} from './source-context.mjs';
 export {advisorDocuments};
 import {groupPackageCandidates,rawCandidateLimit} from './package-retrieval.mjs';
+import {retainActionCandidates} from './action-coverage.mjs';
 import {liveAnswer} from './preview-server.mjs';
 import {recordHash} from './catalog.mjs';
 import {stems} from '../../packages/harness-core/dist/stem.js';
@@ -23,6 +24,10 @@ export function createHybridRetriever({catalog,searchUrl,embed,fetchImpl=fetch,o
  const url=new URL(searchUrl);if(url.protocol!=='http:'||url.username||url.password||url.search||url.hash||!['','/'].includes(url.pathname))throw Error('Private search HTTP base URL required');
  if(!Number.isInteger(searchTimeoutMs)||searchTimeoutMs<1||searchTimeoutMs>10000)throw Error('Invalid search timeout');
  const identity=advisorIdentity(catalog,projection.documents);
+ const group = (query, hits) => {
+  const raw = hits.map(hit=>projection.resolve(hit));
+  return retainActionCandidates(query,groupPackageCandidates(catalog,raw,query,projection.clauseSearch),raw,projection.clauseSearch);
+ };
  return async query=>{
   if(typeof query!=='string'||!query.trim()||query.length>6000)throw Error('Invalid query');
   try{
@@ -45,13 +50,13 @@ export function createHybridRetriever({catalog,searchUrl,embed,fetchImpl=fetch,o
    }catch{if(deadline.aborted)throw unavailable('search-timeout');throw integrity();}
    assertIdentity(result,identity);
    if(!Array.isArray(result.hits)||result.hits.length>rawCandidateLimit||result.hits.some(h=>!h||typeof h.id!=='string')||new Set(result.hits.map(h=>h.id)).size!==result.hits.length||result.hits.some(h=>!projection.has(h.id)||!Number.isFinite(h.score)))throw integrity();
-   const grouped=groupPackageCandidates(catalog,result.hits.map(hit=>projection.resolve(hit)),query,projection.clauseSearch);
-   return {query,revision:catalog.revision,decision:grouped.candidates.length?'candidates':'no-match',candidates:grouped.candidates,meta:{mode:'hybrid',...identity,...grouped.diagnostics},trace:result.hits.map((hit,index)=>({rawRank:index+1,documentId:hit.id,ownerId:projection.resolve(hit).id,package:projection.resolve(hit).record.package.name,score:hit.score}))};
+   const grouped=group(query,result.hits);
+   return {query,revision:catalog.revision,decision:grouped.candidates.length?'candidates':'no-match',candidates:grouped.candidates,actions:grouped.actions,actionOverflow:grouped.actionOverflow,actionListIncomplete:grouped.actionListIncomplete,meta:{mode:'hybrid',...identity,...grouped.diagnostics},trace:result.hits.map((hit,index)=>({rawRank:index+1,documentId:hit.id,ownerId:projection.resolve(hit).id,package:projection.resolve(hit).record.package.name,score:hit.score}))};
   }catch(e){
    if(!fallbackCodes.has(e.code))throw e;
    onEvent({event:'advisor.retrieval_fallback',code:e.code});
-   const lexical=projection.lexicalSearch(query,rawCandidateLimit),grouped=groupPackageCandidates(catalog,lexical.hits.map(hit=>projection.resolve(hit)),query,projection.clauseSearch);
-   return {query,decision:grouped.candidates.length?'candidates':lexical.decision,revision:catalog.revision,candidates:grouped.candidates,meta:{mode:'lexical',revision:catalog.revision,reason:e.code,...grouped.diagnostics}};
+   const lexical=projection.lexicalSearch(query,rawCandidateLimit),grouped=group(query,lexical.hits);
+   return {query,decision:grouped.candidates.length?'candidates':lexical.decision,revision:catalog.revision,candidates:grouped.candidates,actions:grouped.actions,actionOverflow:grouped.actionOverflow,actionListIncomplete:grouped.actionListIncomplete,meta:{mode:'lexical',revision:catalog.revision,reason:e.code,...grouped.diagnostics}};
   }
  };
 }

@@ -13,6 +13,7 @@ export async function writeCatalogDrafts({root,publication,drafts,output}){
   if(!pkg||paths.has(draft.sourcePath))throw Error('Unknown package or duplicate draft path');paths.add(draft.sourcePath);
   if(!roles.has(draft.role)||typeof draft.title!=='string'||!draft.title.trim()||draft.title.length>90||
     ['summary','boundary','nextAction'].some(k=>typeof draft[k]!=='string'||!draft[k].trim()||draft[k].length>220)||
+    (Object.hasOwn(draft,'presentationNextAction')&&(typeof draft.presentationNextAction!=='string'||!draft.presentationNextAction.trim()||draft.presentationNextAction.length>220))||
     !Array.isArray(draft.queries)||draft.queries.length<2||draft.queries.some(q=>typeof q!=='string'||!q.trim()))throw Error('Invalid editorial draft');
   const skill=pkg.skills.find(s=>s.path===draft.sourcePath);
   if(draft.skillId?(skill?.id!==draft.skillId||!skill.shipped):(draft.kind==='package-overview'?!pkg.skills.some(s=>s.shipped):pkg.skills.some(s=>s.shipped))||draft.sourcePath!==pkg.readme?.path)throw Error('Draft is not backed by shipped source');
@@ -28,7 +29,7 @@ export async function writeCatalogDrafts({root,publication,drafts,output}){
    package:{name:pkg.name,version:pkg.version,manifest:pkg.manifest.path,type:pkg.type,description:manifest.description??''},
    skillIds:draft.skillId?[draft.skillId]:[],queries:draft.queries,whenToUse:[draft.summary],whenNotToUse:[draft.boundary],
    prerequisites:[],steps:[draft.nextAction],limitations:[draft.boundary],courseUrl:null,sources,evidence:draft.evidence??[{path:source.path,quote}]};
-  records.push(record);presentations.push({id,recordHash:recordHash(record),role:draft.role,summary:draft.summary,boundary:draft.boundary,nextAction:draft.nextAction});
+  records.push(record);presentations.push({id,recordHash:recordHash(record),role:draft.role,summary:draft.summary,boundary:draft.boundary,nextAction:draft.presentationNextAction??draft.nextAction});
  }
  const coverage=verifyCatalogCoverage(inventory,records);
  mkdirSync(output,{recursive:true});

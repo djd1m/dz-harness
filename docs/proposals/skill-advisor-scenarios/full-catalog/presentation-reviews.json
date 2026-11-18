@@ -2462,10 +2462,10 @@
       "id": "skills-pm-prioritization-frameworks-f35079cc",
       "recordHash": "a184dc8aac27738882e7721bcf19b88fc679f0c72f3d22182665c389ad9fdf59",
       "verdict": "approved",
-      "reviewer": "gpt-6.1-terra",
-      "reason": "SKILL подтверждает назначение: Объяснит формулы, применимость и шаблоны нескольких методов приоритизации. Ограничение и следующий шаг согласуются с указанным сценарием.",
-      "report": "semantic-reviews-b2.json",
-      "presentationHash": "7fb2de88c64a68ef289525aa674e0c1baa21fa1ce1a7721d37a5365cc5b8a178"
+      "reviewer": "independent editorial reviewer /root/advisor_repair_critic",
+      "reason": "Summary and boundary match the pinned guide and approved record. The source recommends collecting importance and satisfaction for each customer need and defines RICE using reach, impact, confidence and effort; the conditional next action accurately reflects both. Recomputed record and presentation hashes match, and the source SHA-256 matches the record.",
+      "report": "action-prioritization-presentation-review.json",
+      "presentationHash": "4528c1a1d1e909f1789d9f8c9efcc539a91bb39ad064fb9b3f3a333bebb74c4e"
     },
     {
       "id": "skills-pm-prioritize-features-684132ac",
