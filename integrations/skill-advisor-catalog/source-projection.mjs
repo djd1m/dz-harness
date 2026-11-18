@@ -11,6 +11,11 @@ export function buildSourceProjection(catalog,context=null){
  }
  if(documents.length>10000)throw Error('Source projection exceeds snapshot document limit');
  const lexicalSearch=createLexicalSearch(documents);
- return Object.freeze({documents:Object.freeze(documents.map(Object.freeze)),has:id=>owners.has(id),lexicalSearch,
+ const scenarioSearch = createLexicalSearch(catalog.records.filter(record => record.kind === 'skill').map(record => ({
+  id: record.id,
+  text: [record.title, record.intent, ...record.queries, ...(record.evidence ?? []).map(witness => witness.quote)].join(' '),
+ })));
+ const clauseSearch = query => scenarioSearch(query, 5).hits.map(hit => ({...hit, record:records.get(hit.id), origin:'clause-search'}));
+ return Object.freeze({documents:Object.freeze(documents.map(Object.freeze)),has:id=>owners.has(id),lexicalSearch,clauseSearch,
   resolve(hit){const owner=owners.get(hit.id);if(!owner)throw Error('Unknown source projection hit');return{id:owner.ownerId,score:hit.score,record:records.get(owner.ownerId),...(owner.evidence?{sourceQuotes:[owner.evidence]}:{})};}});
 }

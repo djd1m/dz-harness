@@ -49,7 +49,10 @@ export function renderAnswer(output, presentation, courses) {
     const p = presentation.get(r.id);
     if (!p || p.recordHash !== recordHash(r)) throw Error('Stale rendering context');
     if (!packages.has(r.package.name)) packages.set(r.package.name, []);
-    packages.get(r.package.name).push(p);
+    const skillNames = r.skillIds?.join(', ');
+    packages.get(r.package.name).push({
+      ...p, summary: skillNames ? `Навык ${skillNames}. ${p.summary}` : p.summary,
+    });
   }
   const items = [...packages].map(([name, cards]) => {
     const course = courses.entries.find(c => c.package === name && c.status === 'verified');

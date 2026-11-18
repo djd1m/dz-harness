@@ -46,3 +46,10 @@ test('guide role alone does not forbid a supported read-only operation',()=>{
  const m=approvedPresentation({records:[card]},{records:[guide]},{reviews:[receipt(guide)]});
  assert.equal(answerContract(m).materialize(retrieval,{decision:'recommend',intent:'execute',scenarioIds:['migration']}).decision,'recommend');
 });
+
+test('specific recommendations identify the approved skill in displayed text', () => {
+ const skill = {...card,skillIds:['schema-migration']};
+ const presentation = new Map([[skill.id,{...p,recordHash:recordHash(skill)}]]);
+ const answer = renderAnswer({decision:'recommend',records:[skill]},presentation,{entries:[]});
+ assert.equal(answer.items[0].scenarios[0].summary,`Навык schema-migration. ${p.summary}`);
+});
