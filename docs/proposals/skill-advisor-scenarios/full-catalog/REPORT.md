@@ -2,6 +2,8 @@
 
 **Release NO-GO. Source and technical checks pass; public advisor unchanged.** The fifth controlled trial and independent audit substantially improve task routing, but one compound answer is incomplete and formal native QE history cannot be established from surviving legacy review files. Do not merge or activate this candidate as a finished release.
 
+See the [outcome coverage follow-up](OUTCOME-REPAIR.md) for the subsequent candidate and independently audited results.
+
 ## Source coverage and implementation
 
 Pinned package source: `a2af2732b01d516966e076db77c35902f5e72ac1`. All57 exact package versions have npm archive integrity and source-byte evidence. Independent capture matches312 shipped SKILL.md paths across37 skill-bearing packages; these represent260 unique skill IDs across repeated carriers. Canonical registry accounts for306 paths and independent archive/walk adds6 auxiliary layouts. The other20 packages receive supporting records with no invented skills. Current369 records comprise312 atomic skills,20 supporting records and37 independently reviewed package overviews. Every record and presentation has an exact-hash independent approval. Draft regeneration reproduces all369 record/presentation hashes; drafts never approve themselves.
