@@ -70,13 +70,14 @@ export function validateAnswerDetails(retrieval, choice, passages) {
    throw new ChoiceError('detail-binding','Unbound answer detail action');
   }
   const task = detail.requirement;
-  if (typeof task!=='string' || task!==task.trim() || task.length<3 || task.length>160 ||
-      !(action?.text ?? retrieval.query).includes(task) || seen.has(task)) {
-   throw new ChoiceError('detail-requirement','Invalid or repeated detail requirement');
-  }
-  seen.add(task);
   const passage = passages[index].find(item=>item.id===detail.passageId);
   if (!passage) throw new ChoiceError('detail-passage','Unknown answer passage');
+  const key=JSON.stringify([detail.actionId,passage.id,task]);
+  if (typeof task!=='string' || task!==task.trim() || task.length<3 || task.length>160 ||
+      !(action?.text ?? retrieval.query).includes(task) || seen.has(key)) {
+   throw new ChoiceError('detail-requirement','Invalid or repeated detail requirement');
+  }
+  seen.add(key);
   return {scenarioId:detail.scenarioId,actionId:detail.actionId,requirement:task,quote:passage.text};
  });
  if ([...selected].some(id=>!details.some(detail=>detail.scenarioId===id)) ||

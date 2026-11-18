@@ -8,7 +8,8 @@ import{fileURLToPath}from'node:url';
 import{currentCatalog}from'./cli.mjs';
 import{digest}from'./catalog.mjs';
 import{approvedPresentation}from'./answer.mjs';
-import{dialogueContract,renderDialogue}from'./dialogue.mjs';
+import{renderDialogue}from'./dialogue.mjs';
+import{compactDialogueContract}from'./compact-dialogue.mjs';
 import{selectScenarios,MAX_OUTPUT_TOKENS}from'./selector.mjs';
 import{buildSourceContext}from'./source-context.mjs';
 import{buildSourceProjection}from'./source-projection.mjs';
@@ -60,7 +61,7 @@ if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
   const retriever=createHybridRetriever({catalog,projection,searchUrl:`http://127.0.0.1:${server.address().port}`,embed:async queries=>({vectors:queries.map(q=>vectors.get(q))})});
   const dir=resolve(root,'docs/proposals/skill-advisor-scenarios');
   const presentation=approvedPresentation(catalog,read(resolve(dir,'full-catalog/presentation.json')),read(resolve(dir,'full-catalog/presentation-reviews.json')));
-  const contract=dialogueContract(presentation,sourceContext),courses=read(resolve(dir,'course-map.json'));
+  const contract=compactDialogueContract(presentation,sourceContext),courses=read(resolve(dir,'course-map.json'));
   const ordered=[...registered.map(id=>byId.get(id)),...all.filter(q=>!registered.includes(q.id))];
   for(const q of ordered){
    const row={id:q.id,query:q.query,familiar:q.familiar===true,positive:q.id.startsWith('H'),control:q.id.startsWith('N'),compound:q.id.startsWith('C'),registered:registered.includes(q.id)};

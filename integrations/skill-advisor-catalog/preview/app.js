@@ -28,7 +28,7 @@ async function run(initial, clarification = '') {
    for (const scenario of item.scenarios) {
     article.append(text('p', scenario.summary));
     for (const detail of Array.isArray(scenario.details) ? scenario.details : []) {
-     if (detail?.action) article.append(text('p', 'Подходит для: ' + detail.action));
+     if (detail?.action) article.append(text('p', (detail.joint ? 'Вместе с другими навыками для: ' : 'Подходит для: ') + detail.action));
      if (detail?.quote) article.append(text('p', 'В документации: «' + detail.quote + '»', 'boundary'));
     }
     article.append(text('p', 'Ограничение: ' + scenario.boundary, 'boundary'), text('p', 'Следующий шаг: ' + scenario.nextAction));

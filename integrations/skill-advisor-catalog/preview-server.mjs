@@ -5,7 +5,8 @@ import {resolve} from 'node:path';
 import {currentCatalog} from './cli.mjs';
 import {retrieve} from './search.mjs';
 import {approvedPresentation} from './answer.mjs';
-import {dialogueContract,renderDialogue} from './dialogue.mjs';
+import {renderDialogue} from './dialogue.mjs';
+import {compactDialogueContract} from './compact-dialogue.mjs';
 import {createRequestLedger} from './request-ledger.mjs';
 import {selectScenarios} from './selector.mjs';
 import {buildSourceContext} from './source-context.mjs';
@@ -51,7 +52,7 @@ export function createPreview({answer,fontsDirectory,requestBudget=30,requestLed
 }
 export function liveAnswer(apiKey,{catalog=currentCatalog(),retriever=null,sourceContext=null,onEvent=()=>{}}={}){if(catalog.excluded.length)throw Error('Catalog exclusions');
  const presentation=approvedPresentation(catalog,read('full-catalog/presentation.json'),read('full-catalog/presentation-reviews.json'));
- const contract=dialogueContract(presentation,sourceContext??buildSourceContext(catalog)),courses=read('course-map.json');
+ const contract=compactDialogueContract(presentation,sourceContext??buildSourceContext(catalog)),courses=read('course-map.json');
  return async query=>{
   const candidates=retriever?await retriever(query):retrieve(catalog,query);
   const result=await selectScenarios(candidates,{model:'anthropic/claude-haiku-5.5',apiKey,contract}).catch(error=>{

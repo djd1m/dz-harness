@@ -45,6 +45,11 @@ export function renderAnswer(output, presentation, courses) {
   const lead = { recommend: 'Подходящие сценарии для вашей задачи:', partial: 'Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.',
     clarify: 'Какой результат вам нужен: подготовить план, выполнить изменения, разобраться в вопросе или получить учебные материалы?',
     'no-match': 'Среди найденных сценариев подходящего пока нет. Можно уточнить задачу или расширить поиск.' }[output.decision];
+  const evidenceOwners = new Map();
+  for (const detail of output.details ?? []) {
+    if (!evidenceOwners.has(detail.requirement)) evidenceOwners.set(detail.requirement, new Set());
+    evidenceOwners.get(detail.requirement).add(detail.scenarioId);
+  }
   const packages = new Map();
   for (const r of output.records) {
     const p = presentation.get(r.id);
@@ -53,7 +58,10 @@ export function renderAnswer(output, presentation, courses) {
     const skillNames = r.skillIds?.join(', ');
     const quotes = (output.details ?? []).filter(detail => detail.scenarioId === r.id);
     const actions = (output.coveredActions ?? []).filter(action => action.scenarioId === r.id);
-    const details = quotes.map(({requirement,quote})=>({action:requirement,quote}));
+    const details = quotes.map(({requirement,quote})=>{
+      const joint = evidenceOwners.get(requirement).size > 1;
+      return {action:joint ? requirement.replace(/\s+(?:and|or|и|или|а)$/iu,'') : requirement, quote, ...(joint ? {joint:true} : {})};
+    });
     for (const action of actions) {
       if (!quotes.some(detail=>detail.actionId===action.id)) {
         details.push({action:action.text.length > 160 ? action.text.slice(0,159).trimEnd()+'…' : action.text,quote:null});

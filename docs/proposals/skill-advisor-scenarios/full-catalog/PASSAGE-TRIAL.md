@@ -23,3 +23,5 @@ The four incomplete cases were repeated against the exact same vectors and seria
 Combined spend was $0.043353546 under a single $0.06 cap. The evaluated changes passed 105 advisor tests, 10 hybrid tests and four assembly and isolated-container checks. A stubbed browser response verified multiple details shown as inert text, the explicit gap and the old response shape at 390 and 1440 pixels. The measured runtime remains a draft and the public advisor remains on its prior pilot.
 
 The next implementation should reduce the amount of candidate and requirement text the selector must process and generate. Separately measure whether the compact input carries the particular cited detail for each requirement, then test completion and semantics again before considering broad acceptance.
+
+The [compact-input trial](COMPACT-TRIAL.md) follows up on the output-limit failures and preserves an independent comparison of completion, contract validation and semantic coverage.
