@@ -20,22 +20,24 @@ function secondarySkill(atomic, clauses) {
  const documents = atomic.map(({record}) => ({id:record.id, text:[record.title, record.intent,
   ...record.queries, ...(record.evidence ?? []).map(witness => witness.quote)].join(' ')}));
  const search = createLexicalSearch(documents);
- const rawRanks = new Map(atomic.map((hit, index) => [hit.id, index]));
- let replacement = second;
- let bestGain = 0;
+ const additionalEvidence = new Map();
  for (const clause of clauses) {
   const hits = search(clause, documents.length).hits;
-  const existing = Math.max(...hits.filter(hit => hit.id === primary.id || hit.id === second.id).map(hit => hit.score), 0);
-  // A single overlapping word is weak unless a current skill also matches the clause.
+  const primaryScore = hits.find(hit => hit.id === primary.id)?.score ?? 0;
+  const baselineMatched = hits.some(hit => hit.id === primary.id || hit.id === second.id);
   for (const hit of hits) {
-   if (hit.id === primary.id || hit.id === second.id || (existing === 0 && hit.matches.length < 2)) continue;
-   const gain = hit.score - existing;
-   if (gain > bestGain || (gain > 0 && gain === bestGain && rawRanks.get(hit.id) < rawRanks.get(replacement.id))) {
-    replacement = atomic[rawRanks.get(hit.id)];
-    bestGain = gain;
-   }
+   if (hit.id === primary.id || (!baselineMatched && hit.matches.length < 2)) continue;
+   const value = hit.score - primaryScore;
+   additionalEvidence.set(hit.id, Math.max(additionalEvidence.get(hit.id) ?? 0, value));
   }
  }
+ // Compare every candidate, including the current second skill, on its strongest distinct clause.
+ // Iterating original rank preserves the baseline when none adds evidence or scores are tied.
+ let replacement = second;
+ for (const hit of atomic.slice(2)) {
+  if ((additionalEvidence.get(hit.id) ?? 0) > (additionalEvidence.get(replacement.id) ?? 0)) replacement = hit;
+ }
+
  return [primary, replacement];
 }
 

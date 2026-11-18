@@ -29,3 +29,11 @@ test('plan-only recommendation remains complete; execution guard exposes bounded
  // No invented missing fragment when a deterministic role guard overrides the model.
  assert.deepEqual(out.missingParts,[]);
 });
+
+test('a no-match can disclose an exact unsupported action without inventing an alternative', () => {
+ const task = {query:'Забрать коробку из офиса и отвезти её вручную',candidates:[]};
+ const noMatch = {decision:'no-match',intent:'execute',scenarioIds:[],missingParts:[task.query],clarification:null};
+ assert.deepEqual(renderDialogue(contract.materialize(task,noMatch),p,{entries:[]}).missingParts,[task.query]);
+ assert.throws(()=>contract.materialize(task,{...noMatch,missingParts:['Отправить уведомление']}),/Unbound/);
+ assert.deepEqual(contract.materialize(task,{...noMatch,missingParts:[]}).missingParts,[]);
+});

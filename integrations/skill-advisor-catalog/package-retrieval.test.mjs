@@ -117,3 +117,13 @@ test('strong clause evidence can recover a skill absent from every raw hit witho
  assert.equal(result.candidates[1].origin,'clause-search');
  assert.equal(result.diagnostics.rawHitCount,2);
 });
+
+test('a higher match on background terms cannot replace the second skill covering a separate outcome', () => {
+ const primary = {...record('product','stakeholders'),title:'Stakeholder map',evidence:[{quote:'Map stakeholder interest and influence'}]};
+ const second = {...record('product','outcomes'),title:'Outcome roadmap',evidence:[{quote:'Rewrite a feature roadmap into measurable customer outcomes'}]};
+ const distraction = {...record('product','launch'),title:'Community events product launch',evidence:[{quote:'Plan a community events product launch'}]};
+ const catalog = {records:[primary,second,distraction]};
+ const result = groupPackageCandidates(catalog,[hit(primary,3),hit(second,2),hit(distraction,1)],
+  'For a community events product launch, map stakeholder interest and influence, and rewrite our feature roadmap into measurable customer outcomes');
+ assert.deepEqual(ids(result),['stakeholders','outcomes']);
+});
