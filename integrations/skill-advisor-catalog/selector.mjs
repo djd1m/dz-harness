@@ -2,7 +2,7 @@ import {readOpenRouterBudgetFailure} from '../hybrid-retrieval/openrouter.mjs';
 import { pickerInput, pickerInstructions, materialize } from './search.mjs';
 
 // The output budget also includes provider reasoning tokens; 400 truncated live JSON.
-export const MAX_OUTPUT_TOKENS = 1200;
+export const MAX_OUTPUT_TOKENS = 1800;
 export class SelectorError extends Error {
   constructor(code, body, httpStatus) {
     super(code); this.code = code; this.usage = body?.usage; this.actualModel = body?.model; if(Number.isInteger(httpStatus))this.httpStatus=httpStatus;

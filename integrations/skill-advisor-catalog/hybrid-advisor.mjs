@@ -1,14 +1,17 @@
 import {createEmbeddingClient} from '../hybrid-retrieval/openrouter.mjs';
 import {currentCatalog} from './cli.mjs';
-import {retrieve} from './search.mjs';
+import {buildSourceProjection,advisorDocuments} from './source-projection.mjs';
+import {buildSourceContext} from './source-context.mjs';
+export {advisorDocuments};
+import {groupPackageCandidates,rawCandidateLimit} from './package-retrieval.mjs';
 import {liveAnswer} from './preview-server.mjs';
 import {recordHash} from './catalog.mjs';
 import {stems} from '../../packages/harness-core/dist/stem.js';
 
 export const advisorLexicalizerId='dz-ru-en-stems-v1';
 export const advisorLexicalize=text=>stems(text).join(' ');
-export const advisorDocuments=catalog=>catalog.records.map(r=>({id:r.id,text:[r.package.name,r.package.description??'',r.title,r.intent,...r.queries,...r.whenToUse,r.outcome].join(' ')}));
-export function advisorIdentity(catalog){return {revision:recordHash({catalog:catalog.revision,documents:advisorDocuments(catalog)}),model:'baai/bge-m3',dimensions:1024,lexicalizerId:advisorLexicalizerId};}
+
+export function advisorIdentity(catalog,documents=advisorDocuments(catalog)){return {revision:recordHash({catalog:catalog.revision,documents}),model:'baai/bge-m3',dimensions:1024,lexicalizerId:advisorLexicalizerId};}
 const integrity=()=>Object.assign(Error('search-integrity'),{code:'search-integrity'});
 function assertIdentity(actual,expected){if(Object.entries(expected).some(([k,v])=>actual?.[k]!==v))throw integrity();}
 async function readSearchBody(response,maximum){const chunks=[];let size=0;for await(const chunk of response.body){size+=chunk.length;if(size>maximum)throw integrity();chunks.push(Buffer.from(chunk));}return Buffer.concat(chunks).toString('utf8');}
@@ -16,10 +19,10 @@ const unavailable=code=>Object.assign(Error(code),{code});
 const fallbackCodes=new Set(['embedding-timeout','embedding-unavailable','search-timeout','search-unavailable']);
 
 /** Host alone attaches approved records; remote search never supplies prose/courses. */
-export function createHybridRetriever({catalog,searchUrl,embed,fetchImpl=fetch,onEvent=()=>{},searchTimeoutMs=2000}){
+export function createHybridRetriever({catalog,searchUrl,embed,fetchImpl=fetch,onEvent=()=>{},searchTimeoutMs=2000,projection=buildSourceProjection(catalog)}){
  const url=new URL(searchUrl);if(url.protocol!=='http:'||url.username||url.password||url.search||url.hash||!['','/'].includes(url.pathname))throw Error('Private search HTTP base URL required');
  if(!Number.isInteger(searchTimeoutMs)||searchTimeoutMs<1||searchTimeoutMs>10000)throw Error('Invalid search timeout');
- const identity=advisorIdentity(catalog),records=new Map(catalog.records.map(r=>[r.id,r]));
+ const identity=advisorIdentity(catalog,projection.documents);
  return async query=>{
   if(typeof query!=='string'||!query.trim()||query.length>6000)throw Error('Invalid query');
   try{
@@ -28,7 +31,7 @@ export function createHybridRetriever({catalog,searchUrl,embed,fetchImpl=fetch,o
    if(!Array.isArray(vector)||vector.length!==identity.dimensions||vector.some(x=>!Number.isFinite(x))||!vector.some(x=>x!==0))throw integrity();
    onEvent({event:'advisor.embedding',usage:encoded.usage??null});
    const deadline=AbortSignal.timeout(searchTimeoutMs);let response;
-   try{response=await fetchImpl(new URL('/search',url),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,vector,...identity,limit:5}),signal:deadline,redirect:'error'});}
+   try{response=await fetchImpl(new URL('/search',url),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query,vector,...identity,limit:rawCandidateLimit}),signal:deadline,redirect:'error'});}
    catch{throw unavailable(deadline.aborted?'search-timeout':'search-unavailable');}
    if(!response.ok){
     // A detected integrity failure cannot become availability fallback even behind a faulty proxy status.
@@ -41,18 +44,21 @@ export function createHybridRetriever({catalog,searchUrl,embed,fetchImpl=fetch,o
     result=JSON.parse(await readSearchBody(response,64000));
    }catch{if(deadline.aborted)throw unavailable('search-timeout');throw integrity();}
    assertIdentity(result,identity);
-   if(!Array.isArray(result.hits)||result.hits.length>5||result.hits.some(h=>!h||typeof h.id!=='string')||new Set(result.hits.map(h=>h.id)).size!==result.hits.length||result.hits.some(h=>!records.has(h.id)||!Number.isFinite(h.score)))throw integrity();
-   return {query,revision:catalog.revision,decision:result.hits.length?'candidates':'no-match',candidates:result.hits.map(h=>({id:h.id,score:h.score,record:records.get(h.id)})),meta:{mode:'hybrid',...identity}};
+   if(!Array.isArray(result.hits)||result.hits.length>rawCandidateLimit||result.hits.some(h=>!h||typeof h.id!=='string')||new Set(result.hits.map(h=>h.id)).size!==result.hits.length||result.hits.some(h=>!projection.has(h.id)||!Number.isFinite(h.score)))throw integrity();
+   const grouped=groupPackageCandidates(catalog,result.hits.map(hit=>projection.resolve(hit)));
+   return {query,revision:catalog.revision,decision:grouped.candidates.length?'candidates':'no-match',candidates:grouped.candidates,meta:{mode:'hybrid',...identity,...grouped.diagnostics},trace:result.hits.map((hit,index)=>({rawRank:index+1,documentId:hit.id,ownerId:projection.resolve(hit).id,package:projection.resolve(hit).record.package.name,score:hit.score}))};
   }catch(e){
    if(!fallbackCodes.has(e.code))throw e;
    onEvent({event:'advisor.retrieval_fallback',code:e.code});
-   return {...retrieve(catalog,query),meta:{mode:'lexical',revision:catalog.revision,reason:e.code}};
+   const lexical=projection.lexicalSearch(query,rawCandidateLimit),grouped=groupPackageCandidates(catalog,lexical.hits.map(hit=>projection.resolve(hit)));
+   return {query,decision:lexical.decision,revision:catalog.revision,candidates:grouped.candidates,meta:{mode:'lexical',revision:catalog.revision,reason:e.code,...grouped.diagnostics}};
   }
  };
 }
 export async function createHybridAnswer({apiKey,searchUrl,onEvent=()=>{}}){
  const catalog=currentCatalog();if(catalog.excluded.length)throw Error('Catalog exclusions');
- const client=createEmbeddingClient({apiKey,...advisorIdentity(catalog),responseModelIds:['baai/bge-m3','parasail-bge-m3']});
- const retriever=createHybridRetriever({catalog,searchUrl,embed:client.embed,onEvent});
- return liveAnswer(apiKey,{catalog,retriever});
+ const context=buildSourceContext(catalog),projection=buildSourceProjection(catalog,context);
+ const client=createEmbeddingClient({apiKey,...advisorIdentity(catalog,projection.documents),responseModelIds:['baai/bge-m3','parasail-bge-m3']});
+ const retriever=createHybridRetriever({catalog,searchUrl,embed:client.embed,onEvent,projection});
+ return liveAnswer(apiKey,{catalog,retriever,sourceContext:context});
 }

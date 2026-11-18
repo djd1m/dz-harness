@@ -1,0 +1,481 @@
+{
+  "reviewerModel": "gpt-6.1-terra",
+  "rows": [
+    {
+      "id": "R01",
+      "rowHash": "bd9370df71ece2cec81a6a62660f4a01e9fcfaa7e13f53b0194c5a422c629954",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Книжный pipeline покрывает извлечение и создание навыков с контрольными точками.",
+      "sourcePaths": [
+        "packages/skills-book-digitizer/package.json",
+        "packages/skills-book-digitizer/README.md"
+      ]
+    },
+    {
+      "id": "R02",
+      "rowHash": "769b46e072ca5d84b06508a40867f556884e0e31876412c29216eb32fe4b849f",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "BTO описывает benchmark, оценивание и итеративную оптимизацию навыка. Ссылка на курс подтверждена сохранённой проверкой course-checks-8h.json.",
+      "sourcePaths": [
+        "packages/skills-bto/package.json",
+        "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+        "packages/skills-bto/README.md",
+        "docs/proposals/skill-advisor-scenarios/course-checks-8h.json"
+      ]
+    },
+    {
+      "id": "R03",
+      "rowHash": "e4ba9366dbe670fa4c63d1a2c042d0038256e4cd7da57d81314518e2fc3c7d6b",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Набор предоставляет методики проектирования AI-агентов; оговорено отсутствие человеческой проверки по страницам.",
+      "sourcePaths": [
+        "packages/skills-book-ai-apps/package.json",
+        "packages/skills-book-ai-apps/README.md"
+      ]
+    },
+    {
+      "id": "H001",
+      "rowHash": "9c8ff43ea55ba7fe02478bd050a992f6b00fde7e2821a48447747cf7236db98f",
+      "semanticCorrect": false,
+      "falseFull": true,
+      "fabricated": false,
+      "reason": "Ответ перечисляет потери файловых границ и метаданных, но пропускает существенную потерю progressive disclosure: весь файл становится always-on.",
+      "sourcePaths": [
+        "packages/adapter-agents-md/package.json",
+        "packages/adapter-agents-md/README.md"
+      ]
+    },
+    {
+      "id": "H002",
+      "rowHash": "32c44b367861488301d12487286bcded67d03514cb48841b6194e874c3f9187f",
+      "semanticCorrect": false,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "README прямо описывает lossless baseline с scripts, references и assets; ответ ошибочно считает сохранение ресурсов неподобранной частью.",
+      "sourcePaths": [
+        "packages/adapter-claude/package.json",
+        "packages/adapter-claude/README.md"
+      ]
+    },
+    {
+      "id": "H003",
+      "rowHash": "8c9c0a93b1c678841a3da782eb85beabeab6e0ad2c5dcee4276290c23661744d",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Codex README distinguishes native .agents/skills with assets from AGENTS.md instructions. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/adapter-codex/package.json",
+        "packages/adapter-codex/README.md"
+      ]
+    },
+    {
+      "id": "H004",
+      "rowHash": "4fbee63c12e1e7262b26518c3793ec9ebf79fc48932212b9b8a410e4b7a64770",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Copilot README specifies per-skill instructions, applyTo and reference-only scripts. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/adapter-copilot/package.json",
+        "packages/adapter-copilot/README.md"
+      ]
+    },
+    {
+      "id": "H005",
+      "rowHash": "fae085d69ac03403a3ccab1098932ec47a517bb07ea42358621d35937840a1e8",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Cursor README defines agent-requested rules and transformation losses. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/adapter-cursor/package.json",
+        "packages/adapter-cursor/README.md"
+      ]
+    },
+    {
+      "id": "H006",
+      "rowHash": "892397edc785d556750a992361cfb7c2c11d5f1afbd931356effd24831e30eb6",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Gemini adapter README covers Gemini Code Assist root GEMINI.md aggregation versus per-skill trees. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/adapter-gemini/package.json",
+        "packages/adapter-gemini/README.md"
+      ]
+    },
+    {
+      "id": "H007",
+      "rowHash": "1913f20237b2805195b9440e8e48ea3791341930918e3dd1ef2a3c63d677d601",
+      "semanticCorrect": false,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "README прямо описывает lossless Hermes emitter, сохраняющий содержимое и ресурсы; ответ ошибочно считает эти свойства неподобранными.",
+      "sourcePaths": [
+        "packages/adapter-hermes/package.json",
+        "packages/adapter-hermes/README.md"
+      ]
+    },
+    {
+      "id": "H008",
+      "rowHash": "20bd0b74ae5bacc2d2262c3cad9959c2dde51209587c50a257b4c78ae000ac54",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "OpenClaude README distinguishes its own project .openclaude/skills from Claude-compatible directory. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/adapter-openclaude/package.json",
+        "packages/adapter-openclaude/README.md"
+      ]
+    },
+    {
+      "id": "H009",
+      "rowHash": "e7a6b8552a1f51ba0c5afe6a5fa00c004ae8c035765698e7588491889a8a190d",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "OpenCode README states native layout and Claude compatibility; adapter emits native tree. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/adapter-opencode/package.json",
+        "packages/adapter-opencode/README.md"
+      ]
+    },
+    {
+      "id": "H010",
+      "rowHash": "d767c3abfc9546c0f0c6a87ae1977b44a19406cca5240dfd27d0a34931c2cb4b",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Windsurf README explicitly excludes transformed .md rules from byte-identical equivalence. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/adapter-windsurf/package.json",
+        "packages/adapter-windsurf/README.md"
+      ]
+    },
+    {
+      "id": "H011",
+      "rowHash": "22f1c51c7c63955989fce78bb25b599217e8b3b2114f9c93967a84de8c2be194",
+      "semanticCorrect": false,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "README описывает CLOUDRU_VM_BIN/enginePath и проверку SHA-256; ответ ошибочно считает путь и проверку неподобранными.",
+      "sourcePaths": [
+        "packages/cloudru-hub/package.json",
+        "packages/cloudru-hub/README.md"
+      ]
+    },
+    {
+      "id": "H012",
+      "rowHash": "3807e3928543d58df18085414a70ea128dca5f425b1faa1c92ed69a12793a0da",
+      "semanticCorrect": false,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "README описывает сборку Go из чистой копии и проверку закреплённого SHA перед упаковкой; ответ ошибочно считает обе части неподобранными.",
+      "sourcePaths": [
+        "packages/cloudru-vm-linux-x64/package.json",
+        "packages/cloudru-vm-linux-x64/README.md"
+      ]
+    },
+    {
+      "id": "H013",
+      "rowHash": "3639cdec85ceb5cff65a432029fba2fa459259501ab39084fe6faf1e591fd3d0",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Core README names platform-neutral Adapter/Platform/EmitResult contract exports. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/core/package.json",
+        "packages/core/README.md"
+      ]
+    },
+    {
+      "id": "H014",
+      "rowHash": "35d7f3a8ba27aadbb6ab1d83760790974d564b87fea4c6dd624341806382e51b",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Structured Reasoning routes exploration to Tree-of-Thought and looping analysis to Reflection-Suppression. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/design-thinking/package.json",
+        "packages/design-thinking/README.md",
+        "packages/design-thinking/templates/.claude/skills/structured-reasoning/SKILL.md",
+        "packages/skills-meta/structured-reasoning/SKILL.md",
+        "packages/skills-meta/package.json",
+        "packages/skills-meta/README.md"
+      ]
+    },
+    {
+      "id": "H015",
+      "rowHash": "b8eddadbf74ab08c39b4a7424163a80c8e3a6c203de7172958f939698891d785",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Concept Wiki defines three required criteria for first-class concepts and candidate/pillar mapping stages. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/evidence-wiki/package.json",
+        "packages/evidence-wiki/README.md",
+        "packages/evidence-wiki/skills/concept-wiki-generator/SKILL.md"
+      ]
+    },
+    {
+      "id": "H016",
+      "rowHash": "12828649256c0a01ed748457425b8576ef8c843a6e120fd862af24ae6dc946f4",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Harness CLI README provides npm global install, dz setup target/preset and doctor without repository clone. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/harness-cli/package.json",
+        "packages/harness-cli/README.md",
+        "packages/harness-presets/package.json",
+        "packages/harness-presets/README.md"
+      ]
+    },
+    {
+      "id": "H017",
+      "rowHash": "45236e7b80b7bc82bcc6c78dab71971256ee75c06059f0e0d0818fa5a72085a3",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Harness-core README lists runInit/runSync/runVerify/runDoctor operations returning structured reports. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/harness-core/package.json",
+        "packages/harness-core/README.md"
+      ]
+    },
+    {
+      "id": "H018",
+      "rowHash": "ab0797a16920089f7df2a0e26e2ac315715193fbb7279471d9d05c79f1c7af33",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Presets README explicitly separates skill selections from full companion toolkit commands/hooks/assets initialization. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/harness-presets/package.json",
+        "packages/harness-presets/README.md"
+      ]
+    },
+    {
+      "id": "H019",
+      "rowHash": "6956988007467812d908bdc4a57bf6f912968f4da9183ab63e4a2661ec6dd871",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Emergency Card explicitly extracts these fields and supports text/HTML outputs; it does not replace emergency care. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/health-advisor/package.json",
+        "packages/health-advisor/README.md",
+        "packages/health-advisor/skills/emergency-card/SKILL.md"
+      ]
+    },
+    {
+      "id": "H020",
+      "rowHash": "c0c69e02a4f70b1a387e6d400a68eb1c8def5743950a9dc46ac42910feef44f2",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Knowledge Extractor harvests project patterns, commands, rules and templates with gates and placement. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/keysarium/package.json",
+        "packages/keysarium/README.md",
+        "packages/keysarium/templates/.claude/skills/knowledge-extractor/SKILL.md"
+      ]
+    },
+    {
+      "id": "H021",
+      "rowHash": "6ea03240340cf8f4881ede2e558c517b3968d6c1aeb40eb7b69902dfa34e44df",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Keysarium-core README exposes orchestration topology-selection and queen coordinator protocol for independent pipelines. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/keysarium-core/package.json",
+        "packages/keysarium-core/README.md"
+      ]
+    },
+    {
+      "id": "H022",
+      "rowHash": "ee6f8e218eb1ef73bbee614e4179cc0d1895f74fba857d8d1147b20123c20873",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Loop Plan Author covers typed pipeline/barrier/fanout/gate plans and invariants; runtime remains separate. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/loop-designer-plugin/package.json",
+        "packages/loop-designer-plugin/README.md",
+        "packages/loop-designer-plugin/skills/loop-plan-author/SKILL.md",
+        "packages/skills-meta/loop-plan-author/SKILL.md",
+        "packages/loop-designer-plugin/.codex-plugin/skills/loop-plan-author/SKILL.md"
+      ]
+    },
+    {
+      "id": "H023",
+      "rowHash": "1d61180bf0e7ba24b501a632286f8a01364937dcfba6b0113d36684d9fd5d2e6",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "MCP server README exposes skill_list, skill_get and harness_verify; structural verification is not behavioral testing. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/mcp-server-tools/package.json",
+        "packages/mcp-server-tools/README.md"
+      ]
+    },
+    {
+      "id": "H024",
+      "rowHash": "1b95a9e2851c97166f5e8b2b68b9deed98189448e5988bc767c0f12e9e825cf8",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Memory README describes Reflexion.record(skillId,outcome,score) and ranking outcomes. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/memory/package.json",
+        "packages/memory/README.md"
+      ]
+    },
+    {
+      "id": "H025",
+      "rowHash": "d9b4a049ecf9b59eced9b064504fd3aa1abadff3be14e238ec51edd33b804acc",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Pipeline Forge creates composable skill architectures and multiphase orchestrators/gates from extracted patterns. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/p-replicator/package.json",
+        "packages/p-replicator/README.md",
+        "packages/p-replicator/templates/.claude/skills/pipeline-forge/SKILL.md"
+      ]
+    },
+    {
+      "id": "H026",
+      "rowHash": "304782a7aa4f7d7ec565d762cbc1b6f624c052891218e21cb5bf6704e6e60d30",
+      "semanticCorrect": false,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ошибка incomplete-completion: ответа и выбранного сценария нет, поэтому задача не выполнена.",
+      "sourcePaths": [
+        "packages/scout/package.json",
+        "packages/scout/README.md"
+      ]
+    },
+    {
+      "id": "H027",
+      "rowHash": "e506490f909ea485017756511f32f490dbcf581993d7c45f0d1651cc2a4b80ae",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Logs-as-streams explicitly assigns stream emission to app and capture/routing/storage to execution environment. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/skills-12factor/package.json",
+        "packages/skills-12factor/README.md",
+        "packages/skills-12factor/12factor-logs-as-streams/SKILL.md"
+      ]
+    },
+    {
+      "id": "H028",
+      "rowHash": "77ef18f2da0456ea866e96b9e61dd931a90aeed51954ba23f8333c358a98400f",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Answer Assessor analyzes transcript question/answer pairs, excluding talk evaluation and question generation. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/skills-academic/package.json",
+        "packages/skills-academic/README.md",
+        "packages/skills-academic/answer-assessor/SKILL.md"
+      ]
+    },
+    {
+      "id": "H029",
+      "rowHash": "2f2c2e15863f0b044b5970ee1caa1926a69e03075bf06413a4d35cbb4e9e3016",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Analyst Manual chains explore/research/solve with explicit manual phase checkpoints for positioning and product strategy. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/skills-analyst-manual/package.json",
+        "packages/skills-analyst-manual/README.md",
+        "packages/skills-analyst-manual/templates/.claude/skills/analyst-manual-full/SKILL.md",
+        "packages/health-advisor/base/skills/base/analyst-manual-full/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/analyst-manual-full/SKILL.md"
+      ]
+    },
+    {
+      "id": "H030",
+      "rowHash": "7dd8bfba4ac6360360fd7b19842acd6dd5e45f5d33733bc3f6cf1cbd4c264b99",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Observability and Drift source covers production telemetry, trace-log correlation, drift and escalation routes. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/skills-book-ai-apps/package.json",
+        "packages/skills-book-ai-apps/README.md",
+        "packages/skills-book-ai-apps/aiagents-observability-and-drift/SKILL.md"
+      ]
+    },
+    {
+      "id": "H031",
+      "rowHash": "d82012e0f285980197cf4958562509f72c06fe6757603ad6dd5dc8defcb3fc86",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Object/data ownership source explicitly covers object versus DTO/structure/facade and local ownership decisions. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/skills-book-clean-code/package.json",
+        "packages/skills-book-clean-code/README.md",
+        "packages/skills-book-clean-code/clean-code-object-data-ownership/SKILL.md"
+      ]
+    },
+    {
+      "id": "H032",
+      "rowHash": "d4b6d0d48685ef462c4109a417f5c6c753b9370adc302b936c4290d442b6f6ba",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Encoding/schema evolution source covers formats and field changes across rolling upgrades, not logical DB design. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/skills-book-ddia/package.json",
+        "packages/skills-book-ddia/README.md",
+        "packages/skills-book-ddia/ddia-encoding-and-schema-evolution/SKILL.md"
+      ]
+    },
+    {
+      "id": "H033",
+      "rowHash": "2a0869b50d4e71a1a869703f342affa7358499585faf90c6824b8b22bb229a9f",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Book Ingest deterministically creates chunked page-anchored corpus and manifest, explicitly excluding knowledge extraction. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/skills-book-digitizer/package.json",
+        "packages/skills-book-digitizer/README.md",
+        "packages/skills-book-digitizer/book-ingest/SKILL.md"
+      ]
+    },
+    {
+      "id": "H034",
+      "rowHash": "b81bb70eed39fed9dc5d799deabbe8a25213c2e1f7330c9b427de49698fa666e",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Architecture Guide explicitly covers architecture-level boundaries, styles, drivers and accepted downside. Ответ указывает соответствующий пакет и сохраняет границы его применения.",
+      "sourcePaths": [
+        "packages/skills-book-fundamental-software-architecture/package.json",
+        "packages/skills-book-fundamental-software-architecture/README.md",
+        "packages/skills-book-fundamental-software-architecture/fundamental-software-architecture-guide/SKILL.md"
+      ]
+    }
+  ],
+  "summary": {
+    "rows": 37,
+    "semanticCorrect": 31,
+    "failed": 6,
+    "falseFull": 1,
+    "fabricated": 0
+  }
+}

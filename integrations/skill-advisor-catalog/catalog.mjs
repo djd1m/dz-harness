@@ -9,7 +9,7 @@ export const recordHash = record => digest(JSON.stringify(canonical(record)));
 const text = value => typeof value === 'string' && value.trim().length > 0;
 const texts = value => Array.isArray(value) && value.every(text);
 
-function readInside(root, path) {
+export function readCatalogSource(root, path) {
   if (!text(path) || isAbsolute(path) || path.split(/[\\/]/u).includes('..')) throw Error('Invalid source path');
   const base = realpathSync(root);
   const full = realpathSync(resolve(base, path));
@@ -24,17 +24,17 @@ export function validateRecord(record, root) {
   for (const field of ['skillIds', 'queries', 'whenToUse', 'whenNotToUse', 'prerequisites', 'steps', 'limitations']) {
     if (!texts(record[field])) throw Error(`Invalid ${field}`);
   }
-  if (!record.queries.length || (!record.skillIds.length && record.kind !== 'package') || !record.whenToUse.length) throw Error('Empty scenario');
-  if (record.kind === 'package' && record.skillIds.length) throw Error('Supporting package cannot declare a skill');
+  if (!record.queries.length || (!record.skillIds.length && !['package','package-overview'].includes(record.kind)) || !record.whenToUse.length) throw Error('Empty scenario');
+  if (['package','package-overview'].includes(record.kind) && record.skillIds.length) throw Error('Supporting package cannot declare a skill');
   if (record.courseUrl !== null) throw Error('Course links require a separate verified mapping');
   if (!text(record.package?.manifest) || !text(record.package?.name) || !text(record.package?.version)) throw Error('Missing package identity');
-  const manifest = JSON.parse(readInside(root, record.package.manifest));
+  const manifest = JSON.parse(readCatalogSource(root, record.package.manifest));
   if (manifest.name !== record.package.name || manifest.version !== record.package.version) throw Error('Package version/name changed');
   if (!Array.isArray(record.sources) || !record.sources.length) throw Error('Missing source snapshots');
   const sources = new Map();
   for (const source of record.sources) {
     if (!source || sources.has(source.path) || !/^[a-f0-9]{64}$/u.test(source.sha256)) throw Error('Invalid source snapshot');
-    const bytes = readInside(root, source.path);
+    const bytes = readCatalogSource(root, source.path);
     if (digest(bytes) !== source.sha256) throw Error(`Stale source: ${source.path}`);
     sources.set(source.path, bytes.toString('utf8'));
   }

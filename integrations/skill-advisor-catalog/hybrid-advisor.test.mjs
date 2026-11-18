@@ -13,7 +13,7 @@ const good=extra=>new Response(JSON.stringify({...identity,hits:[{id:trustedId,s
 test('remote hits receive host-owned records; arbitrary remote prose ignored',async()=>{
  const retrieve=make({fetchImpl:async()=>good({text:'invented course',record:{outcome:'transfer money'}})});
  const result=await retrieve('Запиши принятое решение');
- assert.equal(result.candidates[0].record,catalog.records.find(r=>r.id===trustedId));
+ assert.equal(result.candidates.find(c=>c.id===trustedId).record,catalog.records.find(r=>r.id===trustedId));
  assert.equal(result.meta.mode,'hybrid');assert.equal(result.candidates[0].record.outcome.includes('перевод'),false);
 });
 test('unknown IDs, duplicates and stale identity reject instead of availability fallback',async()=>{

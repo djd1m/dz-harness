@@ -1,4 +1,5 @@
 import test from 'node:test';
+import {createHash} from 'node:crypto';
 import assert from 'node:assert/strict';
 import {mkdtemp, readFile, writeFile, rm, readdir} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
@@ -170,4 +171,16 @@ test('HTTP integrity errors remain 409 and do not masquerade as availability fai
   });
   assert.equal(response.status, 409);
   assert.deepEqual(await response.json(), {error: 'SNAPSHOT_CORRUPT'});
+});
+
+test('manifest digest remains compatible with schema-1 whole-array JSON across Unicode and Float32 rows', async t => {
+  const {options,snapshot}=await fixture(t,{documents:[...documents,{id:'unicode/面',text:'Quote \" and newline\n🥣',vector:[.1,.2,.3]}]});
+  snapshot.close();
+  const db=await lance.connect(join(options.directory,'lance'));const table=await db.openTable('documents');
+  try {
+    const rows=(await table.query().toArray()).map(row=>({id:row.id,text:row.text,lexical:row.lexical,vector:Array.from(row.vector)})).sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
+    const manifest=JSON.parse(await readFile(join(options.directory,'manifest.json'),'utf8'));
+    assert.equal(manifest.contentDigest,createHash('sha256').update(JSON.stringify(rows)).digest('hex'));
+  } finally {table.close();db.close();}
+  const reopened=await openSnapshot(options);reopened.close();
 });

@@ -72,7 +72,7 @@ export function verifyCatalogCoverage(inventory,records){
  const packages=new Map(inventory.packages.map(p=>[p.name,p]));
  if(packages.size!==inventory.packages.length)throw Error('Duplicate inventory identity');
  const expected=new Set(inventory.packages.flatMap(p=>p.skills.filter(s=>s.shipped).map(s=>`${p.name}\0${s.path}`)));
- const covered=new Set(),packageCoverage=new Set();
+ const covered=new Set(),packageCoverage=new Set(),overviews=new Set();
  for(const record of records){
   const pkg=packages.get(record.package?.name);
   if(!pkg||pkg.version!==record.package.version)throw Error('Unknown or stale scenario package');
@@ -82,10 +82,16 @@ export function verifyCatalogCoverage(inventory,records){
    if(!paths.length)throw Error(`Unknown or unsupported skill: ${id}`);
    for(const skill of paths)covered.add(`${pkg.name}\0${skill.path}`);
   }
+  if(record.kind==='package-overview'){
+   if(!pkg.skills.some(s=>s.shipped)||record.skillIds.length||!pkg.readme||!record.sources.some(s=>s.path===pkg.readme.path)||overviews.has(pkg.name))throw Error('Invalid or duplicate package overview');
+   overviews.add(pkg.name);
+  }
   if(record.kind==='package'&&(pkg.skills.some(s=>s.shipped)||record.skillIds.length))throw Error('Supporting package must not forge a skill');
  }
  const missingPackages=[...packages.keys()].filter(p=>!packageCoverage.has(p));
  const missingSkills=[...expected].filter(p=>!covered.has(p));
+ const missingOverviews=inventory.packages.filter(p=>p.skills.some(s=>s.shipped)&&!overviews.has(p.name)).map(p=>p.name);
  if(missingPackages.length||missingSkills.length)throw Error(`Incomplete catalog coverage: ${missingPackages.length} packages, ${missingSkills.length} skill paths`);
- return {packages:packages.size,skillPaths:expected.size,scenarios:records.length,missingPackages,missingSkills};
+ if(missingOverviews.length)throw Error('Missing package overview: '+missingOverviews.join(', '));
+ return {packages:packages.size,skillPaths:expected.size,scenarios:records.length,overviews:overviews.size,missingPackages,missingSkills};
 }

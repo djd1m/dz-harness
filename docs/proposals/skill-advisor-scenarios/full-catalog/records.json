@@ -23,14 +23,14 @@
         "Библиотечный адаптер преобразует канонический навык в формат AGENTS.md (единый AGENTS.md)."
       ],
       "whenNotToUse": [
-        "Сводит навыки в один Markdown-файл; теряются frontmatter, файловые границы и перенос scripts/references."
+        "Один Markdown теряет frontmatter, progressive disclosure, границы файлов и перенос scripts/references/assets; это осознанно lossy-формат."
       ],
       "prerequisites": [],
       "steps": [
         "Изучите контракт адаптера AGENTS.md и вызов compile; обычная установка идёт через dz init."
       ],
       "limitations": [
-        "Сводит навыки в один Markdown-файл; теряются frontmatter, файловые границы и перенос scripts/references."
+        "Один Markdown теряет frontmatter, progressive disclosure, границы файлов и перенос scripts/references/assets; это осознанно lossy-формат."
       ],
       "courseUrl": null,
       "sources": [
@@ -691,6 +691,55 @@
       ]
     },
     {
+      "id": "design-thinking-overview-4f2174c6",
+      "kind": "package-overview",
+      "title": "От пользовательской проблемы к проверке продукта",
+      "intent": "Связывает уточнение задачи, исследование пользователей, определение проблемы, гипотезы, прототипирование и проверки в управляемый процесс.",
+      "outcome": "Связывает уточнение задачи, исследование пользователей, определение проблемы, гипотезы, прототипирование и проверки в управляемый процесс.",
+      "package": {
+        "name": "@dzhechkov/design-thinking",
+        "version": "1.0.15",
+        "manifest": "packages/design-thinking/package.json",
+        "type": "skill-pack",
+        "description": "Human-centered product design toolkit for Claude Code — Stanford d.school 5-phase Design Thinking + a 6th Validate phase, 25 academically-grounded methodologies (JTBD, CJM, VSM, HADI), chained over explore → goap-research → prototype → usability test → pilot. Bundles the BTO-benchmarked design-thinking orchestrator plus its skill dependencies, a /design-thinking command, governance rule, and context shard."
+      },
+      "skillIds": [],
+      "queries": [
+        "Хочу понять потребность пользователей и проверить прототип до разработки",
+        "Проведи продуктовую идею через исследование, гипотезы и тестирование"
+      ],
+      "whenToUse": [
+        "Связывает уточнение задачи, исследование пользователей, определение проблемы, гипотезы, прототипирование и проверки в управляемый процесс."
+      ],
+      "whenNotToUse": [
+        "Набор для продуктовых задач с неясной потребностью; состав фаз зависит от сложности, этапы имеют контрольные точки."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Опишите продуктовую проблему и аудиторию; начните с design-thinking и согласования Task Brief."
+      ],
+      "limitations": [
+        "Набор для продуктовых задач с неясной потребностью; состав фаз зависит от сложности, этапы имеют контрольные точки."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/design-thinking/package.json",
+          "sha256": "0909652bbee00cf3d687cc0f022ffe13c677bc09938da0f095ceabe43e6493f9"
+        },
+        {
+          "path": "packages/design-thinking/README.md",
+          "sha256": "3e2098939fccbadd583744b0fcc7d7ea390ae167fd8167297afef79709985af3"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/design-thinking/README.md",
+          "quote": "> Human-centered product design toolkit for Claude Code — Stanford **d.school 5-phase\n> Design Thinking** + a 6th **Validate** phase, **25** academically-grounded methodologies,\n> as an installable npx toolkit."
+        }
+      ]
+    },
+    {
       "id": "design-thinking-design-thinking-cbb2e523",
       "kind": "skill",
       "title": "От пользовательской проблемы к проверенному прототипу",
@@ -1147,6 +1196,59 @@
       ]
     },
     {
+      "id": "evidence-wiki-overview-edf3985c",
+      "kind": "package-overview",
+      "title": "Wiki по документам с прослеживаемыми источниками",
+      "intent": "Строит атомарные концепт-страницы, граф связей и индекс поверх существующих документов, добавляя проверку дисциплины источников.",
+      "outcome": "Строит атомарные концепт-страницы, граф связей и индекс поверх существующих документов, добавляя проверку дисциплины источников.",
+      "package": {
+        "name": "@dzhechkov/evidence-wiki",
+        "version": "0.2.7",
+        "manifest": "packages/evidence-wiki/package.json",
+        "type": "skill-pack",
+        "description": "Evidence-disciplined wiki plugin — atomic concept pages where every claim carries inline sources."
+      },
+      "skillIds": [],
+      "queries": [
+        "Преврати разрозненные исследования и решения в связанную wiki",
+        "Нужна база концептов, где можно проверить источник каждого факта"
+      ],
+      "whenToUse": [
+        "Строит атомарные концепт-страницы, граф связей и индекс поверх существующих документов, добавляя проверку дисциплины источников."
+      ],
+      "whenNotToUse": [
+        "Не проводит исследование вместо автора; типы и пути источников настраиваются под проект."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Подготовьте исходные документы и pillar-конфигурацию; начните с /wiki-generate и проверяйте ссылки через /triple-check."
+      ],
+      "limitations": [
+        "Не проводит исследование вместо автора; типы и пути источников настраиваются под проект."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/evidence-wiki/package.json",
+          "sha256": "02157f891166ee308d6b8bd430dddfa396d7d9c95a12eeca3858944d2a2ac4bf"
+        },
+        {
+          "path": "packages/evidence-wiki/README.md",
+          "sha256": "7dca354af818d4a1b2f5a10a352e7f1f4d9986844b597d0c55139d5544d40fad"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/evidence-wiki/README.md",
+          "quote": "Claude Code plugin: **evidence-disciplined wiki** — атомарный граф-связанный слой концепт-страниц, где каждый факт несёт inline-источник."
+        },
+        {
+          "path": "packages/evidence-wiki/README.md",
+          "quote": "1. **LLM-Wiki** — строит слой атомарных self-contained концепт-страниц поверх вашей документации (концепция Karpathy: каждая страница читается без контекста, явный граф связей, JSON-индекс для LLM resolver).\n2. **3-pillar discipline** — гарантирует, что каждый факт опирается на 3 типа источников (по умолчанию: ADR / methodology / research — конфигурируемо).\n3. **Автоматизация** — команды `/wiki-generate` и `/triple-check`, governance shard, git pre-commit хуки."
+        }
+      ]
+    },
+    {
       "id": "evidence-wiki-concept-wiki-generator-5d81f0bc",
       "kind": "skill",
       "title": "Собрать вики концепций из существующих источников",
@@ -1587,6 +1689,59 @@
         {
           "path": "packages/health-advisor/base/skills/base/problem-solver-enhanced/SKILL.md",
           "quote": "description: Elite problem-solving system combining first principles thinking, game theory, root cause analysis, systematic frameworks AND TRIZ inventive principles for solving complex challenges. Use when facing complex challenges with unclear solutions, strategic decisions with multiple stakeholders, problems requiring breakthrough (not incremental) solutions, trade-offs that seem impossible to resolve, competitive scenarios requiring game-theoretic analysis, system design problems, or any sit"
+        }
+      ]
+    },
+    {
+      "id": "health-advisor-overview-0968b6f3",
+      "kind": "package-overview",
+      "title": "Работа с медицинскими документами и динамикой данных",
+      "intent": "Объединяет приём документов, профиль, исследование лекарств, анализ динамики и подготовку понятных сводок для обсуждения со специалистом.",
+      "outcome": "Объединяет приём документов, профиль, исследование лекарств, анализ динамики и подготовку понятных сводок для обсуждения со специалистом.",
+      "package": {
+        "name": "@dzhechkov/health-advisor",
+        "version": "1.10.9",
+        "manifest": "packages/health-advisor/package.json",
+        "type": "skill-pack",
+        "description": "AI Health Advisor — 20 base components + 25 extended medical skills for Claude Code"
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужно собрать анализы и историю наблюдений в понятный отчёт для врача",
+        "Хочу организовать медицинские документы, исследование источников и вопросы к приёму"
+      ],
+      "whenToUse": [
+        "Объединяет приём документов, профиль, исследование лекарств, анализ динамики и подготовку понятных сводок для обсуждения со специалистом."
+      ],
+      "whenNotToUse": [
+        "Информационная поддержка, не медицинский прибор и не замена врачу; результаты не являются основанием для самостоятельных медицинских решений."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Подготовьте документы, даты наблюдений и цель разбора; выберите /health-advisor для маршрутизации к нужным модулям."
+      ],
+      "limitations": [
+        "Информационная поддержка, не медицинский прибор и не замена врачу; результаты не являются основанием для самостоятельных медицинских решений."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/health-advisor/package.json",
+          "sha256": "054710e33fcbc3f9c8a75206a8e731a8a0202c107573b9fa622904dec9646ae6"
+        },
+        {
+          "path": "packages/health-advisor/README.md",
+          "sha256": "369d641b06ed0a7c420812bb20bffe3ce251be6f74c0736e86828b05c121b90b"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/health-advisor/README.md",
+          "quote": "**Пример:** Вы говорите \"Проанализируй мои анализы\" →\n1. Модуль Profile вызывает **lab-results** для интерпретации 34 показателей\n2. Затем **health-trend-analyzer** строит динамику изменений\n3. Затем **patiently-ai** упрощает результат понятным языком"
+        },
+        {
+          "path": "packages/health-advisor/README.md",
+          "quote": "Это не медицинский прибор и не замена врачу. Все результаты носят информационный характер. Всегда проверяйте рекомендации с квалифицированным специалистом. Не принимайте медицинских решений только на основе этих данных."
         }
       ]
     },
@@ -3187,6 +3342,59 @@
       ]
     },
     {
+      "id": "keysarium-overview-e81e1bb8",
+      "kind": "package-overview",
+      "title": "Полный разбор AI-кейса до архитектуры и презентации",
+      "intent": "Организует семь фаз: discovery, уточнение, исследование, CJM-прототип, решение, архитектуру и презентацию с конкретными артефактами.",
+      "outcome": "Организует семь фаз: discovery, уточнение, исследование, CJM-прототип, решение, архитектуру и презентацию с конкретными артефактами.",
+      "package": {
+        "name": "@dzhechkov/keysarium",
+        "version": "1.7.21",
+        "manifest": "packages/keysarium/package.json",
+        "type": "skill-pack",
+        "description": "AI Case Research Toolkit for Claude Code and Codex — full 7-phase pipeline with feature-adr, dream cycles, background workers, and Cloud.ru AI Factory mapping"
+      },
+      "skillIds": [],
+      "queries": [
+        "Помоги пройти AI-кейс от исследования проблемы до архитектуры и презентации",
+        "Готовим хакатонный проект: нужны исследование, CJM-прототип и обоснование решения"
+      ],
+      "whenToUse": [
+        "Организует семь фаз: discovery, уточнение, исследование, CJM-прототип, решение, архитектуру и презентацию с конкретными артефактами."
+      ],
+      "whenNotToUse": [
+        "Для Codex используется отдельный вход; ссылки на Claude-команды не становятся исполняемой конфигурацией. Расширенный QE требует внешнего runtime."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Опишите кейс и целевую платформу; выберите /casarium в Claude Code или $casarium в Codex и согласуйте этапы."
+      ],
+      "limitations": [
+        "Для Codex используется отдельный вход; ссылки на Claude-команды не становятся исполняемой конфигурацией. Расширенный QE требует внешнего runtime."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/keysarium/package.json",
+          "sha256": "35b623270c0e3b2a510455550f04b1bb51a48b16fa9f323891f930d4b674a99d"
+        },
+        {
+          "path": "packages/keysarium/README.md",
+          "sha256": "748bcfec4d7e98ca87b124bcb688342130bdd8fffe7cf9cf1a2291a5479a783d"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/keysarium/README.md",
+          "quote": "Full 7-phase pipeline for AI case studies, hackathons, and casariums. Provides skills, commands, rules, shards, agent templates, and brain portability. Claude Code uses `/casarium`; Codex uses a local `$casarium` skill that reads the same phase sources."
+        },
+        {
+          "path": "packages/keysarium/README.md",
+          "quote": "Each phase produces concrete artifacts (Markdown documents, Mermaid diagrams, JSX prototypes) stored in `researches/<case-slug>/`."
+        }
+      ]
+    },
+    {
       "id": "keysarium-casarium-f4097dec",
       "kind": "skill",
       "title": "Пройти исследование кейса Keysarium",
@@ -3985,6 +4193,55 @@
       ]
     },
     {
+      "id": "loop-designer-plugin-overview-8608943e",
+      "kind": "package-overview",
+      "title": "Проектирование и проверка агентных циклов",
+      "intent": "Помогает авторить loop-plan/1, рендерить скрипт, проверять его и читать записи выполнения через навык и командные обёртки.",
+      "outcome": "Помогает авторить loop-plan/1, рендерить скрипт, проверять его и читать записи выполнения через навык и командные обёртки.",
+      "package": {
+        "name": "@dzhechkov/loop-designer-plugin",
+        "version": "0.1.7",
+        "manifest": "packages/loop-designer-plugin/package.json",
+        "type": "skill-pack",
+        "description": "The plugin authors, gates and reads plans; execution uses a separate runtime. Author loop-plan/1 plans with five plugin wrappers. Execute rendered scripts with the Claude Code Workflow host, or interpret plans separately with a current dz workflow run CLI and its dispatch prerequisites."
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужен проверяемый план параллельной работы агентов с повторами и паузами",
+        "Оформи агентный workflow так, чтобы можно было проверить план и прочитать трассу"
+      ],
+      "whenToUse": [
+        "Помогает авторить loop-plan/1, рендерить скрипт, проверять его и читать записи выполнения через навык и командные обёртки."
+      ],
+      "whenNotToUse": [
+        "Плагин не включает исполнитель цикла; Workflow host или совместимый dz runner настраиваются отдельно. Portable runner не выполняет USER JavaScript."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Опишите шаги, соединения и условия повторов; используйте loop-plan-author, затем отдельно проверьте выбранный runtime."
+      ],
+      "limitations": [
+        "Плагин не включает исполнитель цикла; Workflow host или совместимый dz runner настраиваются отдельно. Portable runner не выполняет USER JavaScript."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/loop-designer-plugin/package.json",
+          "sha256": "7b167f7af7a7af84e8acaa05d840ad74b25cc7c610084bc215d41c1b032b96ec"
+        },
+        {
+          "path": "packages/loop-designer-plugin/README.md",
+          "sha256": "291e69394cc25676b28b041322295aa0426f4919d6eaed9945aa76a476cdb9e9"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/loop-designer-plugin/README.md",
+          "quote": "A Claude Code plugin for **designing agent loops**: one authoring skill (`loop-plan-author`) and\nfive thin command wrappers over `dz workflow` — `/loop-designer:init｜validate｜render｜lint｜trace`."
+        }
+      ]
+    },
+    {
       "id": "loop-designer-plugin-loop-plan-author-ea9841b8",
       "kind": "skill",
       "title": "Проверяемый план агентного цикла",
@@ -4144,6 +4401,59 @@
         {
           "path": "packages/memory/README.md",
           "quote": "The harness **memory layer** — records skill outcomes, ranks skills, and imports\nhost memory files."
+        }
+      ]
+    },
+    {
+      "id": "p-replicator-overview-0b410b50",
+      "kind": "package-overview",
+      "title": "От идеи продукта к документации, проверкам и проектному инструментарию",
+      "intent": "Предлагает два маршрута: подготовку нового проекта через /replicate и развитие существующего через /feature с документацией, проверками и инструментарием.",
+      "outcome": "Предлагает два маршрута: подготовку нового проекта через /replicate и развитие существующего через /feature с документацией, проверками и инструментарием.",
+      "package": {
+        "name": "@dzhechkov/p-replicator",
+        "version": "1.13.5",
+        "manifest": "packages/p-replicator/package.json",
+        "type": "skill-pack",
+        "description": "P-Replicator — Claude Code toolkit for AI-assisted product development (Vibe Coding). Full /replicate pipeline, 10 modular skills (880K+ chars), /harvest knowledge extraction, swarm agents, quality gates, security patterns, cross-project learning."
+      },
+      "skillIds": [],
+      "queries": [
+        "Хочу превратить идею в спецификации, проверенный план и каркас проекта",
+        "Нужно добавить функцию в существующий проект через требования, реализацию и ревью"
+      ],
+      "whenToUse": [
+        "Предлагает два маршрута: подготовку нового проекта через /replicate и развитие существующего через /feature с документацией, проверками и инструментарием."
+      ],
+      "whenNotToUse": [
+        "Ориентирован на Claude Code; внешние дизайн-разборы считаются гипотезами до подтверждения. Подготовка проекта не означает автоматическое разрешение выкладки."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Определите новый это проект или существующий, передайте идею либо документацию и выберите /replicate или /feature."
+      ],
+      "limitations": [
+        "Ориентирован на Claude Code; внешние дизайн-разборы считаются гипотезами до подтверждения. Подготовка проекта не означает автоматическое разрешение выкладки."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/p-replicator/package.json",
+          "sha256": "7cece593876bc85fa764859e2bf2eec9e3e4c95a17602b76c474c933f4138ed3"
+        },
+        {
+          "path": "packages/p-replicator/README.md",
+          "sha256": "117fa72b28c5d4378fafb0273b4ca8d4a5139e0bd2c7f1a16588e35e95f6b503"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/p-replicator/README.md",
+          "quote": "### **Claude Code toolkit for AI-assisted product development**\n##### *Transform a product idea — or existing project — into fully documented, validated, toolkit-equipped code*"
+        },
+        {
+          "path": "packages/p-replicator/README.md",
+          "quote": "Plus **`/feature`** for adding new features to a project with the same SPARC-mini validation cycle, **`/run --feature-branches`** for autonomous batch builds with per-feature git branches, **`/harvest`** for extracting reusable patterns into a knowledge base, and 8 more commands (`/start`, `/plan`, `/go`, `/next`, `/myinsights`, `/docs`, `/deploy`, `/feature-ent`)."
         }
       ]
     },
@@ -5455,6 +5765,59 @@
       ]
     },
     {
+      "id": "skills-12factor-overview-0b0f0465",
+      "kind": "package-overview",
+      "title": "Решения 12-factor для устройства и эксплуатации сервиса",
+      "intent": "Помогает выбрать связанные решения по кодовой базе, зависимостям, конфигурации, ресурсам, релизам, процессам и окружениям через набор навыков по факторам.",
+      "outcome": "Помогает выбрать связанные решения по кодовой базе, зависимостям, конфигурации, ресурсам, релизам, процессам и окружениям через набор навыков по факторам.",
+      "package": {
+        "name": "@dzhechkov/skills-12factor",
+        "version": "0.1.14",
+        "manifest": "packages/skills-12factor/package.json",
+        "type": "skill-pack",
+        "description": "12 decision-moment skills distilled from The Twelve-Factor App (CC BY 4.0) — one per factor. Makes AI coders apply 12-factor decisions (config-in-env, stateless processes, port binding, dev-prod parity, …). Generated by @dzhechkov/skills-book-digitizer; derivative of 12factor.net, CC BY 4.0, attribution in NOTICE."
+      },
+      "skillIds": [],
+      "queries": [
+        "Проверь сервис перед контейнеризацией по всем принципам 12-factor",
+        "Нужен согласованный подход к конфигурации, состоянию, логам и процессам приложения"
+      ],
+      "whenToUse": [
+        "Помогает выбрать связанные решения по кодовой базе, зависимостям, конфигурации, ресурсам, релизам, процессам и окружениям через набор навыков по факторам."
+      ],
+      "whenNotToUse": [
+        "Материал машинно извлечён из The Twelve-Factor App, trust_tier 0; требуется человеческая проверка, а не предположение о сертифицированном соответствии."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Опишите сервис и цель изменения; определите затронутые факторы и последовательно проверьте их решения и связи."
+      ],
+      "limitations": [
+        "Материал машинно извлечён из The Twelve-Factor App, trust_tier 0; требуется человеческая проверка, а не предположение о сертифицированном соответствии."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-12factor/package.json",
+          "sha256": "6579de92ea6013e5bf4ad06b37bee4563a6a52861d31ec88144c14e84bb16cb4"
+        },
+        {
+          "path": "packages/skills-12factor/README.md",
+          "sha256": "42fa0033987e5ca638b8aeb2897f5e9f6aa956462e3794353c08b6b76f5e11f2"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-12factor/README.md",
+          "quote": "**12 decision-moment skills distilled from [The Twelve-Factor App](https://12factor.net)** — one per\nfactor — so AI coders (Claude Code, Codex, …) apply 12-factor decisions at the moments they arise:\nwhere config lives, how processes hold state, how services bind ports, how to keep dev/prod in parity, …"
+        },
+        {
+          "path": "packages/skills-12factor/README.md",
+          "quote": "Each skill ships a house-format `SKILL.md` (Decision · Protocol · Anti-patterns · Related decisions ·\nИсточник · Self-check · Examples), page-cited Knowledge Units in `references/`, and routing evals in\n`evals/`. **trust_tier 0** — machine-distilled from the source, unreviewed; promote with human review."
+        }
+      ]
+    },
+    {
       "id": "skills-academic-answer-assessor-bf990c08",
       "kind": "skill",
       "title": "Оценить ответы студента на вопросы комиссии",
@@ -5736,6 +6099,116 @@
         {
           "path": "packages/skills-academic/question-generator/SKILL.md",
           "quote": "description: \"Generates defense questions of varying difficulty — basic understanding, methodology, application, and critical analysis.\""
+        }
+      ]
+    },
+    {
+      "id": "skills-academic-overview-74144a5f",
+      "kind": "package-overview",
+      "title": "Подготовка и оценка магистерской защиты",
+      "intent": "Объединяет методики рецензирования работы, генерации вопросов, проверки документов и оценки выступления и ответов на защите.",
+      "outcome": "Объединяет методики рецензирования работы, генерации вопросов, проверки документов и оценки выступления и ответов на защите.",
+      "package": {
+        "name": "@dzhechkov/skills-academic",
+        "version": "0.3.8",
+        "manifest": "packages/skills-academic/package.json",
+        "type": "skill-pack",
+        "description": "Academic skill pack — dissertation review, question generation, document checking for thesis defense (ГЭК). Contains only evaluation criteria and methodology, no student data."
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужны разбор диссертации, вопросы комиссии и проверка пакета документов",
+        "Помоги оценить выступление и ответы на защите по единым критериям"
+      ],
+      "whenToUse": [
+        "Объединяет методики рецензирования работы, генерации вопросов, проверки документов и оценки выступления и ответов на защите."
+      ],
+      "whenNotToUse": [
+        "В наборе только критерии и методика, без данных студентов; реальные работы следует обозначать номером или меткой без персональных данных."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Выберите этап защиты и подготовьте обезличенную работу, замечания рецензента, комплект документов или транскрипт."
+      ],
+      "limitations": [
+        "В наборе только критерии и методика, без данных студентов; реальные работы следует обозначать номером или меткой без персональных данных."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-academic/package.json",
+          "sha256": "b7098829d84e2cefeafd519bbf6686e536764354d17edb4b4f9c592e56985eed"
+        },
+        {
+          "path": "packages/skills-academic/README.md",
+          "sha256": "a8b32d687c6c1bbcdfd3c24fe4fb644d45c8ee11a20cb62277805cd21c4c021f"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-academic/README.md",
+          "quote": "Academic skill pack — 5 skills for master's thesis defense evaluation (ГЭК — Государственная экзаменационная комиссия). Contains only evaluation criteria and methodology; **no student data**."
+        },
+        {
+          "path": "packages/skills-academic/README.md",
+          "quote": "These skills ship **evaluation criteria and methodology only** — no student, supervisor, or reviewer data. When applied to real theses, reference works by number/label and never include personally identifying information."
+        }
+      ]
+    },
+    {
+      "id": "skills-analyst-manual-overview-6758eed2",
+      "kind": "package-overview",
+      "title": "Стратегический анализ с подтверждением каждой фазы",
+      "intent": "Соединяет Explore, Research и Solve; каждая фаза выдаёт документ и заканчивается подтверждением пользователя.",
+      "outcome": "Соединяет Explore, Research и Solve; каждая фаза выдаёт документ и заканчивается подтверждением пользователя.",
+      "package": {
+        "name": "@dzhechkov/skills-analyst-manual",
+        "version": "1.0.16",
+        "manifest": "packages/skills-analyst-manual/package.json",
+        "type": "skill-pack",
+        "description": "Composite analyst skill for Claude Code — 3-phase manual pipeline with source evidence, optional issuer-signature verification, checkpoints, and TRIZ problem solving"
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужен полный стратегический разбор от уточнения задачи до плана решения",
+        "Проведи продуктовый анализ с исследованием источников и остановками для согласования"
+      ],
+      "whenToUse": [
+        "Соединяет Explore, Research и Solve; каждая фаза выдаёт документ и заканчивается подтверждением пользователя."
+      ],
+      "whenNotToUse": [
+        "Проверка подписей издателя возможна только при закреплённых ключах и подписанной выдаче; обычные веб-источники этого по умолчанию не дают."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Задайте продуктовую задачу и ограничения; начните analyst-manual-full с согласования brief и режима исследования."
+      ],
+      "limitations": [
+        "Проверка подписей издателя возможна только при закреплённых ключах и подписанной выдаче; обычные веб-источники этого по умолчанию не дают."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-analyst-manual/package.json",
+          "sha256": "f19ee966a07a22c820f281af4257e53d90efd569ac93e9fa89293886abed1692"
+        },
+        {
+          "path": "packages/skills-analyst-manual/README.md",
+          "sha256": "5aa704cc34e24b21e0cdd3dbf5c1fb0ec2b661080bf5a52e382a90a2a57dbc91"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-analyst-manual/README.md",
+          "quote": "Composite analyst skill for [Claude Code](https://claude.com/claude-code) — 3-phase manual pipeline with checkpoints for strategic product analysis."
+        },
+        {
+          "path": "packages/skills-analyst-manual/README.md",
+          "quote": "1. **Explore** — Task clarification, brief generation\n2. **Research** — GOAP planning, source evidence and an explicit issuer-signature status. Ed25519 issuer verification is available only when sources deliver signed content and real issuer keys are pinned.\n3. **Solve** — 9-module problem solving (TRIZ, Game Theory, OODA, SCQA)"
+        },
+        {
+          "path": "packages/skills-analyst-manual/README.md",
+          "quote": "Each phase produces a document. User confirms before proceeding to the next."
         }
       ]
     },
@@ -6937,6 +7410,55 @@
       ]
     },
     {
+      "id": "skills-book-ai-apps-overview-86b16c2c",
+      "kind": "package-overview",
+      "title": "Инженерные решения для приложений с AI-агентами",
+      "intent": "Навигирует по методам проектирования AI-агентов: выбор модели и состава агентов, контекст, память, инструменты, UX, оценки, наблюдаемость и выпуск.",
+      "outcome": "Навигирует по методам проектирования AI-агентов: выбор модели и состава агентов, контекст, память, инструменты, UX, оценки, наблюдаемость и выпуск.",
+      "package": {
+        "name": "@dzhechkov/skills-book-ai-apps",
+        "version": "0.2.11",
+        "manifest": "packages/skills-book-ai-apps/package.json",
+        "type": "skill-pack",
+        "description": "Decision-moment skills distilled from «Building Applications with AI Agents» (Albada, рус. пер.) — makes an AI coder apply the book's agent-engineering methodologies. 17 skills over both distillation waves. Machine-distilled (trust_tier 1, routing-gated), book-derived."
+      },
+      "skillIds": [],
+      "queries": [
+        "Помоги спроектировать агентное приложение от выбора модели до оценки и выпуска",
+        "Нужно согласовать память, инструменты, оркестрацию, безопасность и участие человека"
+      ],
+      "whenToUse": [
+        "Навигирует по методам проектирования AI-агентов: выбор модели и состава агентов, контекст, память, инструменты, UX, оценки, наблюдаемость и выпуск."
+      ],
+      "whenNotToUse": [
+        "Книжная машинная дистилляция, trust_tier 1, не проверенная человеком по страницам; routing-проверка не доказывает правильность каждого утверждения."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Опишите приложение и текущие развилки; выберите связанные навыки набора и проверьте важные основания по страницам источника."
+      ],
+      "limitations": [
+        "Книжная машинная дистилляция, trust_tier 1, не проверенная человеком по страницам; routing-проверка не доказывает правильность каждого утверждения."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-book-ai-apps/package.json",
+          "sha256": "94cd98d4a8a9d0e53f1810290ff9371818b0ac722b6f4c98d92d5737eb8a32c2"
+        },
+        {
+          "path": "packages/skills-book-ai-apps/README.md",
+          "sha256": "699691847a6b1d0d67135a03c8d77371fbb6286cf39ca4ed16b5e5c75147dd9a"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-book-ai-apps/README.md",
+          "quote": "Makes an AI coder **apply the book's agent-engineering methodologies** at the real design moments —\nnot summarize the book. Each skill activates on a decision moment and gives concrete criteria,\ntradeoff tables, page-anchored facts and formulas, anti-patterns, and cross-links to its siblings."
+        }
+      ]
+    },
+    {
       "id": "skills-book-clean-code-clean-code-architecture-assembly-3e8c5919",
       "kind": "skill",
       "title": "Собрать зависимости в composition root",
@@ -7446,6 +7968,63 @@
         {
           "path": "packages/skills-book-clean-code/clean-code-test-suite-feedback/SKILL.md",
           "quote": "description: >\n  Используйте существующий Clean-Code тестовый набор как feedback о дизайне: readability, FIRST, независимость, fixtures, понятный язык сценариев, локальные coverage gaps и повторяющиеся failure patterns. NOT для risk-weighted cross-suite coverage program → qe-coverage-analysis; NOT для cross-run defect intelligence → qe-defect-intelligence; NOT для нового test design → test-design-techniques; NOT для authoring unit/integration/E2E → test-writer; NOT для race/liveness schedules → "
+        }
+      ]
+    },
+    {
+      "id": "skills-book-clean-code-overview-554fd912",
+      "kind": "package-overview",
+      "title": "Улучшение кода по связанным принципам Clean Code",
+      "intent": "Помогает выбрать навыки для ясности намерений, контрактов функций, структуры, владения данными, ошибок, тестов, рефакторинга и конкурентности.",
+      "outcome": "Помогает выбрать навыки для ясности намерений, контрактов функций, структуры, владения данными, ошибок, тестов, рефакторинга и конкурентности.",
+      "package": {
+        "name": "@dzhechkov/skills-book-clean-code",
+        "version": "0.1.2",
+        "manifest": "packages/skills-book-clean-code/package.json",
+        "type": "skill-pack",
+        "description": "Nine decision-moment skills and a portable 259-KU knowledge slice distilled from «Чистый код» (Robert C. Martin, рус. пер.). Machine-distilled (trust_tier 1), book-derived; ships our own page-anchored reformulations, never the book text."
+      },
+      "skillIds": [],
+      "queries": [
+        "Хочу привести старый модуль в порядок, сохранив поведение",
+        "Нужен совместный разбор имён, функций, владения данными, ошибок и тестов"
+      ],
+      "whenToUse": [
+        "Помогает выбрать навыки для ясности намерений, контрактов функций, структуры, владения данными, ошибок, тестов, рефакторинга и конкурентности."
+      ],
+      "whenNotToUse": [
+        "Книжный набор содержит переформулированные знания, а не PDF; проверка маршрутизации не гарантирует ответ. Новые функции остаются задачей feature-процесса."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Передайте модуль, ожидаемое поведение и имеющиеся проверки; выберите нужные области и двигайтесь небольшими проверяемыми изменениями."
+      ],
+      "limitations": [
+        "Книжный набор содержит переформулированные знания, а не PDF; проверка маршрутизации не гарантирует ответ. Новые функции остаются задачей feature-процесса."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-book-clean-code/package.json",
+          "sha256": "53d522a2e4c5a51fe90cf5aa3a1cfcfddcf7cc11eb042c8421228d8e6b7bd089"
+        },
+        {
+          "path": "packages/skills-book-clean-code/README.md",
+          "sha256": "b34c6987471e4b8fb6dc09b47eed416123eceb61ca593162805230dc65b1d227"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-book-clean-code/README.md",
+          "quote": "9 навыков и 259 проверенных единиц знаний по утверждённому охвату: главы 1–17 и приложение A. Каждое правило связано со страницами источника; PDF и OCR-корпус в пакет не входят."
+        },
+        {
+          "path": "packages/skills-book-clean-code/README.md",
+          "quote": "Для Codex замените цель на `codex`. После установки опишите задачу обычными словами: «Используй подходящие навыки Clean Code для этой задачи: …». Агент выберет навык по ситуации. Проверка маршрутизации снижает риск неправильного выбора, но не гарантирует каждый ответ."
+        },
+        {
+          "path": "packages/skills-book-clean-code/README.md",
+          "quote": "RU: «Упрости этот старый модуль, сохранив поведение и опираясь на проверки». EN: “Simplify this legacy module while preserving behavior and checking it with tests.”\n`clean-code-legacy-refactoring-loop` ведёт небольшие проверяемые изменения; разработка новой функции остаётся задачей основного feature-пайплайна."
         }
       ]
     },
@@ -8020,6 +8599,59 @@
       ]
     },
     {
+      "id": "skills-book-ddia-overview-f34309d8",
+      "kind": "package-overview",
+      "title": "Согласованный выбор решений системы данных",
+      "intent": "Помогает пройти связанные решения по требованиям, модели, хранению, схемам, репликации, партиционированию, изоляции, согласованности и обработке данных.",
+      "outcome": "Помогает пройти связанные решения по требованиям, модели, хранению, схемам, репликации, партиционированию, изоляции, согласованности и обработке данных.",
+      "package": {
+        "name": "@dzhechkov/skills-book-ddia",
+        "version": "0.1.6",
+        "manifest": "packages/skills-book-ddia/package.json",
+        "type": "skill-pack",
+        "description": "Decision-moment skills distilled from «Высоконагруженные приложения» (M. Kleppmann, DDIA рус.) — makes an AI coder apply the book’s data-systems methodologies. Machine-distilled (trust_tier 0), book-derived (paraphrase, not quotation)."
+      },
+      "skillIds": [],
+      "queries": [
+        "Проектирую нагруженный сервис: как связать выбор модели данных, хранения и репликации",
+        "Нужно разобраться в архитектуре данных от транзакций до потоковой обработки"
+      ],
+      "whenToUse": [
+        "Помогает пройти связанные решения по требованиям, модели, хранению, схемам, репликации, партиционированию, изоляции, согласованности и обработке данных."
+      ],
+      "whenNotToUse": [
+        "Книжная машинная дистилляция trust_tier 0; это рабочий спутник, не замена книге. Конкретные решения требуют сверки с контекстом и источником."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Опишите нагрузку, запросы и инварианты; начните с ограничений системы и пройдите связанные архитектурные развилки."
+      ],
+      "limitations": [
+        "Книжная машинная дистилляция trust_tier 0; это рабочий спутник, не замена книге. Конкретные решения требуют сверки с контекстом и источником."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-book-ddia/package.json",
+          "sha256": "0e0bde7f53d8f3ff1ebf413999d8131ba59e75dea6eab8a09f75d6b458ae44a8"
+        },
+        {
+          "path": "packages/skills-book-ddia/README.md",
+          "sha256": "d6eeaab640d3aaeefc44c1302cff0d0bdb288d07211fe2adcb75b7875d74e0c9"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-book-ddia/README.md",
+          "quote": "Makes an AI coder **apply the book's data-systems methodologies** at the real design decisions —\nnot summarize the book. Each skill activates on a decision moment and gives concrete criteria,\ntradeoff tables, key facts/formulas with page anchors, anti-patterns, and cross-links."
+        },
+        {
+          "path": "packages/skills-book-ddia/README.md",
+          "quote": "**What happens:** the agent walks the coupled decisions in order (model → storage engine → replication\n→ partitioning), applying DDIA's criteria at each and flagging where one choice constrains the next\n(e.g. leaderless replication → quorum math in consistency)."
+        }
+      ]
+    },
+    {
       "id": "skills-book-digitizer-book-brain-register-c379e63d",
       "kind": "skill",
       "title": "Перенос проверенных знаний книги в общую личную память",
@@ -8419,6 +9051,59 @@
       ]
     },
     {
+      "id": "skills-book-digitizer-overview-2d33a2c5",
+      "kind": "package-overview",
+      "title": "Из технической книги в навыки и поисковую базу знаний",
+      "intent": "Ведёт PDF через корпус, извлечение и проверку знаний, дистилляцию навыков, сборку пакета и индексацию; перенос в межпроектную память — отдельный этап.",
+      "outcome": "Ведёт PDF через корпус, извлечение и проверку знаний, дистилляцию навыков, сборку пакета и индексацию; перенос в межпроектную память — отдельный этап.",
+      "package": {
+        "name": "@dzhechkov/skills-book-digitizer",
+        "version": "0.2.20",
+        "manifest": "packages/skills-book-digitizer/package.json",
+        "type": "skill-pack",
+        "description": "Canonical book-digitizer skill pack — 8 skills that turn an engineering book/textbook/monograph into an installable skill pack whose skills make AI coders work within the book's methodologies: digitize-book (orchestrator), book-ingest, book-knowledge-extract, book-skill-distill, book-pack-assemble, book-kb-index, book-brain-register (terminal promote-to-brain, CP6), source-brain-ingest (repo/dir sibling)."
+      },
+      "skillIds": [],
+      "queries": [
+        "Преврати техническую книгу в набор навыков, которые агент применяет в работе",
+        "Хочу оцифровать методики книги и сделать их доступными для поиска и повторного применения"
+      ],
+      "whenToUse": [
+        "Ведёт PDF через корпус, извлечение и проверку знаний, дистилляцию навыков, сборку пакета и индексацию; перенос в межпроектную память — отдельный этап."
+      ],
+      "whenNotToUse": [
+        "Нужны PDF, Poppler и зависимости памяти; процесс имеет человеческие контрольные точки, а распространение и перенос в общий brain требуют отдельных решений."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Укажите книгу и рабочий каталог; начните digitize-book, согласуйте точки контроля и назначение будущих навыков."
+      ],
+      "limitations": [
+        "Нужны PDF, Poppler и зависимости памяти; процесс имеет человеческие контрольные точки, а распространение и перенос в общий brain требуют отдельных решений."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-book-digitizer/package.json",
+          "sha256": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba"
+        },
+        {
+          "path": "packages/skills-book-digitizer/README.md",
+          "sha256": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-book-digitizer/README.md",
+          "quote": "Turn an engineering **book / textbook / monograph** into an **installable skill pack** whose skills\nmake AI coders (Claude Code, Codex, …) *work within the book's methodologies* — plus a searchable\nKnowledge Base behind them. dz-original; design & rationale in\n[ADR-001 v2](https://github.com/djd1m/dz-harness-hub/blob/main/features/book-knowledge-digitizer/03_adr/001-book-to-skillpack-pipeline.md)\n(passed a 4-lens adversarial design panel: 28 findings, all folded in)."
+        },
+        {
+          "path": "packages/skills-book-digitizer/README.md",
+          "quote": "The core pipeline. Install the orchestrator, then hand it a PDF; it runs `book-ingest → extract →\ndistill → assemble → book-kb-index` through 5 human checkpoints (CP1–CP5), plus an optional CP6\n`book-brain-register` to promote the book into the cross-project brain (scenario 3)."
+        }
+      ]
+    },
+    {
       "id": "skills-book-digitizer-source-brain-ingest-efe913c2",
       "kind": "skill",
       "title": "Знания репозитория в долговечной памяти",
@@ -8529,6 +9214,112 @@
         {
           "path": "packages/skills-book-fundamental-software-architecture/fundamental-software-architecture-guide/SKILL.md",
           "quote": "description: >\n  Choose or challenge an ARCHITECTURE-LEVEL system decision before implementation, using the\n  book's concrete protocols for drivers, boundaries, styles, distributed tradeoffs, application\n  request-vs-domain-event flow, event-driven application orchestration-vs-choreography, decision\n  governance and environment fit. Use when a coding agent must state the accepted downside,\n  verification condition and reconsideration trigger of a costly SYSTEM-STRUCTURE choice. The\n  gateway sel"
+        }
+      ]
+    },
+    {
+      "id": "skills-book-fundamental-software-architecture-overview-dfce55d4",
+      "kind": "package-overview",
+      "title": "Архитектурный выбор с последствиями и проверкой",
+      "intent": "Проводит архитектурный вопрос через выбор протокола, драйверов и границ к решению с отрицательными последствиями, проверкой и передачей профильной работе.",
+      "outcome": "Проводит архитектурный вопрос через выбор протокола, драйверов и границ к решению с отрицательными последствиями, проверкой и передачей профильной работе.",
+      "package": {
+        "name": "@dzhechkov/skills-book-fundamental-software-architecture",
+        "version": "0.1.4",
+        "manifest": "packages/skills-book-fundamental-software-architecture/package.json",
+        "type": "skill-pack",
+        "description": "Architecture decision gateway distilled from Fundamentals of Software Architecture: 26 protocols, shipped references, and a 315-KU lexical brain slice."
+      },
+      "skillIds": [],
+      "queries": [
+        "Помоги выбрать архитектуру системы и явно назвать цену решения",
+        "Нужно решить, стоит ли разделять монолит, и определить условия пересмотра"
+      ],
+      "whenToUse": [
+        "Проводит архитектурный вопрос через выбор протокола, драйверов и границ к решению с отрицательными последствиями, проверкой и передачей профильной работе."
+      ],
+      "whenNotToUse": [
+        "Книжный набор содержит авторские переформулировки; не выполняет автоматическую миграцию. Запуск поставляемого IP-гейта на этом пакете не засвидетельствован."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Опишите решение, ограничения команды и среды; используйте fundamental-software-architecture-guide для выбора протокола и проверяемого вывода."
+      ],
+      "limitations": [
+        "Книжный набор содержит авторские переформулировки; не выполняет автоматическую миграцию. Запуск поставляемого IP-гейта на этом пакете не засвидетельствован."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-book-fundamental-software-architecture/package.json",
+          "sha256": "274b778afe88cd89593ff4ac76a1da9269db90ef7f7fc06b93d1ec0aa65359c6"
+        },
+        {
+          "path": "packages/skills-book-fundamental-software-architecture/README.md",
+          "sha256": "b807507acc2a7fd7e953fe5225a1e0db34ea1dfd07ad7ab2000b4b58010239ae"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-book-fundamental-software-architecture/README.md",
+          "quote": "This public, book-derived pack turns architecture-level design questions into a traceable\ndecision: context and drivers, boundary, style/topology, distributed interaction, guardrail,\nand an explicit downside plus verification condition. It ships the deep-lookup references and a\n315-KU lexical slice. It contains original reformulations and decision protocols, not the book's\ntext or source PDF."
+        },
+        {
+          "path": "packages/skills-book-fundamental-software-architecture/README.md",
+          "quote": "The gateway routes to boundaries/coupling or style/fit, producing a bounded recommendation rather\nthan an automatic microservice migration."
+        }
+      ]
+    },
+    {
+      "id": "skills-bto-overview-62f441da",
+      "kind": "package-overview",
+      "title": "Оценка и итерационное улучшение навыков и промптов",
+      "intent": "Соединяет построение артефакта, детерминированный benchmark, панель оценщиков, проверки согласованности и оптимизацию навыков, команд и промптов.",
+      "outcome": "Соединяет построение артефакта, детерминированный benchmark, панель оценщиков, проверки согласованности и оптимизацию навыков, команд и промптов.",
+      "package": {
+        "name": "@dzhechkov/skills-bto",
+        "version": "1.4.7",
+        "manifest": "packages/skills-bto/package.json",
+        "type": "skill-pack",
+        "description": "Build-Benchmark-Test-Optimize skill pack for Claude Code — deterministic benchmarking, quality gates, witness chain, judge attestation, and optimization"
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужен процесс проверки и улучшения навыка по эталонам и независимым оценкам",
+        "Проведи промпт через benchmark, тесты и ограниченные итерации оптимизации"
+      ],
+      "whenToUse": [
+        "Соединяет построение артефакта, детерминированный benchmark, панель оценщиков, проверки согласованности и оптимизацию навыков, команд и промптов."
+      ],
+      "whenNotToUse": [
+        "Недоступный запрошенный слой даёт INCONCLUSIVE, а не успех; автор и оценщик не должны быть одной моделью. Нужны доступные средства исполнения проверок."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Передайте артефакт, критерии и эталоны; выберите bto и сначала проверьте предпосылки benchmark-слоёв."
+      ],
+      "limitations": [
+        "Недоступный запрошенный слой даёт INCONCLUSIVE, а не успех; автор и оценщик не должны быть одной моделью. Нужны доступные средства исполнения проверок."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-bto/package.json",
+          "sha256": "8deefed20a66b5f8025a217c28adc789004b7691b7214d157342e13fd0094d3b"
+        },
+        {
+          "path": "packages/skills-bto/README.md",
+          "sha256": "418b01d2dd1391d4bb7d2d93580fd0f58346f7828f039e95023088f83132f491"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-bto/README.md",
+          "quote": "Multi-agent evaluation and iterative optimization pipeline for Claude Code skills, commands, and prompts. Includes deterministic benchmarking with golden sample comparison, test suites, consistency probes, and performance metrics. Part of the [Keysarium](https://www.npmjs.com/package/@dzhechkov/keysarium) ecosystem."
+        },
+        {
+          "path": "packages/skills-bto/README.md",
+          "quote": "Layer B-1 prints `Preconditions: ALL_GREEN | DEGRADED(list) | ABORT` in the header of **every**\nreport, clean runs included — an absent line is itself a finding. A layer the operator deliberately\nskipped via `--level` is renormalized away; a layer that was *requested and could not run* is\nINCONCLUSIVE and is never renormalized, because redistributing its weight can only raise the score."
         }
       ]
     },
@@ -8647,6 +9438,59 @@
       ]
     },
     {
+      "id": "skills-decision-mockups-overview-9144579b",
+      "kind": "package-overview",
+      "title": "Страница выбора с контекстом и явными ответами",
+      "intent": "Собирает контекст, находки, альтернативы, наглядные различия и явные ответы в HTML или компактном представлении с сохранением оснований выбора.",
+      "outcome": "Собирает контекст, находки, альтернативы, наглядные различия и явные ответы в HTML или компактном представлении с сохранением оснований выбора.",
+      "package": {
+        "name": "@dzhechkov/skills-decision-mockups",
+        "version": "0.2.0",
+        "manifest": "packages/skills-decision-mockups/package.json",
+        "type": "skill-pack",
+        "description": "decision-mockups — build a Russian decision page with plain-language explanations, synthetic teaching examples, CSS before/after mockups, viable option forks and a copy-answers export. Includes a zero-dependency structural gate (G0–G15); semantic tradeoffs require review."
+      },
+      "skillIds": [],
+      "queries": [
+        "Объясни варианты решения на понятной странице с последствиями",
+        "Нужна русская офлайн-страница, где можно сравнить варианты и сохранить ответы"
+      ],
+      "whenToUse": [
+        "Собирает контекст, находки, альтернативы, наглядные различия и явные ответы в HTML или компактном представлении с сохранением оснований выбора."
+      ],
+      "whenNotToUse": [
+        "Выбор ответа не исполняет работу; структурный gate не заменяет смысловое ревью. Учебные примеры синтетические, результаты пилота не установлены."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Передайте реальные варианты, основания и аудиторию; используйте decision-mockups и проверьте финальную страницу и привязку ответов к её версии."
+      ],
+      "limitations": [
+        "Выбор ответа не исполняет работу; структурный gate не заменяет смысловое ревью. Учебные примеры синтетические, результаты пилота не установлены."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-decision-mockups/package.json",
+          "sha256": "a39e82b21dbbc800afc2f0fca0d23a6032727e93ad5e23c585c76688df98316f"
+        },
+        {
+          "path": "packages/skills-decision-mockups/README.md",
+          "sha256": "22b8b94df8cafc17bb98f005ac8cc77f1675ad3b216835fdd938df48cff74d8b"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-decision-mockups/README.md",
+          "quote": "One skill: **decision-mockups** turns findings and real choices into a self-contained\nRussian HTML decision page. It explains consequences, shows visible differences with CSS\nmockups, offline flow/boundary diagrams or compact text, collects explicit answers and preserves their context."
+        },
+        {
+          "path": "packages/skills-decision-mockups/README.md",
+          "quote": "Legacy pages without a manifest retain the same partial/full readable export. V2 adds a prepared\nschemaVersion 2 manifest with page/revision and stable IDs. Its hashed material includes task,\ndone/remaining, why-now, constraints, risks/unknowns, evidence/source/basis, questions, options,\ncosts and rationale. Recommendations stay unselected. Four answer states remain distinct:\nselected, deferred, needs-data and unanswered; selection never executes work."
+        }
+      ]
+    },
+    {
       "id": "skills-demo-publisher-demo-site-publisher-b95747b0",
       "kind": "skill",
       "title": "Записать демонстрацию и собрать видеосайт",
@@ -8700,6 +9544,59 @@
         {
           "path": "packages/skills-demo-publisher/demo-site-publisher/SKILL.md",
           "quote": "description: >\n  Record repeatable product demonstrations from JSON scenarios, assemble Russian-captioned video,\n  build a static HTML5 video site, enforce repository budgets, and publish the approved result to\n  GitHub Pages. Use for \"запиши демо\", \"собери сайт с видео\", \"record a product demo\", or\n  \"publish demo to Pages\". Do not use for confidential screens or an unapproved public release."
+        }
+      ]
+    },
+    {
+      "id": "skills-demo-publisher-overview-ffcfeed3",
+      "kind": "package-overview",
+      "title": "Сценарные видеодемо и статический сайт демонстраций",
+      "intent": "Ведёт JSON-сценарии через Chromium, монтаж ffmpeg и статический сайт с оглавлением, отдельными демо, субтитрами и транскриптами.",
+      "outcome": "Ведёт JSON-сценарии через Chromium, монтаж ffmpeg и статический сайт с оглавлением, отдельными демо, субтитрами и транскриптами.",
+      "package": {
+        "name": "@dzhechkov/skills-demo-publisher",
+        "version": "0.1.2",
+        "manifest": "packages/skills-demo-publisher/package.json",
+        "type": "skill-pack",
+        "description": "Record scenario-driven product demos and build budgeted static video sites for GitHub Pages."
+      },
+      "skillIds": [],
+      "queries": [
+        "Запиши сценарии продукта и собери сайт с видео, субтитрами и расшифровками",
+        "Нужен повторяемый процесс подготовки продуктовых демо для GitHub Pages"
+      ],
+      "whenToUse": [
+        "Ведёт JSON-сценарии через Chromium, монтаж ffmpeg и статический сайт с оглавлением, отдельными демо, субтитрами и транскриптами."
+      ],
+      "whenNotToUse": [
+        "Нужны локально работающий продукт и медиатулчейн; публикация требует решения владельца, проверок конфиденциальности, размера и фактических live-байтов."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Подготовьте demo.json и demo-site.config.json, запустите продукт локально и используйте demo-site-publisher для подготовки и проверки артефактов."
+      ],
+      "limitations": [
+        "Нужны локально работающий продукт и медиатулчейн; публикация требует решения владельца, проверок конфиденциальности, размера и фактических live-байтов."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-demo-publisher/package.json",
+          "sha256": "3a85ff7c360b7c77764f2d625a75d1b31c5a7500282f25031dfb1b5ddf2591d0"
+        },
+        {
+          "path": "packages/skills-demo-publisher/README.md",
+          "sha256": "48ecb93d32aa3f5e2f34b219f118746dd3b75f058558fbfe8b12d55e5d9a120a"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-demo-publisher/README.md",
+          "quote": "An installable skill pack for repeatable product recordings and static GitHub Pages demo sites. JSON\nscenarios drive headless Chromium; ffmpeg produces a constrained H.264 MP4; the renderer emits an index,\none page per demo, subtitles, and transcripts. Public delivery is fail-closed on size, confidentiality,\nand live-byte verification."
+        },
+        {
+          "path": "packages/skills-demo-publisher/README.md",
+          "quote": "Пак записывает продуктовые сценарии локальным Chromium, показывает курсор и клики, сохраняет кадры\nкаждого шага и собирает видео с русскими подписями. На выходе — статический сайт: оглавление, отдельная\nстраница демонстрации, MP4, необязательный WebM и VTT. Демо-страницы работают без JavaScript и внешних\nресурсов. Перед публикацией обязательны лимит размера, проверка закрытых областей, санкция владельца и\nположительная квитанция GitHub Pages по фактическим байтам страницы и видео."
         }
       ]
     },
@@ -10068,6 +10965,55 @@
         {
           "path": "packages/skills-devops/provider-debug/SKILL.md",
           "quote": "description: \"Diagnoses and fixes AI provider configuration and connection issues.\""
+        }
+      ]
+    },
+    {
+      "id": "skills-devops-overview-a6cd470c",
+      "kind": "package-overview",
+      "title": "Подбор DevOps-процедур для разработки и эксплуатации",
+      "intent": "Объединяет специализированные навыки ревью, диагностики, тестов, CI/CD, инфраструктуры, данных, наблюдаемости и управления инцидентами.",
+      "outcome": "Объединяет специализированные навыки ревью, диагностики, тестов, CI/CD, инфраструктуры, данных, наблюдаемости и управления инцидентами.",
+      "package": {
+        "name": "@dzhechkov/skills-devops",
+        "version": "0.3.18",
+        "manifest": "packages/skills-devops/package.json",
+        "type": "skill-pack",
+        "description": "Canonical DevOps skill pack — 30 agentic skills for code review, security, testing, CI/CD, debugging, incident & problem management, ITSM/ITIL, and more. Canonicalized from gitlawb/openclaude-skills (+ dz-original itsm-itil), deploy-to-Cloud.ru-VM."
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужны связанные проверки кода, безопасности, тестов и доставки сервиса",
+        "Помоги выбрать процесс для сбоя CI, инфраструктуры или эксплуатационного инцидента"
+      ],
+      "whenToUse": [
+        "Объединяет специализированные навыки ревью, диагностики, тестов, CI/CD, инфраструктуры, данных, наблюдаемости и управления инцидентами."
+      ],
+      "whenNotToUse": [
+        "Это набор отдельных процедур, а не единый обязательный pipeline; выбор зависит от ошибки, системы и доступных инструментов."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Укажите текущую задачу, репозиторий и среду; выберите профильный протокол и подготовьте diff, логи или описание инцидента."
+      ],
+      "limitations": [
+        "Это набор отдельных процедур, а не единый обязательный pipeline; выбор зависит от ошибки, системы и доступных инструментов."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-devops/package.json",
+          "sha256": "3a6d66b689bcbeb15f8b69b6673a30fb5293b1f73666fe1722be831219b0c0cb"
+        },
+        {
+          "path": "packages/skills-devops/README.md",
+          "sha256": "0c4c83af4d66488cdc6822661c9e02c39eea924d243e4b680a4fe0942a83218e"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-devops/README.md",
+          "quote": "\nCanonical DevOps skill pack — **30 agentic skills** for infrastructure, code review, security, testing, CI/CD, databases, APIs, and more."
         }
       ]
     },
@@ -11554,6 +12500,108 @@
       ]
     },
     {
+      "id": "skills-ecc-overview-3bdf1e3f",
+      "kind": "package-overview",
+      "title": "Навигация по инженерным навыкам ECC",
+      "intent": "Подборка отдельных навыков для архитектуры агентов, циклов выполнения, тестирования, backend, Docker и Git.",
+      "outcome": "Подборка отдельных навыков для архитектуры агентов, циклов выполнения, тестирования, backend, Docker и Git.",
+      "package": {
+        "name": "@dzhechkov/skills-ecc",
+        "version": "0.1.13",
+        "manifest": "packages/skills-ecc/package.json",
+        "type": "skill-pack",
+        "description": "Curated skill pack — 20 skills imported from ECC (github.com/affaan-m/ECC). Agent architecture, autonomous loops, testing patterns, DevOps patterns."
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужен набор практик для разработки и проверки агентного приложения",
+        "Какие навыки помогут с агентными циклами, backend и тестированием"
+      ],
+      "whenToUse": [
+        "Подборка отдельных навыков для архитектуры агентов, циклов выполнения, тестирования, backend, Docker и Git."
+      ],
+      "whenNotToUse": [
+        "Это набор методик и специализированных навыков, а не единый автоматически выполняемый процесс; инструменты выбираются под задачу."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Выберите область в таблице README и изучите точные условия выбранного навыка через dz info."
+      ],
+      "limitations": [
+        "Это набор методик и специализированных навыков, а не единый автоматически выполняемый процесс; инструменты выбираются под задачу."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-ecc/package.json",
+          "sha256": "d5ce4586464973c494a9559aa1bc1016caa91b683360da7a69bf6c809708b9a7"
+        },
+        {
+          "path": "packages/skills-ecc/README.md",
+          "sha256": "612b756ba2c5c81b35951f4fb5de8ae27235ebef3f85273d485be5fc005b61cf"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-ecc/README.md",
+          "quote": "20 curated skills imported from [ECC](https://github.com/affaan-m/ECC)."
+        },
+        {
+          "path": "packages/skills-ecc/README.md",
+          "quote": "| `agent-architecture-audit` | Full-stack diagnostic for agent applications |\n| `agent-eval` | Head-to-head comparison of coding agents |\n| `agentic-engineering` | Patterns for building agentic AI systems |\n| `ai-regression-testing` | AI-specific regression testing patterns |\n| `architecture-decision-records` | ADR creation and management |\n| `autonomous-loops` | Autonomous agent loop patterns |\n"
+        }
+      ]
+    },
+    {
+      "id": "skills-edu-site-overview-3db88ad3",
+      "kind": "package-overview",
+      "title": "Превратить материалы в интерактивный учебный сайт",
+      "intent": "Пакет ведёт от анализа материалов и структуры курса до React/Vite-сайта с упражнениями, прогрессом и проверкой результата.",
+      "outcome": "Пакет ведёт от анализа материалов и структуры курса до React/Vite-сайта с упражнениями, прогрессом и проверкой результата.",
+      "package": {
+        "name": "@dzhechkov/skills-edu-site",
+        "version": "1.1.11",
+        "manifest": "packages/skills-edu-site/package.json",
+        "type": "skill-pack",
+        "description": "Gamified Educational Site Generator skill pack for Claude Code — transform documentation into interactive learning SPAs with quizzes, flashcards, achievements, and GitHub Pages deployment"
+      },
+      "skillIds": [],
+      "queries": [
+        "Хочу сделать учебное приложение из документации с заданиями",
+        "Нужен сайт с модулями обучения, карточками и прогрессом"
+      ],
+      "whenToUse": [
+        "Пакет ведёт от анализа материалов и структуры курса до React/Vite-сайта с упражнениями, прогрессом и проверкой результата."
+      ],
+      "whenNotToUse": [
+        "Нужны исходные материалы и среда разработки; подготовка конфигурации GitHub Pages не доказывает публикацию или качество обучения."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Передайте материалы и аудиторию; начните с edu-site-generator и анализа учебного содержания."
+      ],
+      "limitations": [
+        "Нужны исходные материалы и среда разработки; подготовка конфигурации GitHub Pages не доказывает публикацию или качество обучения."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-edu-site/package.json",
+          "sha256": "3db8eca273ce644d0290d8f3b78b48472d4c9f903a995e2ca416aa1ca8f4b4c5"
+        },
+        {
+          "path": "packages/skills-edu-site/README.md",
+          "sha256": "7ebefa0978f04fad5a60ccbc6e4f2287df7bf4a982ebe7ba5ff397fbf3455e58"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-edu-site/README.md",
+          "quote": "Transform documentation, guides, and knowledge bases into interactive learning SPAs with quizzes, flashcards, achievements, progress tracking, and GitHub Pages deployment. Part of the [Keysarium](https://www.npmjs.com/package/@dzhechkov/keysarium) ecosystem."
+        }
+      ]
+    },
+    {
       "id": "skills-edu-site-edu-site-generator-76f5e789",
       "kind": "skill",
       "title": "Учебный сайт из документации",
@@ -11607,6 +12655,55 @@
         {
           "path": "packages/skills-edu-site/templates/.claude/skills/edu-site-generator/SKILL.md",
           "quote": "description: >\n  Generate a complete gamified educational single-page app from documentation or content,\n  optimized for GitHub Pages deployment. Produces a learning site with modules, interactive\n  examples, and progress mechanics. Triggers on \"generate edu site from [docs]\", \"create\n  learning site [topic]\", \"build educational app [topic]\"."
+        }
+      ]
+    },
+    {
+      "id": "skills-feature-adr-overview-35190d6c",
+      "kind": "package-overview",
+      "title": "Провести функцию от спецификации до проверки",
+      "intent": "Организует разработку через требования, ADR, архитектуру, план, реализацию и QE с сохранением артефактов и контрольных точек.",
+      "outcome": "Организует разработку через требования, ADR, архитектуру, план, реализацию и QE с сохранением артефактов и контрольных точек.",
+      "package": {
+        "name": "@dzhechkov/skills-feature-adr",
+        "version": "1.5.26",
+        "manifest": "packages/skills-feature-adr/package.json",
+        "type": "skill-pack",
+        "description": "Adaptive Feature Development skill pack for Claude Code — 11-step pipeline with Complexity Router (S/M/L/XL), ADR-driven architecture, 15 agentic-qe skills, multi-agent fleet QE. Supports --full-qe, --full-qe-extended, --with-learning, and --knowledge-extractor modes."
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужен процесс разработки фичи с решениями и независимой проверкой",
+        "Хочу пройти требования, архитектуру, код и QE как один процесс"
+      ],
+      "whenToUse": [
+        "Организует разработку через требования, ADR, архитектуру, план, реализацию и QE с сохранением артефактов и контрольных точек."
+      ],
+      "whenNotToUse": [
+        "Ссылочные QE-протоколы не устанавливают AQE runtime, MCP или агентов; доступность исполнения и итоговые проверки подтверждаются отдельно."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Опишите функцию и репозиторий; после установки начните с feature-adr и определения сложности."
+      ],
+      "limitations": [
+        "Ссылочные QE-протоколы не устанавливают AQE runtime, MCP или агентов; доступность исполнения и итоговые проверки подтверждаются отдельно."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-feature-adr/package.json",
+          "sha256": "7f2a304680da475a961f87df93702dcc6764543bc9b145ef1b40a42a97d2be3d"
+        },
+        {
+          "path": "packages/skills-feature-adr/README.md",
+          "sha256": "7f1345504f2b6fed333b492750a389c9fa6d0e377a9906bfbff7697ed6daf00f"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-feature-adr/README.md",
+          "quote": "An 11-step, complexity-routed pipeline that makes an AI coding agent build a feature the way a\ndisciplined engineering team does: **spec first, code last.** Every phase emits a durable,\nversioned, human-approved **specification artifact** (`00_…`–`09_…`), and code is *generated from\nthe frozen spec* — not reverse-documented after the fact. Scales from a 3-file config change to a\ncross-cutting refactor via a Complexity Router (S/M/L/XL). Uses the bundled\n[agentic-qe](https://github.com/proffesor-"
         }
       ]
     },
@@ -12234,6 +13331,55 @@
         {
           "path": "packages/skills-feature-adr/templates/.claude/skills/system-grill/SKILL.md",
           "quote": "description: |\n  Сократический тренажёр архитектурной интуиции по ТВОЕМУ продукту.\n  Не учит коду (Python/TS не открываем) — строит понимание системы:\n  что есть, как течёт, кто чем владеет, какие границы доверия, какие\n  ограничения и ПОЧЕМУ так решено. Движок — prediction-before-revelation\n  + active recall + честный журнал (🔴/🟡/🟢), заземлённый на твой\n  архитектурный слой: `architecture/map.json`, `architecture/subsystems.manifest.json`,\n  `architecture/vision.md` (`dz feature-adr-setup` с"
+        }
+      ]
+    },
+    {
+      "id": "skills-idea2prd-overview-743a9412",
+      "kind": "package-overview",
+      "title": "Подготовить комплект проектных документов из идеи",
+      "intent": "Ведёт от идеи или исследования проблемы к требованиям, ADR, DDD, C4, псевдокоду, тестовым сценариям и checklist завершения.",
+      "outcome": "Ведёт от идеи или исследования проблемы к требованиям, ADR, DDD, C4, псевдокоду, тестовым сценариям и checklist завершения.",
+      "package": {
+        "name": "@dzhechkov/skills-idea2prd",
+        "version": "0.1.16",
+        "manifest": "packages/skills-idea2prd/package.json",
+        "type": "skill-pack",
+        "description": "Idea2PRD Manual — composite skill for Claude Code: from problem/idea to Vibe-Coding-ready docs (PRD + ADR + DDD + C4 + Pseudocode + Test Scenarios + Completion) with 9 checkpoints"
+      },
+      "skillIds": [],
+      "queries": [
+        "Есть идея сервиса, нужны документы для разработки",
+        "Хочу пошагово разобрать проблему и получить PRD с архитектурой"
+      ],
+      "whenToUse": [
+        "Ведёт от идеи или исследования проблемы к требованиям, ADR, DDD, C4, псевдокоду, тестовым сценариям и checklist завершения."
+      ],
+      "whenNotToUse": [
+        "Между фазами нужны подтверждения пользователя; выход — документация, а не реализованное и развёрнутое приложение."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Передайте проблему или идею в idea2prd-manual и согласуйте исходное задание."
+      ],
+      "limitations": [
+        "Между фазами нужны подтверждения пользователя; выход — документация, а не реализованное и развёрнутое приложение."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-idea2prd/package.json",
+          "sha256": "f1a21d913d5791859a6975f140a682ea37ca978a5f1e0f9484b08da5a0156332"
+        },
+        {
+          "path": "packages/skills-idea2prd/README.md",
+          "sha256": "82f025872787656f1c91ded17a293d34bc37b6f12f208252f5a0e9d6d5a429d6"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-idea2prd/README.md",
+          "quote": "Idea2PRD Manual — composite skill for [Claude Code](https://claude.com/claude-code) that takes a **problem or an idea** all the way to **Vibe-Coding-ready documentation**, with a user checkpoint between every phase."
         }
       ]
     },
@@ -13321,6 +14467,55 @@
       ]
     },
     {
+      "id": "skills-mcp-overview-3c308972",
+      "kind": "package-overview",
+      "title": "Выбрать навыки для внешних MCP-сервисов",
+      "intent": "Навигационный набор навыков для поиска, почты, календаря, заметок, репозиториев и памяти через конкретные MCP-серверы.",
+      "outcome": "Навигационный набор навыков для поиска, почты, календаря, заметок, репозиториев и памяти через конкретные MCP-серверы.",
+      "package": {
+        "name": "@dzhechkov/skills-mcp",
+        "version": "0.3.12",
+        "manifest": "packages/skills-mcp/package.json",
+        "type": "skill-pack",
+        "description": "Canonical MCP skill pack — 16 agentic skills wrapping top Model Context Protocol servers for search, email, productivity, analytics, and project management."
+      },
+      "skillIds": [],
+      "queries": [
+        "Какие навыки помогут агенту с поиском, почтой и документами",
+        "Хочу подобрать MCP-интеграции для рабочего процесса"
+      ],
+      "whenToUse": [
+        "Навигационный набор навыков для поиска, почты, календаря, заметок, репозиториев и памяти через конкретные MCP-серверы."
+      ],
+      "whenNotToUse": [
+        "Навык не доказывает подключение сервера, доступ к аккаунту или успешную операцию; нужны совместимый MCP-клиент и настройки выбранного сервиса."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Выберите сервис в таблице README и проверьте его сервер, доступы и инструкции соответствующего навыка."
+      ],
+      "limitations": [
+        "Навык не доказывает подключение сервера, доступ к аккаунту или успешную операцию; нужны совместимый MCP-клиент и настройки выбранного сервиса."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-mcp/package.json",
+          "sha256": "5567fb0737e7b32acec213646fdcdfe792e3393a1d59a616049b66f9799ad86d"
+        },
+        {
+          "path": "packages/skills-mcp/README.md",
+          "sha256": "a5e625ee532b998980c47f41a46bb474fbe575c51202834c24d569d4578115e9"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-mcp/README.md",
+          "quote": "Canonical MCP skill pack — **16 agentic skills** wrapping top Model Context Protocol servers for search, email, productivity, knowledge management, version control, and self-learning memory."
+        }
+      ]
+    },
+    {
       "id": "skills-mcp-reddit-2856ebdf",
       "kind": "skill",
       "title": "Чтение обсуждений Reddit через MCP",
@@ -14233,6 +15428,55 @@
       ]
     },
     {
+      "id": "skills-meta-overview-559f6001",
+      "kind": "package-overview",
+      "title": "Подобрать навыки управления разработкой",
+      "intent": "Канонический набор навыков процесса разработки: помогает выбрать нужный этап и подключить соответствующую методику работы агента.",
+      "outcome": "Канонический набор навыков процесса разработки: помогает выбрать нужный этап и подключить соответствующую методику работы агента.",
+      "package": {
+        "name": "@dzhechkov/skills-meta",
+        "version": "0.9.75",
+        "manifest": "packages/skills-meta/package.json",
+        "type": "skill-pack",
+        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужны навыки для уточнения задач, планирования и инженерных проверок",
+        "Хочу собрать процесс работы агента из метанавыков"
+      ],
+      "whenToUse": [
+        "Канонический набор навыков процесса разработки: помогает выбрать нужный этап и подключить соответствующую методику работы агента."
+      ],
+      "whenNotToUse": [
+        "Это набор навыков; reference-протоколы не запускают внешнюю QE-среду и не заменяют независимые проверки или проектные решения."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Сопоставьте задачу с таблицей навыков README; изучите выбранный навык и его режим исполнения."
+      ],
+      "limitations": [
+        "Это набор навыков; reference-протоколы не запускают внешнюю QE-среду и не заменяют независимые проверки или проектные решения."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-meta/package.json",
+          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+        },
+        {
+          "path": "packages/skills-meta/README.md",
+          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-meta/README.md",
+          "quote": "The **canonical meta-skill pack** — the development-process skills, packaged as\n[Agent Skills](https://agentskills.io) for distribution and cross-platform use."
+        }
+      ]
+    },
+    {
       "id": "skills-meta-reflection-loop-76701653",
       "kind": "skill",
       "title": "Ограниченный цикл критики и улучшения",
@@ -14746,6 +15990,55 @@
       ]
     },
     {
+      "id": "skills-news-overview-5162d2e0",
+      "kind": "package-overview",
+      "title": "Собирать дайджесты и отслеживать новые события",
+      "intent": "Предлагает полный дайджест за период и лёгкий мониторинг изменений по сохранённой отметке с источниками и удалением повторов.",
+      "outcome": "Предлагает полный дайджест за период и лёгкий мониторинг изменений по сохранённой отметке с источниками и удалением повторов.",
+      "package": {
+        "name": "@dzhechkov/skills-news",
+        "version": "0.1.17",
+        "manifest": "packages/skills-news/package.json",
+        "type": "skill-pack",
+        "description": "News & monitoring skill set — build source-cited news digests (news-digest) and run lightweight delta watches (news-monitor) on any topic, with goap-research-ed25519 bundled as a MANDATORY verified-research backend (GOAP planning + ed25519-signed source provenance). Topic-agnostic via swappable profiles. DZ-original."
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужен дайджест по теме за месяц со ссылками",
+        "Хочу между обзорами замечать только новые релизы и новости"
+      ],
+      "whenToUse": [
+        "Предлагает полный дайджест за период и лёгкий мониторинг изменений по сохранённой отметке с источниками и удалением повторов."
+      ],
+      "whenNotToUse": [
+        "Нужны доступные источники и выбранный профиль; наличие навыка не создаёт расписание, конфиденциальный профиль остаётся локальным."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Задайте тему и период; выберите news-digest для обзора или news-monitor для новых событий."
+      ],
+      "limitations": [
+        "Нужны доступные источники и выбранный профиль; наличие навыка не создаёт расписание, конфиденциальный профиль остаётся локальным."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-news/package.json",
+          "sha256": "de0c3cda9439b89c9cfeccf9d522a1671571f9eca9ec1de15756db32441267e8"
+        },
+        {
+          "path": "packages/skills-news/README.md",
+          "sha256": "bd69537ee87ca9aad423439f6a01ddaa2832f8de0617d847250bd43fbd77d349"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-news/README.md",
+          "quote": "**2 dz-original skills for news & monitoring** — turn any topic + period into a professional,\nsource-cited report, and watch for what's new in between."
+        }
+      ]
+    },
+    {
       "id": "skills-package-story-page-package-story-page-28455597",
       "kind": "skill",
       "title": "Сделать короткую страницу о пакете",
@@ -14799,6 +16092,55 @@
         {
           "path": "packages/skills-package-story-page/package-story-page/SKILL.md",
           "quote": "description: Turn one existing software or skill package into a short, evidence-backed, examples-first story page with a self-contained HTML artifact. Use when the user wants a clear package landing, visual explanation, or demo page rather than a full tutorial course."
+        }
+      ]
+    },
+    {
+      "id": "skills-package-story-page-overview-4c5ad191",
+      "kind": "package-overview",
+      "title": "Объяснить существующий пакет на короткой странице",
+      "intent": "Ведёт от свидетельств о пакете к короткой истории: конкретный ввод, процесс и проверяемый результат в самостоятельном HTML.",
+      "outcome": "Ведёт от свидетельств о пакете к короткой истории: конкретный ввод, процесс и проверяемый результат в самостоятельном HTML.",
+      "package": {
+        "name": "@dzhechkov/skills-package-story-page",
+        "version": "0.2.5",
+        "manifest": "packages/skills-package-story-page/package.json",
+        "type": "skill-pack",
+        "description": "package-story-page — turn one existing package into an evidence-backed, examples-first, self-contained story page for non-specialists."
+      },
+      "skillIds": [],
+      "queries": [
+        "Хочу показать возможности пакета на понятном примере",
+        "Нужна небольшая HTML-страница о навыке вместо полного курса"
+      ],
+      "whenToUse": [
+        "Ведёт от свидетельств о пакете к короткой истории: конкретный ввод, процесс и проверяемый результат в самостоятельном HTML."
+      ],
+      "whenNotToUse": [
+        "Это не полный учебный курс; проверка фабрики не доказывает истинность внешних утверждений, браузерный gate требует Firefox и geckodriver."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Передайте существующий пакет; начните package-story-page со сбора свидетельств о его возможностях."
+      ],
+      "limitations": [
+        "Это не полный учебный курс; проверка фабрики не доказывает истинность внешних утверждений, браузерный gate требует Firefox и geckodriver."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-package-story-page/package.json",
+          "sha256": "ec4f0f03e626719a57fd93cb91faa414f6b0249b9cdf855e5ccaeef5f0ebf628"
+        },
+        {
+          "path": "packages/skills-package-story-page/README.md",
+          "sha256": "ed9b5762acdf9519f33228a3f5d1b9bdc3f49cf967038d8eae46b31acc2b477c"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-package-story-page/README.md",
+          "quote": "An evidence-first skill for turning one existing package into a short story page ordinary people can\nunderstand. It shows a concrete input → process → inspectable output scenario before architecture,\ninstallation, cost, security, or FAQ copy."
         }
       ]
     },
@@ -15658,6 +17000,55 @@
       ]
     },
     {
+      "id": "skills-pm-overview-b0d8f3a8",
+      "kind": "package-overview",
+      "title": "Подобрать методики для продуктового решения",
+      "intent": "Набор PM-навыков для возможностей, приоритетов, стратегии, цены, OKR, аналитики, roadmap и выхода на рынок.",
+      "outcome": "Набор PM-навыков для возможностей, приоритетов, стратегии, цены, OKR, аналитики, roadmap и выхода на рынок.",
+      "package": {
+        "name": "@dzhechkov/skills-pm",
+        "version": "0.1.6",
+        "manifest": "packages/skills-pm/package.json",
+        "type": "skill-pack",
+        "description": "Product-management skill pack for Claude Code — 18 framework-grounded PM skills (OST, RICE/ICE prioritization, product strategy, pricing, OKRs, North Star / metrics / A-B / cohort, outcome roadmap, stakeholder map, sprint plan, strategy red-team, GTM / growth loops / beachhead, market sizing). Curated (ADR-0002) from phuryn/pm-skills (MIT)."
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужен набор методов для стратегии, приоритетов и продуктовых метрик",
+        "Как выбрать подход для цены, эксперимента или выхода на рынок"
+      ],
+      "whenToUse": [
+        "Набор PM-навыков для возможностей, приоритетов, стратегии, цены, OKR, аналитики, roadmap и выхода на рынок."
+      ],
+      "whenNotToUse": [
+        "Это отдельные методики, не сквозной запуск бизнеса и не генератор PRD; расчёты требуют исходных данных и проверки предположений."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Опишите продуктовое решение и выберите соответствующую методику в таблице README."
+      ],
+      "limitations": [
+        "Это отдельные методики, не сквозной запуск бизнеса и не генератор PRD; расчёты требуют исходных данных и проверки предположений."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-pm/package.json",
+          "sha256": "030b78a847d0c8a67a16dffc1d7e3421e23a0335ff20938ae7f048ff0d0e14cf"
+        },
+        {
+          "path": "packages/skills-pm/README.md",
+          "sha256": "c7d1d71dcd51a11c75abcc34cbcd5527ad815dc82edc7d00a66822a94ee51368"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-pm/README.md",
+          "quote": "Product-management skill pack for [Claude Code](https://claude.com/claude-code) — **18 framework-grounded PM skills** that move beyond generic text to rigorous, step-by-step methodology (Teresa Torres, Marty Cagan, Wodtke, RICE/ICE/Kano, JTBD, Lean Analytics, Crossing-the-Chasm)."
+        }
+      ]
+    },
+    {
       "id": "skills-pm-sprint-plan-888b4bd6",
       "kind": "skill",
       "title": "Спланировать спринт по мощности команды",
@@ -15825,6 +17216,55 @@
         {
           "path": "packages/skills-pm/strategy-red-team/SKILL.md",
           "quote": "description: \"Red-team a PRD, roadmap, or strategy by attacking its load-bearing assumptions before reality does. Steelmans then attacks each claim, ranks failure modes by impact × likelihood × cheapness-to-test, and returns the cheapest test and kill criteria for each. Use when stress-testing a plan, pressure-testing a strategy, challenging assumptions, or preparing a doc for executive review.\""
+        }
+      ]
+    },
+    {
+      "id": "skills-presentation-storyteller-overview-0e503c5d",
+      "kind": "package-overview",
+      "title": "Собрать презентацию с источниками и текстом выступления",
+      "intent": "Связывает уточнение задачи и исследование источников с подготовкой плана, Markdown-слайдов, индекса источников и рассказа выступающего.",
+      "outcome": "Связывает уточнение задачи и исследование источников с подготовкой плана, Markdown-слайдов, индекса источников и рассказа выступающего.",
+      "package": {
+        "name": "@dzhechkov/skills-presentation-storyteller",
+        "version": "0.1.15",
+        "manifest": "packages/skills-presentation-storyteller/package.json",
+        "type": "skill-pack",
+        "description": "Presentation Storyteller — composite skill for Claude Code: build a selling presentation with verified sources + a slide-by-slide storytelling speaker script (AIDA / Hero's Journey / Problem-Solution)"
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужна продающая презентация с историей для каждого слайда",
+        "Помоги превратить тему продукта в план, слайды и подстрочник"
+      ],
+      "whenToUse": [
+        "Связывает уточнение задачи и исследование источников с подготовкой плана, Markdown-слайдов, индекса источников и рассказа выступающего."
+      ],
+      "whenNotToUse": [
+        "Требуется доступ к источникам; Markdown-комплект не равен оформленному PPTX и не гарантирует результат продаж."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Передайте тему, аудиторию и цель в presentation-storyteller; начните с уточнения задачи."
+      ],
+      "limitations": [
+        "Требуется доступ к источникам; Markdown-комплект не равен оформленному PPTX и не гарантирует результат продаж."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-presentation-storyteller/package.json",
+          "sha256": "2da98ce1bd43126dc923051b72febbe2db0e8979475abb7137c5314a1151dd0b"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/README.md",
+          "sha256": "48cd9e7499f0f5082e10956c8feba57372ff1195f4eb6f5628ba771217d1e131"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-presentation-storyteller/README.md",
+          "quote": "Presentation Storyteller — composite skill for [Claude Code](https://claude.com/claude-code) that builds a **selling presentation with verified sources** plus a slide-by-slide **storytelling speaker script**."
         }
       ]
     },
@@ -17026,6 +18466,55 @@
       ]
     },
     {
+      "id": "skills-qe-overview-7fb6f43e",
+      "kind": "package-overview",
+      "title": "Подобрать инженерные проверки качества",
+      "intent": "Подборка QE-навыков охватывает требования, генерацию и запуск тестов, покрытие, устойчивость, интерфейс и стадии QCSD.",
+      "outcome": "Подборка QE-навыков охватывает требования, генерацию и запуск тестов, покрытие, устойчивость, интерфейс и стадии QCSD.",
+      "package": {
+        "name": "@dzhechkov/skills-qe",
+        "version": "0.3.15",
+        "manifest": "packages/skills-qe/package.json",
+        "type": "skill-pack",
+        "description": "Curated QE skill pack — 22 skills (20 from agentic-qe + validate & systematic-debugging) for Claude Code agents."
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужен набор навыков для тестирования и оценки готовности релиза",
+        "Как покрыть требования, тесты, устойчивость и браузерные проверки"
+      ],
+      "whenToUse": [
+        "Подборка QE-навыков охватывает требования, генерацию и запуск тестов, покрытие, устойчивость, интерфейс и стадии QCSD."
+      ],
+      "whenNotToUse": [
+        "Навыки не равны установленной QE-среде; для выбранных операций нужны соответствующий runtime, тестовые инструменты и браузер."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Выберите этап качества и навык в README; проверьте доступность требуемых инструментов и исходных данных."
+      ],
+      "limitations": [
+        "Навыки не равны установленной QE-среде; для выбранных операций нужны соответствующий runtime, тестовые инструменты и браузер."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-qe/package.json",
+          "sha256": "77c3f9fb3cab6c4ad6f8cf38085b50923872d2268e673c1c38a503f26986f5e1"
+        },
+        {
+          "path": "packages/skills-qe/README.md",
+          "sha256": "ec9adc6f0cb372e75b13aa26d69f44a8cef61cdb213ab1f815661de08e49eb10"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-qe/README.md",
+          "quote": "Curated quality engineering skill pack — 22 skills for Claude Code agents: 20 from [agentic-qe](https://github.com/proffesor-for-testing/agentic-qe) + 2 vendor-neutral engineering-discipline skills (`validate`, `systematic-debugging`, from [obra/superpowers](https://github.com/obra/superpowers))."
+        }
+      ]
+    },
+    {
       "id": "skills-qe-sfdipot-product-factors-9be0c1a8",
       "kind": "skill",
       "title": "Построить тестовую стратегию по SFDIPOT",
@@ -17425,6 +18914,55 @@
       ]
     },
     {
+      "id": "skills-reasoning-overview-81482c09",
+      "kind": "package-overview",
+      "title": "Улучшить рассуждение и дисциплину работы с кодом",
+      "intent": "Объединяет расследование без правок, SOLID/TDD, правила точечных изменений и создание архитектурных AGENTS.md.",
+      "outcome": "Объединяет расследование без правок, SOLID/TDD, правила точечных изменений и создание архитектурных AGENTS.md.",
+      "package": {
+        "name": "@dzhechkov/skills-reasoning",
+        "version": "0.1.6",
+        "manifest": "packages/skills-reasoning/package.json",
+        "type": "skill-pack",
+        "description": "Generic reasoning & code-quality skill pack — 4 stack-neutral agentic skills: investigate (root-cause without fixing), solid (SOLID/TDD/clean-code), karpathy-guidelines (reduce common LLM coding mistakes), agents-md-creator. Depersonalized from a curated skills archive; zero product coupling."
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужны правила для простых проверяемых изменений без лишних переделок",
+        "Хочу отделить расследование ошибки от исправления и закрепить архитектурные правила"
+      ],
+      "whenToUse": [
+        "Объединяет расследование без правок, SOLID/TDD, правила точечных изменений и создание архитектурных AGENTS.md."
+      ],
+      "whenNotToUse": [
+        "Навыки намеренно не объединены в обязательный pipeline; investigate выдаёт диагноз, а не патч, проектная планка качества настраивается отдельно."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Определите задачу: расследование, проектирование, правка или AGENTS.md; выберите соответствующий навык README."
+      ],
+      "limitations": [
+        "Навыки намеренно не объединены в обязательный pipeline; investigate выдаёт диагноз, а не патч, проектная планка качества настраивается отдельно."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-reasoning/package.json",
+          "sha256": "5991fca16c6b4bd12cbe0472d20020ec5e65a7d4b15416ec186568c9587d7f93"
+        },
+        {
+          "path": "packages/skills-reasoning/README.md",
+          "sha256": "c45bc6916772b6cb94ed86812fc64e8873efa3622ced01c33a3d48e81d38a883"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-reasoning/README.md",
+          "quote": "**Generic reasoning & code-quality skill pack for Claude Code** — 4 stack-neutral agentic skills that improve\nhow an agent thinks, investigates, and writes code. Depersonalized from a curated skills archive; **zero\nproduct coupling** (no vendor, framework, or repo specifics). Part of the [dz-harness-hub](https://github.com/djd1m/dz-harness-hub)\necosystem."
+        }
+      ]
+    },
+    {
       "id": "skills-reasoning-solid-10305975",
       "kind": "skill",
       "title": "Применить SOLID и TDD при проектировании кода",
@@ -17478,6 +19016,55 @@
         {
           "path": "packages/skills-reasoning/solid/SKILL.md",
           "quote": "description: Use this skill when writing code, implementing features, refactoring, planning architecture, designing systems, reviewing code, or debugging. This skill transforms junior-level code into senior-engineer quality software through SOLID principles, TDD, clean code practices, and professional software design."
+        }
+      ]
+    },
+    {
+      "id": "skills-reverse-engineering-overview-ef8844ba",
+      "kind": "package-overview",
+      "title": "Разобрать компанию и подготовить план запуска",
+      "intent": "Ведёт через исследование компании, клиентов, рынка, экономики и роста к launch playbook; глубина разбора выбирается явно.",
+      "outcome": "Ведёт через исследование компании, клиентов, рынка, экономики и роста к launch playbook; глубина разбора выбирается явно.",
+      "package": {
+        "name": "@dzhechkov/skills-reverse-engineering",
+        "version": "0.3.5",
+        "manifest": "packages/skills-reverse-engineering/package.json",
+        "type": "skill-pack",
+        "description": "Reverse Engineering Unicorn — composite skill for Claude Code: reverse-engineer any company into an actionable launch playbook (+ clickable CJM prototype) via a 6-module pipeline with QUICK/DEEP/VERIFIED modes"
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужен разбор бизнеса конкурента с выводами для своего запуска",
+        "Хочу пройти продукт, рынок, экономику и рост компании"
+      ],
+      "whenToUse": [
+        "Ведёт через исследование компании, клиентов, рынка, экономики и роста к launch playbook; глубина разбора выбирается явно."
+      ],
+      "whenNotToUse": [
+        "План и growth-требования остаются проектными материалами; DEEP/CJM и дополнительные шаги могут требовать отдельно устанавливаемых навыков."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Назовите компанию и цель разбора; начните reverse-engineering-unicorn с выбора режима глубины."
+      ],
+      "limitations": [
+        "План и growth-требования остаются проектными материалами; DEEP/CJM и дополнительные шаги могут требовать отдельно устанавливаемых навыков."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-reverse-engineering/package.json",
+          "sha256": "9bf4f896f231c8eb8aa30afa8e289aa4c63dc51f42f8e838e8fad2ea07be6d29"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/README.md",
+          "sha256": "6de618926683204046fc49debe98c02a3546218a3115b50c63f76bccce7f4daa"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-reverse-engineering/README.md",
+          "quote": "Reverse Engineering Unicorn — composite skill for [Claude Code](https://claude.com/claude-code) that reverse-engineers **any company** into an actionable **launch playbook** (plus, in DEEP mode, a clickable CJM prototype)."
         }
       ]
     },
@@ -17767,6 +19354,104 @@
       ]
     },
     {
+      "id": "skills-taste-overview-c63b8b64",
+      "kind": "package-overview",
+      "title": "Создать выразительный лендинг или портфолио",
+      "intent": "Пакет задаёт дизайн-направление для лендингов и портфолио через композицию, интенсивность движения, плотность и проверки интерфейса.",
+      "outcome": "Пакет задаёт дизайн-направление для лендингов и портфолио через композицию, интенсивность движения, плотность и проверки интерфейса.",
+      "package": {
+        "name": "@dzhechkov/skills-taste",
+        "version": "0.1.6",
+        "manifest": "packages/skills-taste/package.json",
+        "type": "skill-pack",
+        "description": "Anti-slop frontend taste skill for Claude Code — ships non-templated landing pages, portfolios, and redesigns via tunable dials (design-variance / motion-intensity / visual-density), brief→design-system mapping, hard pre-flight checks, and canonical GSAP motion skeletons. Imported (MIT) from Leonxlnx/taste-skill. Complements (does not replace) frontend-design."
+      },
+      "skillIds": [],
+      "queries": [
+        "Хочу лендинг, который не выглядит шаблонным",
+        "Нужен редизайн портфолио с продуманными движением и плотностью"
+      ],
+      "whenToUse": [
+        "Пакет задаёт дизайн-направление для лендингов и портфолио через композицию, интенсивность движения, плотность и проверки интерфейса."
+      ],
+      "whenNotToUse": [
+        "Специализируется на лендингах, портфолио и редизайне; не предназначен для дашбордов, таблиц и многошагового продуктового UI."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Передайте brief страницы и используйте design-taste-frontend для выбора направления и предварительных проверок."
+      ],
+      "limitations": [
+        "Специализируется на лендингах, портфолио и редизайне; не предназначен для дашбордов, таблиц и многошагового продуктового UI."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-taste/package.json",
+          "sha256": "941e947b381ac831e4bf2a5b82006d9accafe30e4ca67a3730a7404cf9282cce"
+        },
+        {
+          "path": "packages/skills-taste/README.md",
+          "sha256": "0aed4bfc73d2bcb5ca35de0a81988d914dba68da56ac3b0b8dbeea79ef5cecd0"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-taste/README.md",
+          "quote": "Anti-slop **frontend taste** skill for [Claude Code](https://claude.com/claude-code) — ships **non-templated landing pages, portfolios, and redesigns**."
+        }
+      ]
+    },
+    {
+      "id": "skills-transcript-site-overview-c9813a04",
+      "kind": "package-overview",
+      "title": "Превратить транскрипт в интерактивный сайт",
+      "intent": "Ведёт от разбора транскрипта к статическому сайту с поиском, оглавлением, тёмной темой и конфигурацией публикации.",
+      "outcome": "Ведёт от разбора транскрипта к статическому сайту с поиском, оглавлением, тёмной темой и конфигурацией публикации.",
+      "package": {
+        "name": "@dzhechkov/skills-transcript-site",
+        "version": "1.0.12",
+        "manifest": "packages/skills-transcript-site/package.json",
+        "type": "skill-pack",
+        "description": "Interactive Transcript Site Generator skill pack for Claude Code — transform transcripts and YouTube videos into SEO-optimized static websites with search, TOC, dark mode, and GitHub Pages deployment"
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужна удобная страница по расшифровке видео",
+        "Хочу сайт по YouTube-ролику с поиском и оглавлением"
+      ],
+      "whenToUse": [
+        "Ведёт от разбора транскрипта к статическому сайту с поиском, оглавлением, тёмной темой и конфигурацией публикации."
+      ],
+      "whenNotToUse": [
+        "Для YouTube-входа нужен yt-dlp и доступ к содержимому; конфигурация Pages не подтверждает выпуск, это не учебный курс с упражнениями."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Передайте транскрипт или URL; начните с transcript-site-generator и проверки доступности входного материала."
+      ],
+      "limitations": [
+        "Для YouTube-входа нужен yt-dlp и доступ к содержимому; конфигурация Pages не подтверждает выпуск, это не учебный курс с упражнениями."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-transcript-site/package.json",
+          "sha256": "3d10526429541ec5d84594461a404ed2c47d0322caa008f8114bf78ed87ab3ca"
+        },
+        {
+          "path": "packages/skills-transcript-site/README.md",
+          "sha256": "77589b619854442d5e8e4e087e122926f2432a659cdc81c77788308c213b0d62"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-transcript-site/README.md",
+          "quote": "Transform transcripts and YouTube videos into SEO-optimized static websites with search, table of contents, dark mode, and GitHub Pages deployment. Part of the [Keysarium](https://www.npmjs.com/package/@dzhechkov/keysarium) ecosystem."
+        }
+      ]
+    },
+    {
       "id": "skills-transcript-site-transcript-site-generator-2e78ef86",
       "kind": "skill",
       "title": "Сделать сайт из транскрипта",
@@ -17877,6 +19562,55 @@
         {
           "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
           "quote": "description: >\n  Meta-skill: turn ONE harness-hub package into a Head-First-style, gamified edu-site learning course.\n  It COMPOSES three existing engines rather than rebuilding them — skills-book-digitizer's IP-safe\n  distillation discipline (a distilled, page-anchored Head First method-KB + the shingling gate),\n  its own executable renderer+verifier (scripts/render-site.mjs + verify-site.mjs — deterministic\n  single-file SPA, driven not parsed; edu-site-generator remains the opt-in heavy React"
+        }
+      ]
+    },
+    {
+      "id": "skills-tutorial-factory-overview-eaa022b4",
+      "kind": "package-overview",
+      "title": "Сделать учебный курс по одному пакету",
+      "intent": "Собирает понятия пакета, авторский курс по методической базе, структурные проверки и интерактивный сайт с проверкой поведения.",
+      "outcome": "Собирает понятия пакета, авторский курс по методической базе, структурные проверки и интерактивный сайт с проверкой поведения.",
+      "package": {
+        "name": "@dzhechkov/skills-tutorial-factory",
+        "version": "0.7.5",
+        "manifest": "packages/skills-tutorial-factory/package.json",
+        "type": "skill-pack",
+        "description": "package-tutorial-factory — a meta-skill that turns any harness-hub package into a Head-First-style gamified edu-site learning course. Composes skills-book-digitizer (IP-safe distillation), edu-site-generator (render), and the code-skills-creator meta-factory pattern. Ships a distilled, page-anchored Head First method-KB + a deterministic zero-LLM Head-First checklist gate + an IP shingling gate."
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужен интерактивный курс для освоения нашего CLI",
+        "Хочу обучить команду работе с конкретным навыком или библиотекой"
+      ],
+      "whenToUse": [
+        "Собирает понятия пакета, авторский курс по методической базе, структурные проверки и интерактивный сайт с проверкой поведения."
+      ],
+      "whenNotToUse": [
+        "Нужна обучаемая поверхность пакета; структурный gate не оценивает смысл и качество истории, контрольные точки требуют участия владельца."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Передайте один пакет и начните package-tutorial-factory с извлечения понятий и согласования тем."
+      ],
+      "limitations": [
+        "Нужна обучаемая поверхность пакета; структурный gate не оценивает смысл и качество истории, контрольные точки требуют участия владельца."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-tutorial-factory/package.json",
+          "sha256": "c49f4fec0afcb5eb3e07474ec7c7c36e69ef86a547e39f29d88423f06a8f3685"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/README.md",
+          "sha256": "ffd76fe42b06557209655ab98c727d7068fa4b5b07909d1d3dd300c607ddfd98"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-tutorial-factory/README.md",
+          "quote": "**`package-tutorial-factory`** — a meta-skill that turns ONE harness-hub package into a **Head-First-style,\ngamified edu-site learning course**. It does not rebuild engines; it **composes** three that already exist:"
         }
       ]
     },
@@ -18280,6 +20014,55 @@
       ]
     },
     {
+      "id": "skills-web3-overview-929b4442",
+      "kind": "package-overview",
+      "title": "Подобрать Web3-навыки под конкретную операцию",
+      "intent": "Набор специализированных навыков для RPC, аналитики кошельков, межсетевых операций, идентичности, governance и социальных протоколов.",
+      "outcome": "Набор специализированных навыков для RPC, аналитики кошельков, межсетевых операций, идентичности, governance и социальных протоколов.",
+      "package": {
+        "name": "@dzhechkov/skills-web3",
+        "version": "0.2.10",
+        "manifest": "packages/skills-web3/package.json",
+        "type": "skill-pack",
+        "description": "Canonical Web3/DeFi skill pack — 12 agentic skills for blockchain RPC, wallet analytics, cross-chain swaps, DeFi, identity, privacy, and social. Canonicalized from gitlawb/banker-skills."
+      },
+      "skillIds": [],
+      "queries": [
+        "Какие навыки есть для анализа кошелька и блокчейн-сервисов",
+        "Хочу разобраться, чем пользоваться для RPC, swaps и on-chain identity"
+      ],
+      "whenToUse": [
+        "Набор специализированных навыков для RPC, аналитики кошельков, межсетевых операций, идентичности, governance и социальных протоколов."
+      ],
+      "whenNotToUse": [
+        "Не единый торговый workflow и не готовые доступы; нужные сервисы, кошелёк, права и стоимость операции проверяются отдельно."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Определите сеть и операцию, выберите навык в таблице README и изучите его требования через dz info."
+      ],
+      "limitations": [
+        "Не единый торговый workflow и не готовые доступы; нужные сервисы, кошелёк, права и стоимость операции проверяются отдельно."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-web3/package.json",
+          "sha256": "4bd5b75dd9c4a76508ded8fb876227f008ffc35cfda6b05c131442e18be2b775"
+        },
+        {
+          "path": "packages/skills-web3/README.md",
+          "sha256": "3e10ea3a9033d2f2a8157b85588a144eabe9ce3309ba096d3aeb6739979d5a01"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-web3/README.md",
+          "quote": "Canonical Web3/DeFi skill pack — **12 agentic skills** for blockchain RPC, wallet analytics, cross-chain swaps, DeFi governance, privacy, on-chain identity, and social protocols."
+        }
+      ]
+    },
+    {
       "id": "skills-web3-siwa-15d553f9",
       "kind": "skill",
       "title": "Аутентификация агента подписью SIWA",
@@ -18565,6 +20348,59 @@
       ]
     },
     {
+      "id": "skills-website-cloner-overview-00770712",
+      "kind": "package-overview",
+      "title": "Воссоздать интерфейс сайта по образцу",
+      "intent": "Организует браузерный разбор, сбор дизайн-ресурсов, спецификации секций, параллельную сборку и visual diff копии интерфейса.",
+      "outcome": "Организует браузерный разбор, сбор дизайн-ресурсов, спецификации секций, параллельную сборку и visual diff копии интерфейса.",
+      "package": {
+        "name": "@dzhechkov/skills-website-cloner",
+        "version": "0.1.6",
+        "manifest": "packages/skills-website-cloner/package.json",
+        "type": "skill-pack",
+        "description": "Website Cloner — skill for Claude Code: reverse-engineer any website into a pixel-perfect Next.js/shadcn/Tailwind clone (browser-MCP extraction → parallel builder agents in git worktrees → visual-diff QA). Imported (MIT) from JCodesMore/ai-website-cloner-template."
+      },
+      "skillIds": [],
+      "queries": [
+        "Хочу повторить сайт по ссылке с визуальной проверкой",
+        "Нужен Next.js-интерфейс по существующим страницам"
+      ],
+      "whenToUse": [
+        "Организует браузерный разбор, сбор дизайн-ресурсов, спецификации секций, параллельную сборку и visual diff копии интерфейса."
+      ],
+      "whenNotToUse": [
+        "Обязательны browser-automation MCP и готовый Next.js/React/Tailwind/shadcn scaffold; пакет не содержит эти runtime-зависимости."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Передайте URL и подготовьте требуемую среду; начните clone-website с pre-flight."
+      ],
+      "limitations": [
+        "Обязательны browser-automation MCP и готовый Next.js/React/Tailwind/shadcn scaffold; пакет не содержит эти runtime-зависимости."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-website-cloner/package.json",
+          "sha256": "be4cb7087df0402db97e672d9c19250d73f37ad67e1aebff6fe6fc384356a26c"
+        },
+        {
+          "path": "packages/skills-website-cloner/README.md",
+          "sha256": "b74d14fb391e9a4f1381405f912775dc598dfa94f22fc59cc11cacaed33cf303"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-website-cloner/README.md",
+          "quote": "A 5-phase \"foreman\" pipeline (extraction and construction run in parallel):"
+        },
+        {
+          "path": "packages/skills-website-cloner/README.md",
+          "quote": "1. **Reconnaissance** — screenshots, design-token extraction, interaction analysis (via a browser MCP)\n2. **Foundation** — fonts, colors, downloaded assets\n3. **Component Specs** — per-section specs with exact computed CSS values\n4. **Parallel Build** — dispatches builder agents in **git worktrees**\n5. **Assembly & QA** — merges worktrees, runs a **visual diff** against the original"
+        }
+      ]
+    },
+    {
       "id": "skills-website-cloner-clone-website-eac4b4db",
       "kind": "skill",
       "title": "Воссоздать внешний вид существующего сайта",
@@ -18618,6 +20454,55 @@
         {
           "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
           "quote": "description: Reverse-engineer and clone one or more websites in one shot — extracts assets, CSS, and content section-by-section and proactively dispatches parallel builder agents in worktrees as it goes. Use this whenever the user wants to clone, replicate, rebuild, reverse-engineer, or copy any website. Also triggers on phrases like \"make a copy of this site\", \"rebuild this page\", \"pixel-perfect clone\". Provide one or more target URLs as arguments."
+        }
+      ]
+    },
+    {
+      "id": "trip-planner-overview-5ece63c8",
+      "kind": "package-overview",
+      "title": "Собрать программу поездки в мобильном HTML",
+      "intent": "Соединяет уточнение поездки, проверку мест, планирование дней и создание мобильного HTML с таймлайном и ссылками на карты.",
+      "outcome": "Соединяет уточнение поездки, проверку мест, планирование дней и создание мобильного HTML с таймлайном и ссылками на карты.",
+      "package": {
+        "name": "@dzhechkov/trip-planner",
+        "version": "1.0.12",
+        "manifest": "packages/trip-planner/package.json",
+        "type": "skill-pack",
+        "description": "Travel-itinerary → interactive mobile site generator. Turns a city + dates + constraints into a self-contained, one-handed HTML itinerary with maps, weather, booking links, verified contacts and review evidence for every named venue, and constraint-filtered restaurants."
+      },
+      "skillIds": [],
+      "queries": [
+        "Нужен маршрут по дням с адресами, картами и местами для еды",
+        "Хочу интерактивный план поездки с учётом ребёнка и бюджета"
+      ],
+      "whenToUse": [
+        "Соединяет уточнение поездки, проверку мест, планирование дней и создание мобильного HTML с таймлайном и ссылками на карты."
+      ],
+      "whenNotToUse": [
+        "Нужны даты и логистика; места требуют источников, погода и внешние карты используют сеть. Это план поездки, не бронирование."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Передайте город, даты, прибытие, отъезд, жильё и ограничения в trip-planner."
+      ],
+      "limitations": [
+        "Нужны даты и логистика; места требуют источников, погода и внешние карты используют сеть. Это план поездки, не бронирование."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/trip-planner/package.json",
+          "sha256": "3cc67650d1c5197615b86217255120775e37ae84f5bfd5441acce873c44e9b69"
+        },
+        {
+          "path": "packages/trip-planner/README.md",
+          "sha256": "b2ab1a8d383696661216cf6693d039c65d304a3312e3c58b032ad7f2c4ad495b"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/trip-planner/README.md",
+          "quote": "> Travel-itinerary → **interactive mobile site** generator for Claude Code. Give it a city, dates,\n> arrival/departure, lodging, party size and constraints — get a self-contained, one-handed mobile\n> HTML itinerary with maps, weather, verified venue contacts + review evidence, and a day-by-day\n> timeline. Implements the \"trip-advisor\" task."
         }
       ]
     },

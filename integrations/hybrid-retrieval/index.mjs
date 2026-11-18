@@ -9,7 +9,12 @@ export class SnapshotError extends Error {
 }
 const fail = (code, message) => { throw new SnapshotError(code, message); };
 const compareId = (a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
-const digest = value => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+// Byte-for-byte schema-1 JSON-array digest without materializing all vectors as one string.
+function digest(rows) {
+  const hash = createHash('sha256').update('[');
+  rows.forEach((row, index) => { if (index) hash.update(','); hash.update(JSON.stringify(row)); });
+  return hash.update(']').digest('hex');
+}
 const defaultLexicalize = text => text;
 const DEFAULT_LEXICALIZER = 'identity-v1';
 const MAX_DOCUMENTS = 10000;

@@ -96,3 +96,16 @@ test('approval binds the actual record and fails closed on mutation or rejection
     assert.equal(result.excluded.length, 1);
   }
 });
+test('package overviews are complete, unique and cannot substitute for an atomic skill',()=>{
+ const overviews=records.filter(r=>r.kind==='package-overview');
+ assert.equal(overviews.length,inventory.packages.filter(p=>p.skills.some(s=>s.shipped)).length);
+ for(const overview of overviews){
+  assert.deepEqual(overview.skillIds,[]);
+  assert.throws(()=>verifyCatalogCoverage(inventory,records.filter(r=>r.id!==overview.id)),/Missing package overview/);
+  assert.throws(()=>verifyCatalogCoverage(inventory,[...records,{...overview,id:overview.id+'-duplicate'}]),/duplicate package overview/);
+  const receipt=receipts.find(r=>r.id===overview.id);
+  assert.equal(compileCatalog([{...overview,outcome:overview.outcome+' unsupported'}],[receipt],root).records.length,0);
+ }
+ const support=records.find(r=>r.kind==='package');
+ assert.throws(()=>verifyCatalogCoverage(inventory,[...records,{...support,id:support.id+'-overview',kind:'package-overview'}]),/package overview/);
+});

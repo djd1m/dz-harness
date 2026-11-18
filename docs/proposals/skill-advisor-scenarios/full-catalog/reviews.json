@@ -3,11 +3,11 @@
   "reviews": [
     {
       "id": "adapter-agents-md-package-7c454bd5",
-      "recordHash": "38f6a6b925d6a9cc0329fb18552f268118c9ab57a8b9432b694175e29bb70359",
       "verdict": "approved",
-      "reviewer": "gpt-6-astra",
-      "reason": "Манифест и README подтверждают сведение в root AGENTS.md; boundary теперь называет потери frontmatter, границ и assets. Запросы адресованы разработчику адаптера, не обещают готовый предметный навык. Проверены буквальные цитаты, хэши объявленных исходников и отсутствие выдуманных skillIds; одобрение относится к этим данным, не к выполненному runtime-сценарию.",
-      "report": "semantic-reviews-support-revised.json"
+      "reason": "README перечисляет потерю YAML frontmatter, progressive disclosure, границ отдельных файлов и assets (scripts/references); исправленное ограничение соответствует источнику.",
+      "recordHash": "0d62328771e0799091a290c8f151b6fa83e37bca0128c76167b0066cd82d759b",
+      "reviewer": "gpt-6.1-terra",
+      "report": "source-boundary-review.json"
     },
     {
       "id": "adapter-claude-package-59d2c9f3",
@@ -2656,6 +2656,302 @@
       "reviewer": "gpt-6.1-terra",
       "reason": "Цитата из описания SKILL подтверждает назначение: Организует проверку мест и составление самостоятельного HTML-маршрута с таймлайном и ссылками на карты. Остальные поля записи не изменены.",
       "report": "semantic-reviews-delta-2.json"
+    },
+    {
+      "id": "design-thinking-overview-4f2174c6",
+      "recordHash": "6b86e08f5fd18ef01db00b826defa627729d730b90bcd729ff4e40aaa322971c",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/design-thinking; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "evidence-wiki-overview-edf3985c",
+      "recordHash": "016ee6588d738267f8f468803b2b2765f54d57e4afd34545a75b34b120f0eea8",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/evidence-wiki; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "health-advisor-overview-0968b6f3",
+      "recordHash": "cd2ea2869b426fc89cb5d8c5087d68303afe98b41a7a2ea5283a469b6ef13905",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/health-advisor; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "keysarium-overview-e81e1bb8",
+      "recordHash": "18e088c837dd91635d4194eb4cca5e752aee9067b0c7e9b4d888abfad20c4d20",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/keysarium; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "loop-designer-plugin-overview-8608943e",
+      "recordHash": "e1ca784aa6c0125a9dd26b4f5074eb8a95f8c736aac45dbe02fa370bcdc8344f",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/loop-designer-plugin; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "p-replicator-overview-0b410b50",
+      "recordHash": "5dd6902a02f5c368dec73a9102929a1b3209b1aab5c062e4452cb9e176c78e44",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/p-replicator; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "skills-12factor-overview-0b0f0465",
+      "recordHash": "a85c77361c2cb4abcd73b70ac48252f44e92f5ae1ea69dad4860242e63e4a19c",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-12factor; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "skills-academic-overview-74144a5f",
+      "recordHash": "c34c1f0da9525ffee02ab6536d943b871bafade1eb348309e481e6bb24bf14c6",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-academic; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "skills-analyst-manual-overview-6758eed2",
+      "recordHash": "29e11833ee9f3dadba08168297bc24bbd65cbcca53ba650746d606591f91b26c",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-analyst-manual; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "skills-book-ai-apps-overview-86b16c2c",
+      "recordHash": "71771a5d0867045a6a81d38f159ccb574963c35457caa9fc541f6d5cd956ac9b",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-book-ai-apps; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "skills-book-clean-code-overview-554fd912",
+      "recordHash": "fac3417460c38d834532792de3450c308aa17db24e62fc435242095cd6e32f83",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-book-clean-code; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "skills-book-ddia-overview-f34309d8",
+      "recordHash": "9d676560634b698c6904a14d80ad3e1aeb46d20d1486ffe64d5916cfac901bb2",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-book-ddia; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "skills-book-digitizer-overview-2d33a2c5",
+      "recordHash": "6ff5c25db95dbeca50ed4f5b500e5ac8eb25ffc6ffc862459e6721d04b827fdc",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-book-digitizer; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "skills-book-fundamental-software-architecture-overview-dfce55d4",
+      "recordHash": "352dfdec8ddc5bfeffa25e651d66b3a429411ada1bc90c76ba1ab87d7786e05a",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-book-fundamental-software-architecture; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "skills-bto-overview-62f441da",
+      "recordHash": "c6ba8cdcdabb0f6196ac98ac919fd18e324597a8178dd3795cf329bf786d1680",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-bto; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "skills-decision-mockups-overview-9144579b",
+      "recordHash": "24da286724b3308d81ba6474aac1f39ae54e4a1635ddf60e028924c0eac5ded3",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-decision-mockups; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "skills-demo-publisher-overview-ffcfeed3",
+      "recordHash": "307900265f4bf3f792f6fb6bdb507439fb59d93a11674d8dfda51e924ddb813d",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-demo-publisher; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "skills-devops-overview-a6cd470c",
+      "recordHash": "54a90d9b5578f83d8d6b59540e755561df87c530cbe21813e2e05664da4fbd6d",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-devops; цитаты и хеши источников проверены.",
+      "report": "workflow-overview-reviews-a.json"
+    },
+    {
+      "id": "skills-ecc-overview-3bdf1e3f",
+      "recordHash": "2ba65a8cd2103732d621ec70c5fb73d9380c3ab40452e01ba0897cb294f240a3",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Подборка отдельных навыков для архитектуры агентов, циклов выполнения, тестирования, backend, Docker и Git.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-edu-site-overview-3db88ad3",
+      "recordHash": "3f0659f228deccbea3c49f986e1d7db22b94fa4334c85199331b5b69175337d9",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Пакет ведёт от анализа материалов и структуры курса до React/Vite-сайта с упражнениями, прогрессом и проверкой результата.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-feature-adr-overview-35190d6c",
+      "recordHash": "071ce21475a5f4fa80de0dc873fbb334a447e510c3f43e8ba5a9d53eccc4ae83",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README описывает создание кода и проверки в feature-adr; роль artifact соответствует этой возможности, оговорка об отдельном QE runtime сохранена.",
+      "report": "workflow-overview-reviews-fix.json"
+    },
+    {
+      "id": "skills-idea2prd-overview-743a9412",
+      "recordHash": "803b9c8953e45cadff75eee34ea739f097d798fd5c825306395134cd9fee95b7",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Ведёт от идеи или исследования проблемы к требованиям, ADR, DDD, C4, псевдокоду, тестовым сценариям и checklist завершения.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-mcp-overview-3c308972",
+      "recordHash": "36313b4679ccc2177cff786f13db526f78de9caf42c6d8275906604fc79fb497",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Навигационный набор навыков для поиска, почты, календаря, заметок, репозиториев и памяти через конкретные MCP-серверы.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-meta-overview-559f6001",
+      "recordHash": "f73d16fcf18085c88d39b08493eb21e3b3039f313141b4aef2cf52ccdfb36270",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Канонический набор навыков процесса разработки: помогает выбрать нужный этап и подключить соответствующую методику работы агента.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-news-overview-5162d2e0",
+      "recordHash": "df697707556b651fb16114cad77724e1e935e9e300a3b6df95140e1fc1dd3b81",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Предлагает полный дайджест за период и лёгкий мониторинг изменений по сохранённой отметке с источниками и удалением повторов.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-package-story-page-overview-4c5ad191",
+      "recordHash": "d0aa9d242634dc353842bfa7cd2a010517936d74c4ddb3e93d486f04aebc1b49",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Ведёт от свидетельств о пакете к короткой истории: конкретный ввод, процесс и проверяемый результат в самостоятельном HTML.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-pm-overview-b0d8f3a8",
+      "recordHash": "0a2e5a50cb85589d9f2b7bcc511a1ac1402af4d9d8de2b34033168e8326f0a1a",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Набор PM-навыков для возможностей, приоритетов, стратегии, цены, OKR, аналитики, roadmap и выхода на рынок.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-presentation-storyteller-overview-0e503c5d",
+      "recordHash": "fa5b19e91c8370e20dadb00a07ae777a9a8cd97ea7bd26e1cca5a5ab58b15e26",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Связывает уточнение задачи и исследование источников с подготовкой плана, Markdown-слайдов, индекса источников и рассказа выступающего.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-qe-overview-7fb6f43e",
+      "recordHash": "18eaacadcff596ebe06fd6b3a0f1f6e5a0d223973015622c4082f58203e80770",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Подборка QE-навыков охватывает требования, генерацию и запуск тестов, покрытие, устойчивость, интерфейс и стадии QCSD.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-reasoning-overview-81482c09",
+      "recordHash": "c0daabd5b6a7778f23ea361c3ffcdeec672029356e74083f4c11dfa1d2546941",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Объединяет расследование без правок, SOLID/TDD, правила точечных изменений и создание архитектурных AGENTS.md.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-reverse-engineering-overview-ef8844ba",
+      "recordHash": "56ab6d483492cb661c4efa9b777f87086e81d7322731fe19f58593436a9a9265",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Ведёт через исследование компании, клиентов, рынка, экономики и роста к launch playbook; глубина разбора выбирается явно.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-taste-overview-c63b8b64",
+      "recordHash": "b4f7512f6af019c3dce4488645622741c2dcc1caa12bc5b9638764d8e13d9956",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Пакет задаёт дизайн-направление для лендингов и портфолио через композицию, интенсивность движения, плотность и проверки интерфейса.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-transcript-site-overview-c9813a04",
+      "recordHash": "91f394cbed4209681a2b292b601d96962f45dae98882e0a72353fa30f4d340de",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Ведёт от разбора транскрипта к статическому сайту с поиском, оглавлением, тёмной темой и конфигурацией публикации.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-tutorial-factory-overview-eaa022b4",
+      "recordHash": "3e86c8739836b6cee4a18ceae188aed4fc27fa1267aa71ae42c99e198bee0b7a",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Собирает понятия пакета, авторский курс по методической базе, структурные проверки и интерактивный сайт с проверкой поведения.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-web3-overview-929b4442",
+      "recordHash": "1ed99d25142a49266fbda26724856dd0fad36c8daca3875ae75d1441a1764379",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Набор специализированных навыков для RPC, аналитики кошельков, межсетевых операций, идентичности, governance и социальных протоколов.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "skills-website-cloner-overview-00770712",
+      "recordHash": "b9ef962f42a620cf8b7b2149ed1b55e18e514673deeea68ce65b922fed7798fd",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Организует браузерный разбор, сбор дизайн-ресурсов, спецификации секций, параллельную сборку и visual diff копии интерфейса.",
+      "report": "workflow-overview-reviews-b.json"
+    },
+    {
+      "id": "trip-planner-overview-5ece63c8",
+      "recordHash": "a68d3f91ead2d880ba410254a8db98a9712330e6c0f76f4a5b665241df3aa601",
+      "reviewer": "gpt-6.1-terra",
+      "verdict": "approved",
+      "reason": "README подтверждает назначение, роль и границы: Соединяет уточнение поездки, проверку мест, планирование дней и создание мобильного HTML с таймлайном и ссылками на карты.",
+      "report": "workflow-overview-reviews-b.json"
     }
   ]
 }

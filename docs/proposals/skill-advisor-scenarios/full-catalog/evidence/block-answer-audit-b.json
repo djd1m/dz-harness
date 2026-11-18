@@ -1,0 +1,301 @@
+{
+  "reviewerModel": "gpt-6.1-terra",
+  "rows": [
+    {
+      "id": "H035",
+      "rowHash": "eb0a51b98c8d825273f3e06bde64c466fef0b1002dccd6524a88c72feaf59936",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H036",
+      "rowHash": "3b2070cd0c57f87d913ec98e693802fae4c626e4acdf1ce60ec1b608171384ca",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H037",
+      "rowHash": "5455c05b3320c14f780732ac3fd558439d8027ca890d8ab0c6ecd2386b1baee0",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H038",
+      "rowHash": "03d1bbf223e737abe95b8c96bc5725579020b2a52afc622c9fccaa82a5715336",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H039",
+      "rowHash": "a13be39402dd70e35cfb31f0dc75a3e75947464321cf34c34d5dd1250f7b406d",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H040",
+      "rowHash": "4666b7e1be64df7ec23f595b590dcf6604046241e0622bd5489e1b17de15f292",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H041",
+      "rowHash": "adcbc45f9fa28fd83d77657a0c9b25aa41f8a1edc55268026e3a82c040dbb225",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H042",
+      "rowHash": "d62e344313a34744a9d0b01628385915e48f0f4b181c45dcb679f82338f7706d",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H043",
+      "rowHash": "d8f86d4c09b0cc454a3c7fcb5b8e33f437d153625b6ef428bc5a2544a80bf9b3",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H044",
+      "rowHash": "6435ed538614d706c171894973b46878ba228bc79a9be877fa01e5decf1544b2",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H045",
+      "rowHash": "746d5399ec0565b56408a082ca9fd25aa0e402e7856c9cc1cd7b09ea229234bb",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H046",
+      "rowHash": "b8caf687c1c83f9a73d223e717502e2e4a27330e8e7eb1a1aa8a8f0a4f2d05a4",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H047",
+      "rowHash": "6ac95c09bf7805b8b8d1d94182cad7e772aae85822f5a6842a61afdd63e37668",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H048",
+      "rowHash": "8c16d3d0611613926744fb683d606f1501e0ec4b2d6c03e027eaefc214678270",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H049",
+      "rowHash": "b7ce80ecfedc84ecd8f2896e94055eacec01e119ff724169002be28b84cc6009",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H050",
+      "rowHash": "111d8a5db22206c26a2e5629eb15b9ac9740a2fa92979ae094f932adc06787a6",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H051",
+      "rowHash": "d6244b8b7c48215f7e23cb70e9ac4c88227b01e0d0fc4499115dd66fca8b20a8",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H052",
+      "rowHash": "70be59100f002c651f2a4b86e1cbcab3de2af5929aae95cf28a419359e0504aa",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H053",
+      "rowHash": "d6bf251f96c3412b22a4b7aa3feb01108b35878ac2358e53116515b41ca73712",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H054",
+      "rowHash": "4f9f2403390f6d8930dff0ff204f72d4e589b6e52966a66c02d3bd862a409512",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H055",
+      "rowHash": "1c493251d127857257034d2ea058b5235673e0f6252da97daa37200f9dcfd269",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H056",
+      "rowHash": "33b8e604def345960a7dee9247a80c7e458003e72d9b5210364080f3bd12b28e",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "H057",
+      "rowHash": "94370d2fa5372d4b893ed210754d9aaac2235a0ac602cf129ccccad0edef77c9",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Предложенный сценарий соответствует источнику, задаче и обозначенным условиям использования."
+    },
+    {
+      "id": "N01",
+      "rowHash": "7d9b77d5f126e71a81fb010d04690dd8aad76ef451f64b46b0dc7fa6e6b6669b",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не обещает выполнение недоступного физического или недоказуемого действия."
+    },
+    {
+      "id": "N02",
+      "rowHash": "bc6c95499ccd028f8fb7125faa9956d4bfdb43ce3b6908fbb5cb7ebcbbfcf969",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не обещает выполнение недоступного физического или недоказуемого действия."
+    },
+    {
+      "id": "N03",
+      "rowHash": "a56aab931c9f0b31b0d2fa1cc7ec6c192ac361c7040cd35fb146113d5f99d2f9",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не обещает выполнение недоступного физического или недоказуемого действия."
+    },
+    {
+      "id": "N04",
+      "rowHash": "9c0f1b9a2e0bf78589f0025d93015d9c3614e9d0ead591171f8b387db40a613e",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не обещает выполнение недоступного физического или недоказуемого действия."
+    },
+    {
+      "id": "N05",
+      "rowHash": "b68deebdf37f7715debfaa217b82fa1f3db1da3fb6494d4e62f83a4850a7150d",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не обещает выполнение недоступного физического или недоказуемого действия."
+    },
+    {
+      "id": "N06",
+      "rowHash": "b845de9cbd6109f6e2e2d6e4b3b2d7afef145fba802138bcaac8adb1dcc1b52a",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не обещает выполнение недоступного физического или недоказуемого действия."
+    },
+    {
+      "id": "N07",
+      "rowHash": "a80d486c259906d091c048d8d93e56cc8280dbc0aef9f8c4eef0211b3c95f64a",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не обещает выполнение недоступного физического или недоказуемого действия."
+    },
+    {
+      "id": "N08",
+      "rowHash": "d6473ebcfb61026ce362f4e6502350a5c93a98ce3a280a6c7719bd2a90d14e5e",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не обещает выполнение недоступного физического или недоказуемого действия."
+    },
+    {
+      "id": "N09",
+      "rowHash": "f9aec81b3650defc6a0f0eeca56e25422c609c1866a7f1e18a5bb971534d86e1",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Согласно уточнённой политике ограниченной неопределённости, design-thinking подходит для исследования ещё неизвестной потребности аудитории; граница и следующий шаг честны. Замороженная метка clarify не охватывает этот допустимый исход."
+    },
+    {
+      "id": "N10",
+      "rowHash": "9ef2bdebeaab4d2ba3034366074371c94677b88efe392b32eee7df0eb0f9ab0c",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Согласно уточнённой политике, набор PM с методиками возможностей и приоритизации полезен для выбора направления; ответ не утверждает, что интервью или выбор уже выполнены. Замороженная метка clarify не охватывает допустимую рекомендацию."
+    },
+    {
+      "id": "N11",
+      "rowHash": "7c97bb18f43dc0bc345ddb20348b47fdc40a56d457d3d90cc89614277cb2b1ff",
+      "semanticCorrect": false,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Задача — выяснить, какую часть процесса автоматизировать; explore прямо помогает уточнить цель и ограничения. Ответ no-match не предлагает подходящую помощь и не задаёт уточнение."
+    },
+    {
+      "id": "N12",
+      "rowHash": "78ea060e6b12af73aa3d29f90694686ca79d3e70c190825f5fef9a206fc767a9",
+      "semanticCorrect": false,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ partial обозначает «Планируем обучение сотрудников» как неподдержанный остаток: это формулировка цели, а не конкретная неподдержанная возможность. Здесь требуется уточнить потребности и критерии либо честно предложить discovery."
+    },
+    {
+      "id": "C01",
+      "rowHash": "b028ab247a9412bdab9d07d2f874912b77af6448699eb3d0c80f1c3a67dc3d1a",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Методика подходит поддержанной части, а неподдержанное физическое действие прямо названо."
+    },
+    {
+      "id": "C02",
+      "rowHash": "dbc4a44acecbedeb45b120fb79d0f1cd7a7a91f3950b5f9ba6bfc9f0f635cd4a",
+      "semanticCorrect": false,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Указано отсутствие только гарантии продления, но выбранный north-star-metric не покрывает отдельно запрошенный анализ retention; cohort-analysis выбранного PM-пакета покрывает его. Поддержанная часть составной задачи представлена не полностью."
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import {approvedPresentation} from './answer.mjs';
 import {dialogueContract,renderDialogue} from './dialogue.mjs';
 import {createRequestLedger} from './request-ledger.mjs';
 import {selectScenarios} from './selector.mjs';
+import {buildSourceContext} from './source-context.mjs';
 
 const directory=fileURLToPath(new URL('./preview/',import.meta.url));
 const data=fileURLToPath(new URL('../../docs/proposals/skill-advisor-scenarios/',import.meta.url));
@@ -48,9 +49,9 @@ export function createPreview({answer,fontsDirectory,requestBudget=30,requestLed
  server.requestTimeout=15000;server.headersTimeout=10000;
  return server;
 }
-export function liveAnswer(apiKey,{catalog=currentCatalog(),retriever=null}={}){if(catalog.excluded.length)throw Error('Catalog exclusions');
+export function liveAnswer(apiKey,{catalog=currentCatalog(),retriever=null,sourceContext=null}={}){if(catalog.excluded.length)throw Error('Catalog exclusions');
  const presentation=approvedPresentation(catalog,read('full-catalog/presentation.json'),read('full-catalog/presentation-reviews.json'));
- const contract=dialogueContract(presentation),courses=read('course-map.json');
+ const contract=dialogueContract(presentation,sourceContext??buildSourceContext(catalog)),courses=read('course-map.json');
  return async query=>{
   const candidates=retriever?await retriever(query):retrieve(catalog,query);
   const result=await selectScenarios(candidates,{model:'anthropic/claude-haiku-5.5',apiKey,contract});

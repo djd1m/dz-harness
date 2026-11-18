@@ -15,16 +15,16 @@ export async function writeCatalogDrafts({root,publication,drafts,output}){
     ['summary','boundary','nextAction'].some(k=>typeof draft[k]!=='string'||!draft[k].trim()||draft[k].length>220)||
     !Array.isArray(draft.queries)||draft.queries.length<2||draft.queries.some(q=>typeof q!=='string'||!q.trim()))throw Error('Invalid editorial draft');
   const skill=pkg.skills.find(s=>s.path===draft.sourcePath);
-  if(draft.skillId?(skill?.id!==draft.skillId||!skill.shipped):pkg.skills.some(s=>s.shipped)||draft.sourcePath!==pkg.readme?.path)throw Error('Draft is not backed by shipped source');
+  if(draft.skillId?(skill?.id!==draft.skillId||!skill.shipped):(draft.kind==='package-overview'?!pkg.skills.some(s=>s.shipped):pkg.skills.some(s=>s.shipped))||draft.sourcePath!==pkg.readme?.path)throw Error('Draft is not backed by shipped source');
   const source=skill??pkg.readme;
   const raw=readFileSync(resolve(root,source.path),'utf8'),manifest=JSON.parse(readFileSync(resolve(root,pkg.manifest.path),'utf8'));
   // Only metadata is a witness: examples in the body may contain unrelated description keys.
   const metadata=raw.match(/^---\s*\r?\n([\s\S]*?)\r?\n---/u)?.[1];
   const quote=(metadata?.match(/^description:[^\r\n]*(?:\r?\n[ \t]+[^\r\n]*)*/mu)?.[0]??'').slice(0,500);
   if(!draft.evidence&&quote.trim().length<16)throw Error('Missing literal source witness');
-  const id=pkg.name.split('/').at(-1)+'-'+(draft.skillId??'package')+'-'+digest(draft.sourcePath).slice(0,8);
+  const id=pkg.name.split('/').at(-1)+'-'+(draft.skillId??(draft.kind==='package-overview'?'overview':'package'))+'-'+digest(draft.sourcePath).slice(0,8);
   const sources=[pkg.manifest,source,...(pkg.readme&&pkg.readme.path!==source.path?[pkg.readme]:[])];
-  const record={id,kind:draft.skillId?'skill':'package',title:draft.title,intent:draft.summary,outcome:draft.summary,
+  const record={id,kind:draft.skillId?'skill':draft.kind==='package-overview'?'package-overview':'package',title:draft.title,intent:draft.summary,outcome:draft.summary,
    package:{name:pkg.name,version:pkg.version,manifest:pkg.manifest.path,type:pkg.type,description:manifest.description??''},
    skillIds:draft.skillId?[draft.skillId]:[],queries:draft.queries,whenToUse:[draft.summary],whenNotToUse:[draft.boundary],
    prerequisites:[],steps:[draft.nextAction],limitations:[draft.boundary],courseUrl:null,sources,evidence:draft.evidence??[{path:source.path,quote}]};

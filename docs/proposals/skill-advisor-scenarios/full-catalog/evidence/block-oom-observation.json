@@ -1,0 +1,1 @@
+{"searchMemoryBytes": 536870912, "documents": 8926, "OOMKilled": true, "exitCode": 137, "container": "advisor-workflows-smoke-245404-search", "phase": "initial whole-array JSON digest startup", "productionTouched": false}
