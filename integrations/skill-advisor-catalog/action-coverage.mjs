@@ -9,19 +9,20 @@ const heads = [
  'rewrite','run','select','set up','test','transform','turn','validate','verify','write',
  'анализируй','выбери','выбрать','выдели','выделить','доставь','доставить','заставь','заставить',
  'извлеки','извлечь','импортируй','импортировать','настрой','настроить','напиши','написать','объясни','объяснить',
- 'определи','определить','оцени','оценить','перепиши','переписать','подбери','подобрать','подготовь','подготовить',
+ 'определи','определить','оцени','оценить','перепиши','переписать','подбери','подобрать','подготовь','подготовить','прикрути','прикрутить',
  'проверь','проверить','преврати','превратить','преобразуй','преобразовать','проанализируй','проанализировать','разбери','разобрать','развёрни','разверни','развернуть',
  'сгенерируй','сгенерировать','сделай','сделать','собери','собрать','создай','создать','составь','составить',
  'спланируй','спланировать','спроектируй','спроектировать','сравни','сравнить','уточни','уточнить',
 ].join('|');
-const modifiers = '(?:(?:separately|physically|then|please|first|second|third|fourth|also|затем|сначала|отдельно|также|пожалуйста|гарантированно|вручную)(?:,\\s+|\\s+)){0,3}';
+const modifiers = '(?:(?:separately|physically|then|please|first|second|third|fourth|also|затем|сначала|отдельно|также|пожалуйста|гарантированно|вручную|физически)(?:,\\s+|\\s+)){0,3}';
 const actionStart = new RegExp(`^${modifiers}(?:${heads})(?![\\p{L}\\p{N}_-])`, 'iu');
 const connector = '(?:and(?:\\s+then)?|then|и(?:\\s+(?:затем|потом))?|а\\s+(?:затем|потом|также|ещё|отдельно)|затем|потом)';
 const separators = new RegExp(`[;:\\n]|[.!?](?=\\s|$)|,?\\s+${connector}\\s+(?=${modifiers}(?:${heads})(?![\\p{L}\\p{N}_-]))|,\\s*(?=${modifiers}(?:${heads})(?![\\p{L}\\p{N}_-]))`, 'giu');
+const answerFormat = /^(?:(?:identify|name|list|indicate|state)\s+(?:(?:the|a|specific|separate|distinct|exact|which|relevant)\s+){0,4}(?:skills?|methods?|packages?|tools?|scenarios?)\b(?=\s*(?:[.!?]?$|for\s+(?:each\b|both\b|the supported work\b)))|(?:назови\p{L}*|укажи\p{L}*|перечисли\p{L}*)\s+(?:(?:точн\p{L}*|отдельн\p{L}*|конкретн\p{L}*)\s+){0,3}(?:скилл\p{L}*|навык\p{L}*|пакет\p{L}*|метод\p{L}*)(?=\s*(?:[.!?]?$|для\s+(?:кажд\p{L}*|обоих|обеих)(?!\p{L}))))/iu;
 const politeLead = /^(?:(?:please\s+)?(?:i\s+(?:need|want)\s+(?:you\s+)?to|help\s+me(?:\s+to)?|можешь|надо|нужно|помоги|помогите|хочу)\s+)/iu;
 const explicitList = /(?:\b(?:i|we)\s+(?:need|want)\s+(two|three|four|[2-4])\s+(?:(?:distinct|separate|independent)\s+)?(?:methods|actions|deliverables|tasks)\s*:|(?:нужны|требуются)\s+(два|две|три|четыре|[2-4])\s+(?:(?:отдельных|самостоятельных)\s+)?(?:действия|задачи|метода|результата)\s*:)/iu;
 const explicitCount = new Map([['two',2],['два',2],['две',2],['three',3],['три',3],['four',4],['четыре',4]]);
-export const directlyPhysical = /^(?:physically\s+(?:carry|deliver|distribute|move|lift|fold|tune)\b|(?:физически|вручную)\s+(?:перенес\p{L}*|достав\p{L}*|перемест\p{L}*|слож\p{L}*))/iu;
+export const directlyPhysical = /^(?:physically\s+(?:carry|deliver|distribute|move|lift|fold|tune)\b|(?:физически|вручную)\s+(?:перенес\p{L}*|достав\p{L}*|перемест\p{L}*|прикрут\p{L}*|слож\p{L}*))/iu;
 const searchWords = /[\p{L}\p{N}]+/gu;
 const weakTerms = new Set('the and from what which who when where with into for are was has have this that their our your after before then also including separately please generate create assess make choose how what как кого чего какой этом этот затем потом после перед чтобы можно помоги нужн способ'.split(' '));
 
@@ -40,7 +41,7 @@ export function extractRequestedActions(query,{allowSingle=false}={}) {
   const lead = segment.trimStart().match(politeLead)?.[0] ?? '';
   const content = segment.slice(leftSpace + lead.length);
   const head = content.match(actionStart)?.[0];
-  if (head && /[\p{L}\p{N}·]/u.test(content.slice(head.length))) {
+  if (head && !answerFormat.test(content) && /[\p{L}\p{N}·]/u.test(content.slice(head.length))) {
    const text = query.slice(start + leftSpace + lead.length, separator.index).trim();
    if (text) actions.push({id:`a${actions.length + 1}`,text});
    if (actions.length > actionLimit) return {actions:[],overflow:true};

@@ -158,3 +158,23 @@ test('keeps a bilingual skill available when its registered name directly matche
  assert.match(answer.lead,/физической работы/);
  assert.deepEqual(answer.missingParts,['physically carry the stands from storage']);
 });
+
+test('requesting visible method names does not invent another work item', () => {
+ const text = 'First, assess the full written master’s thesis for methodology. Second, assess the oral presentation from its transcript. Recommend a package and identify the distinct method for each review.';
+ assert.deepEqual(extractRequestedActions(text).actions.map(action=>action.text),[
+  'assess the full written master’s thesis for methodology','assess the oral presentation from its transcript',
+ ]);
+});
+
+test('a numbered digital task plus direct physical installation stays partial', () => {
+ const text = 'Нужны два действия. 1. Превратить заметки в учебный сайт. 2. Физически прикрутить полку в комнате.';
+ const grouped = retainActionCandidates(text,{candidates:oldShortlist,diagnostics:{}},raw,projection.clauseSearch);
+ assert.equal(grouped.actions.length,2);
+ assert.equal(grouped.actions[1].text,'Физически прикрутить полку в комнате');
+ assert.deepEqual(grouped.actions[1].candidateIds,[]);
+});
+
+test('identifying a method for a new outcome stays a distinct action', () => {
+ const text = 'Review our API latency, and identify the method for testing CSV exports.';
+ assert.deepEqual(extractRequestedActions(text).actions.map(action=>action.text),['Review our API latency','identify the method for testing CSV exports']);
+});
