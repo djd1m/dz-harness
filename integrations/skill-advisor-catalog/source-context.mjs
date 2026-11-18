@@ -2,6 +2,7 @@
 import{dirname}from'node:path';
 import{fileURLToPath}from'node:url';
 import{readCatalogSource,digest}from'./catalog.mjs';
+import{splitPassages,evidenceTerms}from'./answer-details.mjs';
 import{stems}from'../../packages/harness-core/dist/stem.js';
 const defaultRoot=fileURLToPath(new URL('../../',import.meta.url));
 const terms=text=>new Set(stems(text).filter(term=>term.length>3));
@@ -21,7 +22,10 @@ export function buildSourceContext(catalog,{root=defaultRoot}={}){
     const quote=text.slice(start,start+900);
     if(quote.trim().length>=20)chunks.push({start,quote,terms:terms(quote)});
    }
-   documents.set(key,{source,chunks});
+   const passages=splitPassages(text).map(text=>({text,terms:evidenceTerms(text)}));
+   const frequency=new Map();
+   for(const passage of passages)for(const term of passage.terms)frequency.set(term,(frequency.get(term)??0)+1);
+   documents.set(key,{source,chunks,passages,frequency});
   }
   const document=documents.get(key);byRecord.set(record.id,document);
   for(const chunk of document.chunks)indexEntries.push(Object.freeze({id:'source-'+digest(record.id+'\0'+source.sha256+'\0'+chunk.start),ownerId:record.id,
@@ -48,6 +52,19 @@ export function buildSourceContext(catalog,{root=defaultRoot}={}){
   if(selected.length<2&&chunks.length>1){const tail=chunks.length-1;if(selected.every(i=>Math.abs(chunks[i].start-chunks[tail].start)>=900))selected.push(tail);}
   return selected.map(i=>({path:document.source.path,sha256:document.source.sha256,start:chunks[i].start,quote:chunks[i].quote}));
  };
+ Object.defineProperty(context,'rankPassages',{value:(id,queries)=>{
+  const {passages,frequency}=byRecord.get(id);
+  const rankings=queries.map(query=>{
+   const weighted=[...evidenceTerms(query)].filter(word=>frequency.has(word))
+    .map(word=>[word,Math.log(1+passages.length/(1+frequency.get(word)))]);
+   return passages.map((entry,index)=>({index,score:weighted.reduce((sum,[word,weight])=>
+    sum+(entry.terms.has(word)?weight:0),0)}))
+    .filter(item=>item.score>0).sort((a,b)=>b.score-a.score||a.index-b.index);
+  });
+  const selected=new Set();
+  for(let rank=0;rank<3;rank++)for(const list of rankings)if(list[rank])selected.add(list[rank].index);
+  return [...selected].map(index=>passages[index].text);
+ }});
  Object.defineProperty(context,'indexEntries',{value:Object.freeze(indexEntries)});
  return Object.freeze(context);
 }

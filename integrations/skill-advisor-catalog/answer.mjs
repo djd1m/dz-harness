@@ -53,10 +53,12 @@ export function renderAnswer(output, presentation, courses) {
     const skillNames = r.skillIds?.join(', ');
     const quotes = (output.details ?? []).filter(detail => detail.scenarioId === r.id);
     const actions = (output.coveredActions ?? []).filter(action => action.scenarioId === r.id);
-    const details = actions.length ? actions.map(action => ({
-      action: action.text.length > 160 ? action.text.slice(0, 159).trimEnd() + '…' : action.text,
-      quote: quotes.find(detail => detail.actionId === action.id)?.quote ?? null,
-    })) : quotes.map(({quote}) => ({action:null,quote}));
+    const details = quotes.map(({requirement,quote})=>({action:requirement,quote}));
+    for (const action of actions) {
+      if (!quotes.some(detail=>detail.actionId===action.id)) {
+        details.push({action:action.text.length > 160 ? action.text.slice(0,159).trimEnd()+'…' : action.text,quote:null});
+      }
+    }
     packages.get(r.package.name).push({
       ...p, ...(details.length ? {details} : {}), summary: skillNames ? `Навык ${skillNames}. ${p.summary}` : p.summary,
     });

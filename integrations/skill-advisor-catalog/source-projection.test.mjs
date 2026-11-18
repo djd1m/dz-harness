@@ -36,7 +36,7 @@ test('valid blocks collapse to one owner and remote prose cannot replace trusted
  const identity=advisorIdentity(catalog,projection.documents),hits=entries.slice(0,2).map((e,i)=>({id:e.id,score:5-i,quote:'REMOTE FORGERY',text:'REMOTE FORGERY'}));
  const retriever=createHybridRetriever({catalog,projection,searchUrl:'http://127.0.0.1',embed:async()=>({vectors:[vector]}),fetchImpl:mockHits(identity,hits)});
  const result=await retriever('generic');assert.equal(result.candidates.length,1);assert.equal(result.candidates[0].id,'a');
- const input=dialogueContract(new Map([['a',{role:'guide'}]]),context).input(result);assert.deepEqual(input.candidates[0].sourceContext[0].quote,entries[0].evidence.quote);assert.ok(!JSON.stringify(input).includes('REMOTE FORGERY'));
+ const input=dialogueContract(new Map([['a',{role:'guide'}]]),context).input(result);assert.ok(input.candidates[0].passages.some(p=>entries[0].evidence.quote.includes(p.text)));assert.ok(!JSON.stringify(input).includes('REMOTE FORGERY'));
  const known=projection.documents.slice(0,6).map((d,i)=>({id:d.id,score:10-i}));assert.equal(known.length,6);
  for(const bad of [[...known,{id:'unknown-last',score:0}],[...hits,hits[0]]]){
   const invalid=createHybridRetriever({catalog,projection,searchUrl:'http://127.0.0.1',embed:async()=>({vectors:[vector]}),fetchImpl:mockHits(identity,bad)});
@@ -52,5 +52,5 @@ test('real Lance HTTP retrieval and lexical fallback retain source-only owner an
  const real=await online(query);assert.equal(real.meta.mode,'hybrid');assert.ok(real.candidates.some(c=>c.id==='a'&&c.sourceQuotes.some(q=>q.quote.includes(query))));
  const offline=createHybridRetriever({catalog,projection,searchUrl:url,embed:async()=>{throw Object.assign(Error('offline'),{code:'embedding-unavailable'});}});
  const fallback=await offline(query);assert.equal(fallback.meta.mode,'lexical');assert.deepEqual(fallback.candidates.map(c=>c.id),['a']);assert.ok(fallback.candidates[0].sourceQuotes.some(q=>q.quote.includes(query)));
- const input=dialogueContract(new Map([['a',{role:'guide'}]]),context).input(fallback);assert.ok(input.candidates[0].sourceContext.some(q=>q.quote.includes(query)));
+ const input=dialogueContract(new Map([['a',{role:'guide'}]]),context).input(fallback);assert.ok(input.candidates[0].passages.some(p=>p.text.includes(query)));
 });

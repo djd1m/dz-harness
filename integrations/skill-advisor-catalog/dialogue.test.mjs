@@ -47,3 +47,9 @@ test('fixed physical limitation requires a stated physical action and a grounded
  const other = contract.materialize({query:design,candidates:[]},{...choice,missingParts:[design]});
  assert.doesNotMatch(renderDialogue(other,p,{entries:[]}).lead,/физической работы/);
 });
+
+test('the bounded evidence response can ask the user to prioritize requirements', () => {
+ const choice = {decision:'clarify',intent:'analyze',scenarioIds:[],missingParts:[],clarification:'many-requirements'};
+ const answer = renderDialogue(contract.materialize(retrieval,choice),p,{entries:[]});
+ assert.match(answer.clarificationQuestion,/требования важнее всего/);
+});

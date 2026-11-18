@@ -24,3 +24,5 @@ The trial spent $0.032993089 of a $0.06 cap. Tests passed for 103 advisor cases,
 ## Remaining release work
 
 Select host-owned evidence spans by ID and bind each essential requirement to a supported passage or an explicit gap. This avoids model transcription and allows multiple distinct details within a single card. Then repeat independent acceptance with a separate unseen sample and keep completion limits and invalid choices in the denominator. Formal native QE and broad semantic acceptance remain open.
+
+The [passage-ID trial](PASSAGE-TRIAL.md) implements that separate evidence contract and records its results, including a targeted provider completion-limit comparison.
