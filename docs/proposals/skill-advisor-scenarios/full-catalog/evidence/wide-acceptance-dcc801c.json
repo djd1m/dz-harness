@@ -1,0 +1,4237 @@
+{
+  "schema": "advisor-wide-acceptance-summary/1",
+  "status": "semantic-no-go",
+  "frozenSha256": "75bce8d6fb36fc937cb51dd6e5d11406db8e3ca0c3f46dedcf2ef7b607ec7924",
+  "candidate": {
+    "harnessHead": "12313b00609893eac55a509b9f555bbd73490f6d",
+    "runtimeCommit": "dcc801c3acf3983d482c8adbcaa42728c4e86211",
+    "siteHead": "d6c930ec0c2c4836df5a1cdc83aa8dfe8d6da5f9",
+    "sourceManifestSha256": "87a2cbe0af0dedf3d8ce1093fc441e919cc9bd81fffa463a64fa53db761993f4",
+    "searchIdentity": {
+      "revision": "5f3f0f2c160fd00df167539c8a465d6dd42f8ca79a8523917af2e7154a24fcd9",
+      "model": "baai/bge-m3",
+      "dimensions": 1024,
+      "lexicalizerId": "dz-ru-en-stems-v1"
+    }
+  },
+  "criteria": {
+    "exactTargetPackageRecallAt5Minimum": 52,
+    "positiveSemanticMinimum": 52,
+    "freshSemanticMinimum": 67,
+    "completeCompoundCasesRequired": 12,
+    "falseFullOnUnsupportedMax": 0,
+    "fabricationMax": 0,
+    "blindness": "Source-only labels, no outcomes. No normalized exact prior query repeats; recurring package capabilities are not statistically independent. All 74 outcomes kept, including provider failures. All visible answers get independent semantic review."
+  },
+  "measured": {
+    "exactTargetPackageRecallAt5": 56,
+    "positiveSemantic": 7,
+    "freshSemantic": 16,
+    "completeCompound": 7,
+    "falseFullOnUnsupported": 0,
+    "falseFullAll": 18,
+    "fabrication": 0,
+    "errors": 6,
+    "modelCalls": 74,
+    "additionalSpendUsd": 0.183742476,
+    "cumulativeSpendUsd": 0.945594104
+  },
+  "gates": {
+    "exactTargetPackageRecallAt5": true,
+    "positiveSemantic": false,
+    "freshSemantic": false,
+    "completeCompound": false,
+    "falseFullOnUnsupported": true,
+    "fabrication": true,
+    "budget": true
+  },
+  "strata": {
+    "positive": {
+      "ok": 7,
+      "total": 57,
+      "falseFull": 18
+    },
+    "compound": {
+      "ok": 7,
+      "total": 12,
+      "falseFull": 0
+    },
+    "discovery": {
+      "ok": 0,
+      "total": 2,
+      "falseFull": 0
+    },
+    "clarification": {
+      "ok": 1,
+      "total": 1,
+      "falseFull": 0
+    },
+    "unsupported": {
+      "ok": 1,
+      "total": 2,
+      "falseFull": 0
+    }
+  },
+  "artifactsSha256": {
+    "frozen": "75bce8d6fb36fc937cb51dd6e5d11406db8e3ca0c3f46dedcf2ef7b607ec7924",
+    "live": "6157ed70eb0a4110d3876ab2077136b19ca90d99405ac89defce2e059d5e61a9",
+    "summary": "4c2f1361beaec6f4d7fe6de162a635346e80169b2d559d278af4629a93be969c",
+    "source-witnesses": "49cd9e5b4de11df28cfe35ed24cb0905c3b3d3d4366b504e32bdf4de075cdd1a",
+    "audit-a": "6ef40dead915823ba9973ccda1e7735a2d09fcd64a9db2ef4669f4f1d536500e",
+    "audit-b": "00d6f1be0fe5e8a16dc6c38bdaa05146456d9a96f7072468f01fa3859f4889e8",
+    "audit-c": "e331f7837fdfa12e7f83e44f318e56f98a891dd0b3d210f66ccd3e7fa2624890"
+  },
+  "run": {
+    "startedAt": "2026-11-18T16:05:35.645Z",
+    "completedAt": "2026-11-18T16:10:25.876Z",
+    "model": "anthropic/claude-haiku-5.5",
+    "catalogRevision": "9ed2772e0d14519e4f04b676c428dedf61c33a641db81eb6647ab8992283fa44",
+    "corpusHash": "6e88b958d2446d87f5b46a689147a6b294a7ae9f1aa0889bcff60dc6fdce128c",
+    "codeHashes": {
+      "hybrid-advisor": "07e99645bfb62e924c4f6f64a48dd25745ca11e4cfe09ec01517cb8645d08c29",
+      "package-retrieval": "fdcfd3c5c5c7ffff06c7d9d36fafe471db6469319318c294cfeab2621286b418",
+      "dialogue": "4e2c20151c2892f0c0fa10a729f12a1e074ec743800dc83eed623433bf6257a5",
+      "answer": "ff33dadf227267974bf52def74b0eacf4872b61e3c702b2f36145aacc52f77ec",
+      "search": "34f7e04f398ce20022ade60520a84a0ee3f170fd5e05650e818d00e993ef9e8b",
+      "source-projection": "043ce9532e9470c91521baf269a278f80e9da1d5421b6b7f713b7c6cc2c02ac8",
+      "selector": "ffce2dcb067d302bc44caa0cded83993c2673928fc2beed7a8dc8b3396cc75b2",
+      "action-coverage": "0e05686e0a3441abd9de9a0093af57dfa07b4957cfbdc3eccea5accd4e01d78e"
+    },
+    "unknownCostReserve": 0
+  },
+  "budget": {
+    "knownPriorAndReserveUsd": 0.761851628,
+    "additionalCapUsd": 0.3
+  },
+  "sourceFiles": {
+    "packages/adapter-agents-md/README.md": "152259e19bbbe2665959774eb0672765e0bb084300ff6bd0af57c159ba06581f",
+    "packages/adapter-claude/README.md": "76ba17c22b08c1b87cfa294df5b1591b353c36f72e06699b91e7fcd88b2d75f6",
+    "packages/adapter-codex/README.md": "67104fe9609aa8a4bcbf58ec9bc073b1e36c1b9d31453059c5b1bc4cac6999ac",
+    "packages/skills-devops/docker-compose/SKILL.md": "8b637201c9c3d8ec4e27b9889b288e984e70c0b39acc5a2b006f345d48af7e2f",
+    "packages/skills-devops/nginx-config/SKILL.md": "19c9ea567f6cd554c7bbd5d1e12a33571f36914ea1543fb0e0400b587eb795e6",
+    "packages/adapter-copilot/README.md": "c297ee10aa12955b7e68bf77ed3e111317244e31bf34e749df58b51d94787a76",
+    "packages/adapter-cursor/README.md": "7ae4ec642c185c0726a072107ebc0d8923ccaa4e435b9aa197fa92b6a7ce59b7",
+    "packages/adapter-gemini/README.md": "eeeedd6e8e7872bd17dc4b56e4592f7a6b607ac11f7990c84a31565bf6d171bf",
+    "packages/skills-idea2prd/README.md": "82f025872787656f1c91ded17a293d34bc37b6f12f208252f5a0e9d6d5a429d6",
+    "packages/skills-decision-mockups/decision-mockups/SKILL.md": "6af149dcfcc60d55157de11117922f0714ad040c26d517e5eaf4d4e2cfa7c6e7",
+    "packages/adapter-hermes/README.md": "0b4994ec8afc37e2cb6cd49afbbd3e54c38ac7fdd987d4ee05b814110e922c9c",
+    "packages/adapter-openclaude/README.md": "ef9b2dd3c6813c8123b648b59eb0c4101531c4cc700866ae3a813d1218f856bf",
+    "packages/adapter-opencode/README.md": "ff7abd62fe720c85454836025d3c3ec83f700f36df0c29ff6bfb7e358789ec1f",
+    "packages/skills-devops/pr-review/SKILL.md": "30b9eed70cd3fffae8946524d9e5f28e4e3ec5326f00549380998711a0100970",
+    "packages/skills-devops/ci-fix/SKILL.md": "4b2f9d5dcf535121b2befe9412f97a5ea7e0d1ab7069ed1c62f9c99fff2cdf5e",
+    "packages/adapter-windsurf/README.md": "07b1f47b193ba205eb755e9fe502b5d204e0151e85319fa7e98f3d55a6e12cce",
+    "packages/cloudru-hub/README.md": "ed7ebc1b48b65ef7eff23fab1ef048dc3144e61cb931a6e965d360bd84c041a0",
+    "packages/cloudru-vm-linux-x64/README.md": "acd6f92980e36939229f0003f262480528212817d43594eaedc0522c345745b0",
+    "packages/skills-feature-adr/README.md": "7f1345504f2b6fed333b492750a389c9fa6d0e377a9906bfbff7697ed6daf00f",
+    "packages/core/README.md": "043c86fb24960ec16553fddc1a4c0b632b25be8186aa27b05342278afd025ab9",
+    "packages/design-thinking/README.md": "3e2098939fccbadd583744b0fcc7d7ea390ae167fd8167297afef79709985af3",
+    "packages/evidence-wiki/README.md": "7dca354af818d4a1b2f5a10a352e7f1f4d9986844b597d0c55139d5544d40fad",
+    "packages/harness-cli/README.md": "94eb694d96b611182b7b11ba6557300d1b54daa37fc2c707c039d7e42d7fbcf7",
+    "packages/harness-core/README.md": "9c618c50f75430a719abcab1fd4c6fb551f4b76395c970cfcedbd24ff6099f51",
+    "packages/harness-presets/README.md": "c2431f6e6903ce1efe79759817c9571cf19f9a285c541c6ba05c274fd37888e1",
+    "packages/skills-decision-mockups/README.md": "22b8b94df8cafc17bb98f005ac8cc77f1675ad3b216835fdd938df48cff74d8b",
+    "packages/health-advisor/skills/sleep-analyzer/SKILL.md": "ab0b8e87003a76fb37b5a31d3049f5134b9d1c314b6b1e51b6d3164778d1dc66",
+    "packages/keysarium/README.md": "748bcfec4d7e98ca87b124bcb688342130bdd8fffe7cf9cf1a2291a5479a783d",
+    "packages/keysarium-core/README.md": "7844e3c6a518463e9cf21726efcc1c5101ea4553965a388f98ac12b4a40bc2ac",
+    "packages/loop-designer-plugin/README.md": "291e69394cc25676b28b041322295aa0426f4919d6eaed9945aa76a476cdb9e9",
+    "packages/mcp-server-tools/README.md": "5da23ae4e650cb7595058b006a7b3e70cbe24c55a0a42f97395bd2d84a40ae9b",
+    "packages/memory/README.md": "af4b81a9609aca255c33679aed6e3305503d3dae589cd409f007aecb9bdedb1a",
+    "packages/p-replicator/README.md": "117fa72b28c5d4378fafb0273b4ca8d4a5139e0bd2c7f1a16588e35e95f6b503",
+    "packages/scout/README.md": "22ebb1bad38d1bbdcc173cc2eee51a99a35ed521d8843f22341f1d88a810734e",
+    "packages/skills-12factor/README.md": "42fa0033987e5ca638b8aeb2897f5e9f6aa956462e3794353c08b6b76f5e11f2",
+    "packages/skills-academic/README.md": "a8b32d687c6c1bbcdfd3c24fe4fb644d45c8ee11a20cb62277805cd21c4c021f",
+    "packages/skills-analyst-manual/README.md": "5aa704cc34e24b21e0cdd3dbf5c1fb0ec2b661080bf5a52e382a90a2a57dbc91",
+    "packages/skills-book-ai-apps/README.md": "699691847a6b1d0d67135a03c8d77371fbb6286cf39ca4ed16b5e5c75147dd9a",
+    "packages/skills-book-clean-code/README.md": "b34c6987471e4b8fb6dc09b47eed416123eceb61ca593162805230dc65b1d227",
+    "packages/skills-book-ddia/README.md": "d6eeaab640d3aaeefc44c1302cff0d0bdb288d07211fe2adcb75b7875d74e0c9",
+    "packages/skills-book-digitizer/README.md": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af",
+    "packages/skills-book-fundamental-software-architecture/README.md": "b807507acc2a7fd7e953fe5225a1e0db34ea1dfd07ad7ab2000b4b58010239ae",
+    "packages/skills-bto/README.md": "418b01d2dd1391d4bb7d2d93580fd0f58346f7828f039e95023088f83132f491",
+    "packages/skills-demo-publisher/README.md": "48ecb93d32aa3f5e2f34b219f118746dd3b75f058558fbfe8b12d55e5d9a120a",
+    "packages/skills-devops/README.md": "0c4c83af4d66488cdc6822661c9e02c39eea924d243e4b680a4fe0942a83218e",
+    "packages/skills-ecc/README.md": "612b756ba2c5c81b35951f4fb5de8ae27235ebef3f85273d485be5fc005b61cf",
+    "packages/skills-edu-site/README.md": "7ebefa0978f04fad5a60ccbc6e4f2287df7bf4a982ebe7ba5ff397fbf3455e58",
+    "packages/skills-mcp/README.md": "a5e625ee532b998980c47f41a46bb474fbe575c51202834c24d569d4578115e9",
+    "packages/skills-meta/README.md": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc",
+    "packages/skills-news/README.md": "bd69537ee87ca9aad423439f6a01ddaa2832f8de0617d847250bd43fbd77d349",
+    "packages/skills-package-story-page/README.md": "ed9b5762acdf9519f33228a3f5d1b9bdc3f49cf967038d8eae46b31acc2b477c",
+    "packages/skills-pm/README.md": "c7d1d71dcd51a11c75abcc34cbcd5527ad815dc82edc7d00a66822a94ee51368",
+    "packages/skills-presentation-storyteller/README.md": "48cd9e7499f0f5082e10956c8feba57372ff1195f4eb6f5628ba771217d1e131",
+    "packages/skills-qe/README.md": "ec9adc6f0cb372e75b13aa26d69f44a8cef61cdb213ab1f815661de08e49eb10",
+    "packages/skills-reasoning/README.md": "c45bc6916772b6cb94ed86812fc64e8873efa3622ced01c33a3d48e81d38a883",
+    "packages/skills-reverse-engineering/README.md": "6de618926683204046fc49debe98c02a3546218a3115b50c63f76bccce7f4daa",
+    "packages/skills-devops/debugging/SKILL.md": "9f080eff4ef792de5805c69828a811ed0c8db07b77e397a12a5e6b5e16624953",
+    "packages/skills-taste/README.md": "0aed4bfc73d2bcb5ca35de0a81988d914dba68da56ac3b0b8dbeea79ef5cecd0",
+    "packages/skills-transcript-site/README.md": "77589b619854442d5e8e4e087e122926f2432a659cdc81c77788308c213b0d62",
+    "packages/skills-tutorial-factory/README.md": "ffd76fe42b06557209655ab98c727d7068fa4b5b07909d1d3dd300c607ddfd98",
+    "packages/skills-web3/README.md": "3e10ea3a9033d2f2a8157b85588a144eabe9ce3309ba096d3aeb6739979d5a01",
+    "packages/skills-website-cloner/README.md": "b74d14fb391e9a4f1381405f912775dc598dfa94f22fc59cc11cacaed33cf303",
+    "packages/trip-planner/README.md": "b2ab1a8d383696661216cf6693d039c65d304a3312e3c58b032ad7f2c4ad495b"
+  },
+  "nativeReleaseTarSha256": {
+    "dzhechkov-harness-cli-0.8.61.tgz": "f9b327efa909ef462a175db717f897f1bf3291fe65ac75ba6e8acc96b87832ca",
+    "dzhechkov-harness-core-0.8.68.tgz": "fe248dfb55e79c92d7ab09008457aaf81ce7e5fcb40c0d997fc8620ec77dd14e",
+    "dzhechkov-skills-meta-0.9.75.tgz": "26f9bff41f86e6344c5941f5f49f6e51af7301f89d19500e7044cf9949c191ff"
+  },
+  "cases": [
+    {
+      "id": "H01",
+      "kind": "positive",
+      "query": "У нас два переносимых навыка и вручную написанный AGENTS.md. Подбери интеграцию, которая соберёт их в один управляемый блок корневого файла и сохранит авторские разделы.",
+      "targetPackage": "@dzhechkov/adapter-agents-md",
+      "acceptablePackages": [
+        "@dzhechkov/adapter-agents-md"
+      ],
+      "essential": [
+        "Собрать выбранные навыки в один корневой AGENTS.md.",
+        "Сохранить текст вне управляемого блока и объяснить потерю файловых assets."
+      ],
+      "sourcePaths": [
+        "packages/adapter-agents-md/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/adapter-agents-md",
+        "@dzhechkov/skills-ecc",
+        "@dzhechkov/skills-12factor",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/skills-reasoning"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/adapter-agents-md",
+            "scenarios": [
+              {
+                "summary": "Библиотечный адаптер преобразует канонический навык в формат AGENTS.md (единый AGENTS.md).",
+                "boundary": "Один Markdown теряет frontmatter, progressive disclosure, границы файлов и перенос scripts/references/assets; это осознанно lossy-формат.",
+                "nextAction": "Изучите контракт адаптера AGENTS.md и вызов compile; обычная установка идёт через dz init."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "2f78e26b42bc358749edd41ff99f88a45ea367f51910586be4fed3c3c973f6ac",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Не сказано, что выбранные навыки объединяются в управляемом блоке с сохранением авторского текста.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H02",
+      "kind": "positive",
+      "query": "I need a pure emitter for Claude Code: take a canonical skill and return .claude/skills/<id>/SKILL.md plus its assets, preserving the original bytes without writing files.",
+      "targetPackage": "@dzhechkov/adapter-claude",
+      "acceptablePackages": [
+        "@dzhechkov/adapter-claude"
+      ],
+      "essential": [
+        "Identify lossless Claude Code skill-tree emission.",
+        "Return file data without filesystem writes, preserving assets."
+      ],
+      "sourcePaths": [
+        "packages/adapter-claude/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/adapter-claude",
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/skills-book-digitizer",
+        "@dzhechkov/skills-academic"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/adapter-claude",
+            "scenarios": [
+              {
+                "summary": "Библиотечный адаптер преобразует канонический навык в формат Claude Code (.claude/skills).",
+                "boundary": "Компиляция возвращает данные; размещение файлов выполняет вызывающий код.",
+                "nextAction": "Изучите контракт адаптера Claude Code и вызов compile; обычная установка идёт через dz init."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/adapters/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "91b0311f77c350bcf90b99f02234ed55289f346d11d7cabb503cd04bdaac57c9",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Не объяснено сохранение исходных байтов и assets, запрошенное вместе с чистой эмиссией.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H03",
+      "kind": "positive",
+      "query": "Подбери библиотечный адаптер: переносимый SKILL.md с references нужно скомпилировать в нативное дерево навыков Codex CLI под .agents/skills, без записи на диск.",
+      "targetPackage": "@dzhechkov/adapter-codex",
+      "acceptablePackages": [
+        "@dzhechkov/adapter-codex"
+      ],
+      "essential": [
+        "Показать компиляцию в .agents/skills/<id>/SKILL.md.",
+        "Сохранить references и чистый характер операции."
+      ],
+      "sourcePaths": [
+        "packages/adapter-codex/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/adapter-codex",
+        "@dzhechkov/adapter-opencode",
+        "@dzhechkov/adapter-claude",
+        "@dzhechkov/adapter-openclaude",
+        "@dzhechkov/adapter-agents-md"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/adapter-codex",
+            "scenarios": [
+              {
+                "summary": "Библиотечный адаптер преобразует канонический навык в формат Codex (.agents/skills).",
+                "boundary": "Это адаптер навыков, а не настройка пользовательских инструкций AGENTS.md.",
+                "nextAction": "Изучите контракт адаптера Codex и вызов compile; обычная установка идёт через dz init."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "785e367839cac52cd5a403251ab858c78b15b761712c1bc02eb798f6c15112b5",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Не указаны сохранение references и отсутствие записи на диск.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "C01",
+      "kind": "compound",
+      "query": "First, use docker-compose to prepare web/Postgres/Redis with health checks. Second, use nginx-config for a TLS reverse proxy to web. Name both exact skills; no Kubernetes migration.",
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "essential": [
+        "Separate Compose service configuration from Nginx TLS/reverse-proxy configuration.",
+        "Name docker-compose and nginx-config in skills-devops.",
+        "Do not treat the negated Kubernetes migration as an additional requested action."
+      ],
+      "sourcePaths": [
+        "packages/skills-devops/docker-compose/SKILL.md",
+        "packages/skills-devops/nginx-config/SKILL.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-devops"
+        ]
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/skills-ecc",
+        "@dzhechkov/harness-cli",
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/cloudru-hub"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Навык docker-compose. Поможет составить или проверить конфигурацию Compose, связи сервисов и постоянные данные.",
+                "boundary": "Работа с конфигурацией не подтверждает успешный запуск на целевом сервере.",
+                "nextAction": "Передайте список сервисов, порты и требования к хранению данных."
+              },
+              {
+                "summary": "Навык nginx-config. Поможет составить или проверить reverse proxy, балансировку, TLS и ограничения запросов.",
+                "boundary": "Применение и проверка требуют доступа к серверу и сертификатам.",
+                "nextAction": "Передайте текущую конфигурацию, домены и upstream-сервисы."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-devops/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "decision": "recommend",
+        "rowHash": "214b0a9d7234aeb6229dcbc7421142948fc9c0bd3d7865d7e44eb41c2fa7c8e3",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Названы оба отдельных навыка и их задачи; миграция не предлагается.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H04",
+      "kind": "positive",
+      "query": "Our team uses GitHub Copilot repository instructions. Convert a portable skill into an always-on instruction with applyTo covering the repository, and make clear what happens to its scripts.",
+      "targetPackage": "@dzhechkov/adapter-copilot",
+      "acceptablePackages": [
+        "@dzhechkov/adapter-copilot"
+      ],
+      "essential": [
+        "Use .github/instructions/<id>.instructions.md with applyTo **.",
+        "Explain that scripts are reference-only and skill activation semantics are lossy."
+      ],
+      "sourcePaths": [
+        "packages/adapter-copilot/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/adapter-copilot",
+        "@dzhechkov/harness-cli",
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/skills-book-fundamental-software-architecture",
+        "@dzhechkov/skills-mcp"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/adapter-copilot",
+            "scenarios": [
+              {
+                "summary": "Библиотечный адаптер преобразует канонический навык в формат GitHub Copilot (.github/instructions).",
+                "boundary": "Преобразование в instructions теряет активацию навыков и выполнение scripts; это не перенос прежней функциональности целиком.",
+                "nextAction": "Изучите контракт адаптера GitHub Copilot и вызов compile; обычная установка идёт через dz init."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "84e4f8ac51f9a4c5418de18045a558ec7cf954b9b45ceb644be7c432b1658c37",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Не раскрыты always-on и applyTo **; scripts описаны только как невыполняемые, без reference-only.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H05",
+      "kind": "positive",
+      "query": "Нужно проецировать переносимый навык в правило Cursor, которое агент выбирает по описанию. Нужен .mdc и необязательный glob только если он задан в исходнике.",
+      "targetPackage": "@dzhechkov/adapter-cursor",
+      "acceptablePackages": [
+        "@dzhechkov/adapter-cursor"
+      ],
+      "essential": [
+        "Use .cursor/rules/<id>.mdc with description and alwaysApply false.",
+        "Only emit globs when the source declares them."
+      ],
+      "sourcePaths": [
+        "packages/adapter-cursor/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/adapter-cursor",
+        "@dzhechkov/harness-cli",
+        "@dzhechkov/adapter-windsurf",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/keysarium"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/adapter-cursor",
+            "scenarios": [
+              {
+                "summary": "Библиотечный адаптер преобразует канонический навык в формат Cursor (.cursor/rules).",
+                "boundary": "Преобразует frontmatter в формат Cursor; scripts/assets не переносятся и результат не является копией SKILL.md.",
+                "nextAction": "Изучите контракт адаптера Cursor и вызов compile; обычная установка идёт через dz init."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "06f9d20d368d83f0dc211ad3dbae43113122308060b3e87e95e21c093156fbae",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Не раскрыто управление по description и условная эмиссия globs.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H06",
+      "kind": "positive",
+      "query": "Для Gemini CLI собери выбранные навыки в корневой GEMINI.md: существующие заметки команды должны остаться, повторный запуск не должен добавлять второй блок.",
+      "targetPackage": "@dzhechkov/adapter-gemini",
+      "acceptablePackages": [
+        "@dzhechkov/adapter-gemini"
+      ],
+      "essential": [
+        "Aggregate selected skills into root GEMINI.md.",
+        "Preserve authored content outside an idempotent managed block."
+      ],
+      "sourcePaths": [
+        "packages/adapter-gemini/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/adapter-gemini",
+        "@dzhechkov/harness-cli",
+        "@dzhechkov/skills-ecc",
+        "@dzhechkov/skills-book-clean-code",
+        "@dzhechkov/health-advisor"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/harness-cli",
+            "scenarios": [
+              {
+                "summary": "Команда dz устанавливает и проверяет навыки и поддерживает несколько агентных платформ.",
+                "boundary": "CLI управляет установкой и проверками; предметные возможности добавляются отдельными пакетами.",
+                "nextAction": "Откройте инструкции harness-cli, выберите платформу и проверьте доступные параметры dz init."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/harness-cli/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "expected-package-not-selected",
+        "positiveTargetRetained": true,
+        "visibleTarget": false,
+        "decision": "recommend",
+        "rowHash": "f3e30b8a3ae6e0b1226477d1efd2b5b84d23517f29f1e6e5362f27dd622b153a",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Рекомендован только CLI, а адаптер Gemini и сохранение идемпотентного блока не названы.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "C02",
+      "kind": "compound",
+      "query": "Сначала через idea2prd-manual преврати идею каталога инструментов в PRD, ADR и Gherkin. Затем через decision-mockups объясни владельцу две жизнеспособные альтернативы интерфейса и собери явный выбор; не реализуй приложение.",
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "essential": [
+        "Cover documentation pipeline and separate owner decision explanation/answer collection.",
+        "Name idea2prd-manual and decision-mockups and their respective packages.",
+        "Respect documentation/decision scope and absence of implementation request."
+      ],
+      "sourcePaths": [
+        "packages/skills-idea2prd/README.md",
+        "packages/skills-decision-mockups/decision-mockups/SKILL.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-idea2prd",
+          "@dzhechkov/skills-decision-mockups"
+        ]
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-idea2prd",
+        "@dzhechkov/skills-decision-mockups",
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/skills-book-fundamental-software-architecture",
+        "@dzhechkov/skills-meta"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-idea2prd",
+            "scenarios": [
+              {
+                "summary": "Навык idea2prd-manual. Соединяет анализ проблемы, PRD, архитектурные решения, псевдокод, Gherkin-сценарии и checklist завершения.",
+                "boundary": "Процесс содержит девять контрольных точек; численные утверждения должны иметь статус измерения, заявления или оценки.",
+                "nextAction": "Опишите проблему либо идею, целевую аудиторию и ограничения для первой согласуемой постановки задачи."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/idea2prd/"
+          },
+          {
+            "package": "@dzhechkov/skills-decision-mockups",
+            "scenarios": [
+              {
+                "summary": "Навык decision-mockups. Излагает контекст и альтернативы простым языком, используя HTML или компактный текст для явных ответов.",
+                "boundary": "Простая развилка может остаться текстом; учебные примеры не подменяют проверенные факты задачи.",
+                "nextAction": "Соберите основания, сделанное и оставшееся, затем сформулируйте точный ответ, который нужен от владельца."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-decision-mockups/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "decision": "recommend",
+        "rowHash": "865541aba9e93906558cf83577c818208328da15b4f78608d074994a0974034d",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Оба отдельных навыка и запрошенные результаты охвачены.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H07",
+      "kind": "positive",
+      "query": "We are adding a Hermes Agent target to our skill compiler. Return the relative .hermes/skills tree including bundled assets, so our caller can choose a home or project destination.",
+      "targetPackage": "@dzhechkov/adapter-hermes",
+      "acceptablePackages": [
+        "@dzhechkov/adapter-hermes"
+      ],
+      "essential": [
+        "Emit .hermes/skills/<id>/SKILL.md and bundled assets losslessly.",
+        "Keep destination-root choice with the caller."
+      ],
+      "sourcePaths": [
+        "packages/adapter-hermes/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/adapter-hermes",
+        "@dzhechkov/harness-cli",
+        "@dzhechkov/adapter-claude",
+        "@dzhechkov/harness-core",
+        "@dzhechkov/skills-meta"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/adapter-hermes",
+            "scenarios": [
+              {
+                "summary": "Библиотечный адаптер преобразует канонический навык в формат Hermes (.hermes/skills).",
+                "boundary": "Выдаёт относительный путь .hermes/skills; размещение в home или проекте выбирает харнесс, обычная установка — через dz init.",
+                "nextAction": "Изучите контракт адаптера Hermes и вызов compile; обычная установка идёт через dz init."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "6b1b39fcfa3f1297015b724779cf9fd09e8c44df24a91e834cdd1a301b0a9189",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Путь и выбор места указаны, но сохранение bundled assets не раскрыто.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H08",
+      "kind": "positive",
+      "query": "У нас OpenClaude и требуется проектная установка канонических навыков в его собственный каталог, не в совместимый каталог Claude. Подбери подходящую интеграцию.",
+      "targetPackage": "@dzhechkov/adapter-openclaude",
+      "acceptablePackages": [
+        "@dzhechkov/adapter-openclaude"
+      ],
+      "essential": [
+        "Identify the OpenClaude project skill-tree emitter.",
+        "Use .openclaude/skills as the target."
+      ],
+      "sourcePaths": [
+        "packages/adapter-openclaude/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/adapter-openclaude",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/skills-book-clean-code",
+        "@dzhechkov/adapter-claude"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/adapter-openclaude",
+            "scenarios": [
+              {
+                "summary": "Библиотечный адаптер преобразует канонический навык в формат OpenClaude (.openclaude/skills).",
+                "boundary": "Это библиотечный адаптер, а не готовый агентный runtime.",
+                "nextAction": "Изучите контракт адаптера OpenClaude и вызов compile; обычная установка идёт через dz init."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "518ae1e623888d165ed885070b678de39fc6f7af1617c53a925f461dba19aa84",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Назван нужный адаптер и собственный каталог OpenClaude.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H09",
+      "kind": "positive",
+      "query": "Add an OpenCode target to a programmatic skill build: compile and structurally verify the .opencode/skills/<id> output while keeping SKILL.md and bundled references intact.",
+      "targetPackage": "@dzhechkov/adapter-opencode",
+      "acceptablePackages": [
+        "@dzhechkov/adapter-opencode"
+      ],
+      "essential": [
+        "Compile to the native .opencode/skills tree losslessly.",
+        "Cover pure structural verification without filesystem mutation."
+      ],
+      "sourcePaths": [
+        "packages/adapter-opencode/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/harness-cli",
+        "@dzhechkov/adapter-claude",
+        "@dzhechkov/adapter-opencode",
+        "@dzhechkov/skills-academic",
+        "@dzhechkov/p-replicator"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/adapter-opencode",
+            "scenarios": [
+              {
+                "summary": "Библиотечный адаптер преобразует канонический навык в формат OpenCode (.opencode/skills).",
+                "boundary": "Адаптер компилирует формат навыков; сам по себе не запускает модель или агента.",
+                "nextAction": "Изучите контракт адаптера OpenCode и вызов compile; обычная установка идёт через dz init."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "419a25884da568d1d1974bfa90329f21567423166db9bcb1a7f00421e07ab748",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Не охвачена структурная проверка и сохранность файлов и references.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "C03",
+      "kind": "compound",
+      "query": "Нужны два результата для одного PR: (1) pr-review — замечания с file:line и серьёзностью; (2) ci-fix — разбор красного job по логу, воспроизведение и исправление причины. Просто ревью не заменяет вторую задачу.",
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "essential": [
+        "Distinguish actionable PR review from diagnosis and root-cause repair of failed CI.",
+        "Name pr-review and ci-fix, both from skills-devops."
+      ],
+      "sourcePaths": [
+        "packages/skills-devops/pr-review/SKILL.md",
+        "packages/skills-devops/ci-fix/SKILL.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-devops"
+        ]
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/skills-qe",
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/skills-feature-adr",
+        "@dzhechkov/health-advisor"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Навык pr-review. Разберёт корректность, стиль и риски конкретного pull request.",
+                "boundary": "Ревью не является доказательством прохождения тестов или разрешением на выпуск.",
+                "nextAction": "Передайте дифф и описание ожидаемого поведения."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-devops/"
+          }
+        ],
+        "missingParts": [
+          "разбор красного job по логу, воспроизведение и исправление причины"
+        ],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "decision": "partial",
+        "rowHash": "745ec5ca783bee21af831e3227a1a1ebbdc3e46e22be8c0888ad10c4ad360501",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Частичный ответ признаёт отсутствие ci-fix, хотя этот отдельный навык доступен и явно запрошен.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H10",
+      "kind": "positive",
+      "query": "Хотим подключить переносимые навыки к Windsurf как workspace rules по запросу модели: plain Markdown, описание и trigger model_decision.",
+      "targetPackage": "@dzhechkov/adapter-windsurf",
+      "acceptablePackages": [
+        "@dzhechkov/adapter-windsurf"
+      ],
+      "essential": [
+        "Emit .windsurf/rules/<id>.md.",
+        "Use trigger model_decision and description, explaining transformation loss."
+      ],
+      "sourcePaths": [
+        "packages/adapter-windsurf/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/adapter-windsurf",
+        "@dzhechkov/harness-cli",
+        "@dzhechkov/skills-book-ai-apps",
+        "@dzhechkov/adapter-agents-md",
+        "@dzhechkov/adapter-cursor"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/adapter-windsurf",
+            "scenarios": [
+              {
+                "summary": "Библиотечный адаптер преобразует канонический навык в формат Windsurf (.windsurf/rules).",
+                "boundary": "Преобразует frontmatter под Windsurf; scripts/assets не переносятся. Исходный канонический навык остаётся отдельным источником.",
+                "nextAction": "Изучите контракт адаптера Windsurf и вызов compile; обычная установка идёт через dz init."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "58c60f0ddf13d112ce378d9442422e6f5f185a789a09a24e32bf407520808ac9",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Не названы trigger model_decision и description, необходимые для выбора правила моделью.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H11",
+      "kind": "positive",
+      "query": "Before registering our Cloud.ru MCP integration, I want an offline launcher self-test that verifies the pinned engine hash, version and tool catalog without cloud credentials.",
+      "targetPackage": "@dzhechkov/cloudru-hub",
+      "acceptablePackages": [
+        "@dzhechkov/cloudru-hub"
+      ],
+      "essential": [
+        "Identify the launcher self-test and pinned engine verification.",
+        "Distinguish local catalog registration from live cloud API testing."
+      ],
+      "sourcePaths": [
+        "packages/cloudru-hub/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/cloudru-hub",
+        "@dzhechkov/cloudru-vm-linux-x64",
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/harness-cli",
+        "@dzhechkov/mcp-server-tools"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/cloudru-hub",
+            "scenarios": [
+              {
+                "summary": "Запускает поддерживаемые агентные среды с инструментами Cloud.ru Evolution и проверками доступа.",
+                "boundary": "Неофициальная интеграция: нужны облачные доступы и проверенный движок cloudru-vm для платформы. Платные операции требуют разрешения.",
+                "nextAction": "Откройте README cloudru-hub и настройте выбранный runtime и доступ к Cloud.ru."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/cloudru-hub/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "01c2de49023a17045847ccddd72652b8f855e190651757897e3204b32d688b68",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Ответ не предлагает offline self-test или проверку хеша, версии и каталога, вместо этого предлагает настройку облачного доступа.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H12",
+      "kind": "positive",
+      "query": "Собираем npm-артефакт с Go-движком Cloud.ru для Linux/x64 из чистого checkout. Нужен именно платформенный бинарный пакет: пересобрать бинарник, проверить pinned SHA-256 и сохранить executable bit без postinstall download.",
+      "targetPackage": "@dzhechkov/cloudru-vm-linux-x64",
+      "acceptablePackages": [
+        "@dzhechkov/cloudru-vm-linux-x64"
+      ],
+      "essential": [
+        "Identify the Linux/x64 engine artifact and prepare:binary build path.",
+        "Cover pinned SHA-256 and executable packaging without postinstall downloads."
+      ],
+      "sourcePaths": [
+        "packages/cloudru-vm-linux-x64/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/cloudru-vm-linux-x64",
+        "@dzhechkov/cloudru-hub",
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/skills-qe",
+        "@dzhechkov/skills-book-fundamental-software-architecture"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/cloudru-vm-linux-x64",
+            "scenarios": [
+              {
+                "summary": "Поставляет Linux/x64-движок, который использует cloudru-hub как точную optional dependency.",
+                "boundary": "Служебная платформенная зависимость, не самостоятельный набор навыков; обычно выбирается лаунчером.",
+                "nextAction": "Сверьте пару версий hub/engine и проверку SHA-256 в README перед обновлением."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "ebf49ea2d9aa1e69b56814faa9324bfba3200f31f2bc3ad36232ae79a67c2adb",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Не указаны пересборка через prepare:binary, executable bit и отсутствие postinstall download.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "C04",
+      "kind": "compound",
+      "query": "Use feature-adr to implement a CSV import feature through requirements, architectural decisions, plan and QE. Also prepare a decision-mockups page explaining the two viable import-error UX choices to the owner before that choice is frozen.",
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "essential": [
+        "Cover feature implementation pipeline including QE.",
+        "Cover separate owner decision page with viable UX alternatives.",
+        "Name feature-adr and decision-mockups with both packages; the decision page does not itself implement the feature."
+      ],
+      "sourcePaths": [
+        "packages/skills-feature-adr/README.md",
+        "packages/skills-decision-mockups/decision-mockups/SKILL.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-feature-adr",
+          "@dzhechkov/skills-decision-mockups"
+        ]
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/loop-designer-plugin",
+        "@dzhechkov/skills-decision-mockups",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/skills-feature-adr",
+        "@dzhechkov/keysarium"
+      ],
+      "answer": null,
+      "error": "invalid-choice",
+      "review": {
+        "category": "retrieval-provider-or-contract-error",
+        "error": "invalid-choice",
+        "rowHash": "eae683a54e98c76d32d9a0c953ead1027781dee7604a0ed5905b8ca06d125b6f",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Ошибка invalid-choice: действительный ответ отсутствует.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H13",
+      "kind": "positive",
+      "query": "В TypeScript-интеграции нужно валидировать переносимый frontmatter отдельно от Claude-расширений: строгая стандартная схема плюс вариант, допускающий дополнительные поля. Какой базовый контракт использовать?",
+      "targetPackage": "@dzhechkov/core",
+      "acceptablePackages": [
+        "@dzhechkov/core"
+      ],
+      "essential": [
+        "Distinguish strict CanonicalSkillFrontmatter from relaxed ClaudeSkillFrontmatter.",
+        "Explain their use for portable versus Claude-specific parsing."
+      ],
+      "sourcePaths": [
+        "packages/core/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/core",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/loop-designer-plugin",
+        "@dzhechkov/skills-feature-adr"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/core",
+            "scenarios": [
+              {
+                "summary": "Предоставляет канонические схемы навыков и хуков и контракт платформенного адаптера.",
+                "boundary": "SDK для разработчиков интеграций; не консультирует по предметной задаче и не запускает агента.",
+                "nextAction": "Изучите типы CanonicalSkill и Adapter и подключите нужную схему в свой код."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "17bb7d3552d9e2ffe69708dc32b005cf55b06a496b8a22daa0125c3980ae97ec",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Не названы и не различены строгая и расширенная схемы frontmatter.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H14",
+      "kind": "positive",
+      "query": "Посетители бросают запись в музей, но причина неизвестна. Проведи discovery от изучения потребностей и формулировки проблемы до прототипа и проверки на пользователях, с остановками для обратной связи.",
+      "targetPackage": "@dzhechkov/design-thinking",
+      "acceptablePackages": [
+        "@dzhechkov/design-thinking"
+      ],
+      "essential": [
+        "Cover research into user needs and problem definition before prototype.",
+        "Include user testing and checkpoints for feedback."
+      ],
+      "sourcePaths": [
+        "packages/design-thinking/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/trip-planner",
+        "@dzhechkov/design-thinking",
+        "@dzhechkov/skills-analyst-manual",
+        "@dzhechkov/health-advisor"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/design-thinking",
+            "scenarios": [
+              {
+                "summary": "Навык design-thinking. Организует исследование пользователей, определение проблемы, гипотезы, прототипы, тесты и пилотную проверку.",
+                "boundary": "Целевая карта пути пользователя остаётся гипотезой до проверки пилотом.",
+                "nextAction": "Опишите аудиторию и предполагаемую проблему; начните с исследования потребности и доступных свидетельств."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/design-thinking/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "e4bfa4fa7df1f66ec62483825d3e11e42f1c2e512356fd7ff2556a72df61a540",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Процесс исследования и тесты покрыты, но запрошенные остановки для обратной связи не обозначены.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H15",
+      "kind": "positive",
+      "query": "Из существующих ADR, методик и исследований собери атомарную wiki: самостоятельные страницы понятий, inline-источники фактов, граф связей и индекс для минимальных контекстных подборок.",
+      "targetPackage": "@dzhechkov/evidence-wiki",
+      "acceptablePackages": [
+        "@dzhechkov/evidence-wiki"
+      ],
+      "essential": [
+        "Create self-contained concept pages with inline evidence.",
+        "Include concept graph and index linking the three source types."
+      ],
+      "sourcePaths": [
+        "packages/evidence-wiki/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/evidence-wiki",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/harness-cli",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/trip-planner"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/evidence-wiki",
+            "scenarios": [
+              {
+                "summary": "Строит атомарные концепт-страницы, граф связей и индекс поверх существующих документов, добавляя проверку дисциплины источников.",
+                "boundary": "Не проводит исследование вместо автора; типы и пути источников настраиваются под проект.",
+                "nextAction": "Подготовьте исходные документы и pillar-конфигурацию; начните с /wiki-generate и проверяйте ссылки через /triple-check."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/evidence-wiki/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "bf243db6631c863d8d3dddb42f0f856981c28be6e45fe357345dd2cbab15a79b",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Страницы, граф и индекс названы, но inline-источники фактов не раскрыты.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "C05",
+      "kind": "compound",
+      "query": "Первое: docker-compose — настрой web и Postgres с health checks. Второе: лично приди в серверную и переставь физический кабель в другой порт. Инструкция для техника вместо второго результата не подходит.",
+      "acceptableDecisions": [
+        "partial"
+      ],
+      "essential": [
+        "Name docker-compose and recommend its package for the requested Compose configuration.",
+        "Explicitly acknowledge that personally performing the physical cable move is unsupported; do not substitute written instructions as completion."
+      ],
+      "sourcePaths": [
+        "packages/skills-devops/docker-compose/SKILL.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-devops"
+        ]
+      ],
+      "unsupported": [
+        "лично приди в серверную и переставь физический кабель в другой порт"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/skills-ecc",
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/keysarium"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано. Для физической работы нужен исполнитель на месте. Пакеты каталога её не выполняют.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Навык docker-compose. Поможет составить или проверить конфигурацию Compose, связи сервисов и постоянные данные.",
+                "boundary": "Работа с конфигурацией не подтверждает успешный запуск на целевом сервере.",
+                "nextAction": "Передайте список сервисов, порты и требования к хранению данных."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-devops/"
+          }
+        ],
+        "missingParts": [
+          "лично приди в серверную и переставь физический кабель в другой порт"
+        ],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "decision": "partial",
+        "rowHash": "a4a211f7fe68817c9f360bc703add636a43a3b0469d75058f2303bb144cf0e8f",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Compose рекомендован, невозможность физического действия явно признана.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H16",
+      "kind": "positive",
+      "query": "Нужна командная оболочка для установки набора инженерных навыков в Codex и последующей диагностики установки, без клонирования исходного репозитория. Дай последовательность запуска.",
+      "targetPackage": "@dzhechkov/harness-cli",
+      "acceptablePackages": [
+        "@dzhechkov/harness-cli"
+      ],
+      "essential": [
+        "Provide CLI installation/setup for Codex with a suitable skill selection or preset.",
+        "Include installation diagnostics using doctor."
+      ],
+      "sourcePaths": [
+        "packages/harness-cli/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/harness-cli",
+        "@dzhechkov/skills-book-clean-code",
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/evidence-wiki"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/harness-cli",
+            "scenarios": [
+              {
+                "summary": "Команда dz устанавливает и проверяет навыки и поддерживает несколько агентных платформ.",
+                "boundary": "CLI управляет установкой и проверками; предметные возможности добавляются отдельными пакетами.",
+                "nextAction": "Откройте инструкции harness-cli, выберите платформу и проверьте доступные параметры dz init."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/harness-cli/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "787f44cf86e839a6b317493cd6c3dd02567f3a40fe8bd8a09d2e218a1657563a",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Запрошенная последовательность запуска, выбор Codex и диагностика doctor отсутствуют.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H17",
+      "kind": "positive",
+      "query": "I am embedding a text-claim linter in a Node service. I need a callable function that ignores list numbering and exit-code roles but still flags unsupported numerical performance assertions beside them.",
+      "targetPackage": "@dzhechkov/harness-core",
+      "acceptablePackages": [
+        "@dzhechkov/harness-core"
+      ],
+      "essential": [
+        "Identify the programmatic claimCheck(text) operation.",
+        "Distinguish role-number exemptions from adjacent quantitative claims."
+      ],
+      "sourcePaths": [
+        "packages/harness-core/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/harness-core",
+        "@dzhechkov/mcp-server-tools",
+        "@dzhechkov/skills-feature-adr",
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/skills-reasoning"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/harness-core",
+            "scenarios": [
+              {
+                "summary": "Предоставляет общую логику загрузки навыков, аддитивного применения и операций харнесса.",
+                "boundary": "Это библиотека для интеграции в программный инструмент; пользовательский CLI поставляется отдельно.",
+                "nextAction": "Посмотрите экспортируемые операции harness-core и подключите нужный вызов к своему приложению."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/engine/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "55e420228bee40f1d743cf61d28d79b4abf57ed9a2ade776472eaa5e6faf972e",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Не названа функция claimCheck и не раскрыты исключения числовых ролей и проверка соседних утверждений.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H18",
+      "kind": "positive",
+      "query": "В своём TypeScript UI выбора установки хочу читать именованные наборы навыков и метаданные их поставщиков. Нужен модуль пресетов, который выбирает skill ids, а не автоматически устанавливает npm-пакеты.",
+      "targetPackage": "@dzhechkov/harness-presets",
+      "acceptablePackages": [
+        "@dzhechkov/harness-presets"
+      ],
+      "essential": [
+        "Identify the typed preset definitions and provider metadata.",
+        "Distinguish selecting skill IDs from installing providers or full companion toolkits."
+      ],
+      "sourcePaths": [
+        "packages/harness-presets/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/harness-presets",
+        "@dzhechkov/skills-book-ai-apps",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/harness-cli",
+        "@dzhechkov/skills-book-digitizer"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/harness-presets",
+            "scenarios": [
+              {
+                "summary": "Содержит именованные наборы навыков для установки через dz init.",
+                "boundary": "Пресет выбирает skill IDs и не устанавливает npm-провайдеры автоматически; optional-наборы требуют доступного пакета или локальных исходников.",
+                "nextAction": "Выберите пресет, установите недостающие пакеты-провайдеры и повторите исходную команду dz init или dz setup."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "c17a7fe29abedd4c7b7fde7089fee22043a33dda988c5a454e8da8456aedb5e5",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Выбор skill IDs и отсутствие установки раскрыты, но чтение метаданных провайдеров в TypeScript UI не охвачено.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "C06",
+      "kind": "compound",
+      "query": "Prepare a versioned decision-mockups page comparing two dashboard layouts and validate its answer against the current manifest. Also prove the respondent’s real-world identity solely from that manifest digest, without an identity provider or other evidence.",
+      "acceptableDecisions": [
+        "partial"
+      ],
+      "essential": [
+        "Name decision-mockups for versioned context and current-manifest answer validation.",
+        "Explicitly distinguish answer/context integrity from real-world respondent identity and acknowledge the latter cannot be proved by the digest alone."
+      ],
+      "sourcePaths": [
+        "packages/skills-decision-mockups/decision-mockups/SKILL.md",
+        "packages/skills-decision-mockups/README.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-decision-mockups"
+        ]
+      ],
+      "unsupported": [
+        "prove the respondent’s real-world identity solely from that manifest digest"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-book-digitizer",
+        "@dzhechkov/skills-12factor",
+        "@dzhechkov/skills-decision-mockups",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/harness-cli"
+      ],
+      "answer": null,
+      "error": "invalid-choice",
+      "review": {
+        "category": "retrieval-provider-or-contract-error",
+        "error": "invalid-choice",
+        "rowHash": "9083ba11cb16b2b5f8dfd0ff99083dbbcb1e86574c8addde83bc030e60298988",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Ошибка invalid-choice: действительный ответ отсутствует.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H19",
+      "kind": "positive",
+      "query": "На вымышленном дневнике сна покажи, как сравнить длительность и регулярность по будням и выходным. Нужен только описательный отчёт о паттернах, без диагностики и лечения.",
+      "targetPackage": "@dzhechkov/health-advisor",
+      "acceptablePackages": [
+        "@dzhechkov/health-advisor"
+      ],
+      "essential": [
+        "Describe sleep duration and regularity patterns.",
+        "Compare weekdays and weekends without diagnostic or treatment claims."
+      ],
+      "sourcePaths": [
+        "packages/health-advisor/skills/sleep-analyzer/SKILL.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/skills-qe",
+        "@dzhechkov/skills-book-fundamental-software-architecture",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-analyst-manual"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/health-advisor",
+            "scenarios": [
+              {
+                "summary": "Навык health-advisor-sleep-analyzer. Выявляет паттерны продолжительности, эффективности и регулярности сна, сопоставляя их с другими журналами.",
+                "boundary": "Дневник и корреляции не подтверждают расстройство сна; результаты предназначены для обсуждения данных.",
+                "nextAction": "Укажите период, время засыпания и пробуждения, ночные пробуждения и доступные оценки качества сна."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/health-advisor/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "2d071d074b4016dc85d88fed3931fb06a5c4837fc73efa199019c3ade3b68aea",
+        "ok": false,
+        "falseFull": true,
+        "fabricated": false,
+        "reason": "Навык назван, но запрошенный пример сравнения будней и выходных на вымышленном дневнике не показан.",
+        "reviewer": "GPT-6"
+      }
+    },
+    {
+      "id": "H20",
+      "kind": "positive",
+      "query": "Для учебного AI-хакатона нужно провести кейс от уточнения brief через исследование аналогов к нескольким CJM-прототипам, архитектуре и защите со сценарием выступления. Подбери целостный маршрут.",
+      "targetPackage": "@dzhechkov/keysarium",
+      "acceptablePackages": [
+        "@dzhechkov/keysarium"
+      ],
+      "essential": [
+        "Cover the case pipeline from brief and research to multiple CJM prototype variants.",
+        "Include architecture and presentation preparation."
+      ],
+      "sourcePaths": [
+        "packages/keysarium/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/keysarium",
+        "@dzhechkov/design-thinking",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/skills-feature-adr",
+        "@dzhechkov/skills-academic"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/keysarium",
+            "scenarios": [
+              {
+                "summary": "Организует семь фаз: discovery, уточнение, исследование, CJM-прототип, решение, архитектуру и презентацию с конкретными артефактами.",
+                "boundary": "Для Codex используется отдельный вход; ссылки на Claude-команды не становятся исполняемой конфигурацией. Расширенный QE требует внешнего runtime.",
+                "nextAction": "Опишите кейс и целевую платформу; выберите /casarium в Claude Code или $casarium в Codex и согласуйте этапы."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/keysarium/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "63e687ead87e902802df9195d0494fc683e186cf46795755bcffab2c2a74a9d2",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct package and useful seven-phase route, but visible answer does not cover multiple CJM variants or speaker-script preparation requested in the query. Frozen essentials are not fully satisfied.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H21",
+      "kind": "positive",
+      "query": "Встраиваю протоколы управления в собственный многоагентный pipeline. Нужны checkpoint-правила и SHA-256 цепочка свидетельств завершённых стадий; не требуется исполняемый оркестратор.",
+      "targetPackage": "@dzhechkov/keysarium-core",
+      "acceptablePackages": [
+        "@dzhechkov/keysarium-core"
+      ],
+      "essential": [
+        "Identify domain-agnostic Markdown governance/checkpoint protocols.",
+        "Describe stage witness chains as integrity evidence, not execution or proof of truth."
+      ],
+      "sourcePaths": [
+        "packages/keysarium-core/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/keysarium-core",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/skills-book-ai-apps",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/p-replicator"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/keysarium-core",
+            "scenarios": [
+              {
+                "summary": "Набор Markdown-протоколов координации, памяти, управления и проверки многоагентных конвейеров.",
+                "boundary": "Это описания алгоритмов и правил для агентов, а не исполняемый SDK или готовый runtime. Предметные этапы добавляет ваша команда.",
+                "nextAction": "Начните с governance/constitution.md и выберите протоколы orchestration, memory и verification для своего процесса."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "80acc955b107d585209162aff454dcfa570075a9ccc84b827e6cad7cbd4a2ae3",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct Markdown protocol package and runtime boundary, but no checkpoint rules or SHA-256 stage witness chain/integrity explanation. Merely selecting verification protocols does not cover the requested evidence mechanism.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "C07",
+      "kind": "compound",
+      "query": "С feature-adr реализуй небольшой фильтр поиска и проведи релевантные проверки. А затем гарантируй отсутствие любых будущих дефектов при любых входных данных и любых изменениях зависимостей; нужен именно такой результат, не оценка риска.",
+      "acceptableDecisions": [
+        "partial"
+      ],
+      "essential": [
+        "Name feature-adr for implementation and relevant QE.",
+        "Explicitly acknowledge that finite pipeline verification cannot guarantee absence of every future defect across arbitrary inputs and dependency changes."
+      ],
+      "sourcePaths": [
+        "packages/skills-feature-adr/README.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-feature-adr"
+        ]
+      ],
+      "unsupported": [
+        "гарантируй отсутствие любых будущих дефектов при любых входных данных и любых изменениях зависимостей"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/skills-feature-adr",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-book-fundamental-software-architecture"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-feature-adr",
+            "scenarios": [
+              {
+                "summary": "Навык feature-adr. Организует адаптивный процесс требований, ADR, планирования, реализации и проверки качества.",
+                "boundary": "Для полного QE нужны соответствующие агенты и инструменты; описание процесса не доказывает готовность кода.",
+                "nextAction": "Передайте описание функции или issue и контекст репозитория."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/feature-adr/"
+          }
+        ],
+        "missingParts": [
+          "гарантируй отсутствие любых будущих дефектов при любых входных данных и любых изменениях зависимостей"
+        ],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "decision": "partial",
+        "rowHash": "e660dfd010718f12c228890bf4b85130a0cc81e126f0759d3c654efeefbaa0c2",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Names feature-adr implementation/QE, states process is not proof of code readiness, and explicitly places the complete arbitrary-input/future-dependency defect guarantee in missingParts. Partial result correctly limits the claim.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H22",
+      "kind": "positive",
+      "query": "Спроектируй агентный цикл review → revise с ограниченным числом повторов. Хочу типизированный план, его валидацию и рендер в скрипт, но не запуск; отдельно обозначь требуемый runtime.",
+      "targetPackage": "@dzhechkov/loop-designer-plugin",
+      "acceptablePackages": [
+        "@dzhechkov/loop-designer-plugin"
+      ],
+      "essential": [
+        "Produce or describe a bounded typed loop-plan/1.",
+        "Cover validation/rendering and distinguish separate execution runtime."
+      ],
+      "sourcePaths": [
+        "packages/loop-designer-plugin/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/loop-designer-plugin",
+        "@dzhechkov/design-thinking",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/evidence-wiki"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/loop-designer-plugin",
+            "scenarios": [
+              {
+                "summary": "Навык loop-plan-author. Создаёт и проверяет loop-plan/1 с pipeline, barrier, fanout и gate; помогает читать трассу выполнения.",
+                "boundary": "Переносимый runner выполняет декларативный план, но не JavaScript USER-регионы; одиночному запросу план не нужен.",
+                "nextAction": "Опишите шаги, параллельность, повторы и паузы; выберите host или portable runtime."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/loop-designer/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "999819f7cbe223594da0ec277970812d874134c0f885a7beffd2dabc4957409a",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct loop-plan-author and loop-plan/1 with runtime alternatives; omits bounded iteration policy and rendering the plan into a script. Validation alone does not cover the requested design/render scope.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H23",
+      "kind": "positive",
+      "query": "Our MCP client needs to list local skills, read one skill with parsed frontmatter, and request a structural compile-and-verify result for Codex over stdio. Which server integration fits?",
+      "targetPackage": "@dzhechkov/mcp-server-tools",
+      "acceptablePackages": [
+        "@dzhechkov/mcp-server-tools"
+      ],
+      "essential": [
+        "Cover skill_list, skill_get and harness_verify over stdio.",
+        "Explain configured skill directory and structural verification scope."
+      ],
+      "sourcePaths": [
+        "packages/mcp-server-tools/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/mcp-server-tools",
+        "@dzhechkov/skills-mcp",
+        "@dzhechkov/adapter-claude",
+        "@dzhechkov/harness-cli",
+        "@dzhechkov/keysarium"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/mcp-server-tools",
+            "scenarios": [
+              {
+                "summary": "Предоставляет MCP-доступ к операциям списка, чтения, компиляции навыков и проверки харнесса.",
+                "boundary": "Нужен совместимый MCP-клиент и настройка сервера; это не универсальный шлюз к внешним сервисам.",
+                "nextAction": "Подключите mcp-server-tools как stdio MCP-сервер по инструкции и проверьте доступные инструменты."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "6d850f00ea805fd60b46895a6dba81831915d023aa03fdbb48488880e26e0f5e",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct stdio server and list/read/compile/verify operations, but no configured skill-directory explanation or structural-only verification scope. Tool-name wording is not the issue; required configuration and assurance boundary are absent.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H24",
+      "kind": "positive",
+      "query": "Нужен импортируемый JS backend для хранения исходов навыков в JSON-файле и keyword retrieval. Запрос без совпадений должен вернуть пустой список, а явный browse — все записи по confidence.",
+      "targetPackage": "@dzhechkov/memory",
+      "acceptablePackages": [
+        "@dzhechkov/memory"
+      ],
+      "essential": [
+        "Identify JsonFileBackend persistence and keyword retrieval.",
+        "Distinguish no-match search from text-omitted browse."
+      ],
+      "sourcePaths": [
+        "packages/memory/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/memory",
+        "@dzhechkov/skills-decision-mockups",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/harness-core",
+        "@dzhechkov/health-advisor"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/memory",
+            "scenarios": [
+              {
+                "summary": "Хранит результаты навыков, поддерживает ранжирование по обратной связи и импорт файлов памяти.",
+                "boundary": "Библиотека не гарантирует, что агент применит записанный опыт; дополнительные бэкенды требуют зависимостей.",
+                "nextAction": "Начните с контракта MemoryBackend и выберите бэкенд; затем настройте запись и чтение результатов."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [
+          "явный browse — все записи по confidence"
+        ],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "partial",
+        "rowHash": "9a4623eb0256dd536a6a00c5d55db8beb4f0c72ca4058949b563109537aa166e",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct memory package but generic backend advice omits JsonFileBackend JSON/keyword behavior and no-match semantics; incorrectly leaves the documented confidence-ranked browse capability uncovered.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "C08",
+      "kind": "compound",
+      "query": "Turn our tool-inventory idea into PRD, ADR and Gherkin with idea2prd-manual. Follow-up: physically print, bind and deliver the paper specification to our office yourself; sending a PDF does not fulfill delivery.",
+      "acceptableDecisions": [
+        "partial"
+      ],
+      "essential": [
+        "Name idea2prd-manual for the documentation pipeline.",
+        "Explicitly acknowledge unsupported physical printing, binding and delivery rather than counting a PDF as satisfying delivery."
+      ],
+      "sourcePaths": [
+        "packages/skills-idea2prd/README.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-idea2prd"
+        ]
+      ],
+      "unsupported": [
+        "physically print, bind and deliver the paper specification to our office yourself"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/skills-12factor",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/skills-idea2prd",
+        "@dzhechkov/design-thinking"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано. Для физической работы нужен исполнитель на месте. Пакеты каталога её не выполняют.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-idea2prd",
+            "scenarios": [
+              {
+                "summary": "Навык idea2prd-manual. Соединяет анализ проблемы, PRD, архитектурные решения, псевдокод, Gherkin-сценарии и checklist завершения.",
+                "boundary": "Процесс содержит девять контрольных точек; численные утверждения должны иметь статус измерения, заявления или оценки.",
+                "nextAction": "Опишите проблему либо идею, целевую аудиторию и ограничения для первой согласуемой постановки задачи."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/idea2prd/"
+          }
+        ],
+        "missingParts": [
+          "physically print, bind and deliver the paper specification to our office yourself"
+        ],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "decision": "partial",
+        "rowHash": "b010949fa787386dc632a8b91f1e6d7d9b54550fd07ebd2a1e4816645ce36f0d",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Names idea2prd-manual and PRD/architectural decisions/Gherkin workflow; explicitly excludes physical printing, binding and delivery and requires an on-site executor. No PDF substitution.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H25",
+      "kind": "positive",
+      "query": "Есть технические документы приложения для обмена настольными играми. Преобразуй их в 11 SPARC-документов в AUTO-режиме, явно помечая пробелы; пока без реализации приложения.",
+      "targetPackage": "@dzhechkov/p-replicator",
+      "acceptablePackages": [
+        "@dzhechkov/p-replicator"
+      ],
+      "essential": [
+        "Use existing technical documents to fill the 11 SPARC documentation slots.",
+        "Mark missing information as gaps and respect documentation-only scope."
+      ],
+      "sourcePaths": [
+        "packages/p-replicator/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/skills-academic",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/skills-book-ai-apps",
+        "@dzhechkov/skills-idea2prd"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/p-replicator",
+            "scenarios": [
+              {
+                "summary": "Навык sparc-prd-mini. Организует модульную подготовку PRD/SPARC-документов с уточнением, исследованием и решением задачи.",
+                "boundary": "Требуются доступные внешние навыки explore, research и problem-solver; документация не является готовым приложением.",
+                "nextAction": "Опишите идею, ограничения и желаемый режим работы."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/p-replicator/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "ee0976afb5e5e4bb87d6557730601927ea7046345d73818f45ea5f590db81143",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Names the relevant sparc-prd-mini and documentation boundary, but asks for an idea/mode instead of using supplied technical documents in AUTO mode; omits 11 slots and explicit GAP marking.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H26",
+      "kind": "positive",
+      "query": "Нужен обзор новых проектов agent skills из нескольких каталогов с дедупликацией и сравнением с нашей библиотекой: что интегрировать, наблюдать или пропустить, и что изменилось с прошлого сканирования.",
+      "targetPackage": "@dzhechkov/scout",
+      "acceptablePackages": [
+        "@dzhechkov/scout"
+      ],
+      "essential": [
+        "Cover multi-source skill discovery, deduplication and inventory comparison.",
+        "Include integrate/monitor/skip recommendations and scan-to-scan differences."
+      ],
+      "sourcePaths": [
+        "packages/scout/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-ecc",
+        "@dzhechkov/skills-book-ai-apps",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/scout",
+        "@dzhechkov/skills-feature-adr"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/scout",
+            "scenarios": [
+              {
+                "summary": "Ищет агентные проекты в GitHub, определяет форматы и оценивает релевантность для обзора экосистемы.",
+                "boundary": "Результат поиска и оценки не доказывает безопасность репозитория или готовность его установить.",
+                "nextAction": "Установите harness-cli и настройте запуск dz scout либо API библиотеки; для GitHub нужны сеть и токен."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/scout/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "60be071d488323a17ed7e924d5021472101e96a5acb88e2f26d7dd9a7e6faa90",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct Scout package but visible GitHub discovery description omits multi-source deduplication, inventory comparison, integrate/monitor/skip outcomes and scan-to-scan differences.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H27",
+      "kind": "positive",
+      "query": "Сервис сам вращает log-файлы внутри контейнера, и при пересоздании история пропадает. Разбери решение по принципу Twelve-Factor App: куда писать события и кто должен отвечать за сбор и хранение.",
+      "targetPackage": "@dzhechkov/skills-12factor",
+      "acceptablePackages": [
+        "@dzhechkov/skills-12factor"
+      ],
+      "essential": [
+        "Apply the Twelve-Factor logs-as-streams decision.",
+        "Separate application stdout event emission from platform routing and retention."
+      ],
+      "sourcePaths": [
+        "packages/skills-12factor/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-12factor",
+        "@dzhechkov/skills-feature-adr",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/harness-core"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-12factor",
+            "scenarios": [
+              {
+                "summary": "Навык 12factor-logs-as-streams. Разделяет вывод небуферизованных событий в stdout и платформенный сбор, маршрутизацию и хранение.",
+                "boundary": "Не проектирует авторизацию лог-хранилища или подключение конкретного индексатора.",
+                "nextAction": "Найдите запись в локальные файлы и буферизацию; назначьте платформе сбор и хранение потока."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-12factor/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "fdf901e73985a7eb2475011bb125caeb9eaab5cb53420e06d7488ac03887b7ad",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Exact logs-as-streams skill gives stdout emission versus platform collection/routing/retention and concrete next action to find local-file logging and buffering. Matches source and request.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "C09",
+      "kind": "compound",
+      "query": "(1) docker-compose для web/db/cache; (2) nginx-config для reverse proxy; (3) физически установи дополнительную планку RAM в наш сервер. Нужны все три результата, не только конфиги.",
+      "acceptableDecisions": [
+        "partial"
+      ],
+      "essential": [
+        "Cover Compose configuration and distinct Nginx reverse-proxy configuration.",
+        "Name both docker-compose and nginx-config within skills-devops.",
+        "Explicitly acknowledge that physically installing server RAM is unsupported."
+      ],
+      "sourcePaths": [
+        "packages/skills-devops/docker-compose/SKILL.md",
+        "packages/skills-devops/nginx-config/SKILL.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-devops"
+        ]
+      ],
+      "unsupported": [
+        "физически установи дополнительную планку RAM в наш сервер"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/skills-ecc",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/skills-academic"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано. Для физической работы нужен исполнитель на месте. Пакеты каталога её не выполняют.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Навык docker-compose. Поможет составить или проверить конфигурацию Compose, связи сервисов и постоянные данные.",
+                "boundary": "Работа с конфигурацией не подтверждает успешный запуск на целевом сервере.",
+                "nextAction": "Передайте список сервисов, порты и требования к хранению данных."
+              },
+              {
+                "summary": "Навык nginx-config. Поможет составить или проверить reverse proxy, балансировку, TLS и ограничения запросов.",
+                "boundary": "Применение и проверка требуют доступа к серверу и сертификатам.",
+                "nextAction": "Передайте текущую конфигурацию, домены и upstream-сервисы."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-devops/"
+          }
+        ],
+        "missingParts": [
+          "физически установи дополнительную планку RAM в наш сервер"
+        ],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "decision": "partial",
+        "rowHash": "2751a44a6bc3d70eeb8e4f69c32d919a9645089d651abb247e1e37f03336ca81",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Both docker-compose and nginx-config are separately named and explained; physical RAM installation is explicitly missing and assigned to an on-site executor.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H28",
+      "kind": "positive",
+      "query": "Для учебного макета магистерской защиты составь вопросы комиссии по тексту диссертации и замечаниям рецензента. Используй только обозначение Работа A, без имён и оценки конкретного студента.",
+      "targetPackage": "@dzhechkov/skills-academic",
+      "acceptablePackages": [
+        "@dzhechkov/skills-academic"
+      ],
+      "essential": [
+        "Generate committee questions grounded in thesis content and reviewer remarks.",
+        "Use anonymous work labels and avoid personal identifying data."
+      ],
+      "sourcePaths": [
+        "packages/skills-academic/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-academic",
+        "@dzhechkov/skills-decision-mockups",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/skills-tutorial-factory"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-academic",
+            "scenarios": [
+              {
+                "summary": "Объединяет методики рецензирования работы, генерации вопросов, проверки документов и оценки выступления и ответов на защите.",
+                "boundary": "В наборе только критерии и методика, без данных студентов; реальные работы следует обозначать номером или меткой без персональных данных.",
+                "nextAction": "Выберите этап защиты и подготовьте обезличенную работу, замечания рецензента, комплект документов или транскрипт."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-academic/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "62ffdcf0d808e7bc37b60e12a13fef6b75f0d45dd4c9c430705f3da6bd69351a",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Academic package covers question generation, asks for anonymized thesis plus reviewer remarks, and explicitly requires a label without personal data. Broad pack description does not claim assessment of the named student.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H29",
+      "kind": "positive",
+      "query": "Нужно выбрать позиционирование небольшого сервиса бронирования репетиционных комнат. Пройди ручной трёхэтапный процесс: уточнение brief, исследование с явными ограничениями источников, затем варианты стратегии; перед каждой следующей фазой жди подтверждения.",
+      "targetPackage": "@dzhechkov/skills-analyst-manual",
+      "acceptablePackages": [
+        "@dzhechkov/skills-analyst-manual"
+      ],
+      "essential": [
+        "Separate Explore, Research and Solve with confirmation checkpoints.",
+        "Produce a task brief, source-grounded findings and strategy while labeling evidence limitations."
+      ],
+      "sourcePaths": [
+        "packages/skills-analyst-manual/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-analyst-manual",
+        "@dzhechkov/trip-planner",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/design-thinking"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-analyst-manual",
+            "scenarios": [
+              {
+                "summary": "Навык analyst-manual-full. Соединит уточнение задачи, исследование источников и решение проблемы с контрольными точками между фазами.",
+                "boundary": "Нужны соседние explore, goap-research-ed25519 и problem-solver-enhanced; переходы требуют подтверждений.",
+                "nextAction": "Опишите стратегическую задачу и ограничения исследования."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-analyst-manual/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "9fe60f64a9c0b5cfc82b47ade6116808b57c63fbc1247bd78605a1596069a209",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct three-phase method and confirmation checkpoints, but no source-grounded findings with explicitly labeled evidence limitations. Asking for research constraints does not describe the requested source-status discipline.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H30",
+      "kind": "positive",
+      "query": "For an assistant that handles customer support tickets, decide whether a single agent or several cooperating agents are appropriate; compare coordination costs and failure modes.",
+      "targetPackage": "@dzhechkov/skills-book-ai-apps",
+      "acceptablePackages": [
+        "@dzhechkov/skills-book-ai-apps"
+      ],
+      "essential": [
+        "Compare single and multiple agents",
+        "Explain coordination costs and failure modes"
+      ],
+      "sourcePaths": [
+        "packages/skills-book-ai-apps/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-book-ai-apps",
+        "@dzhechkov/skills-qe",
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/skills-feature-adr",
+        "@dzhechkov/skills-bto"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-book-ai-apps",
+            "scenarios": [
+              {
+                "summary": "Навык aiagents-single-vs-multi-agent. Поможет проверить пределы одного агента и выбрать роли и схему координации при расширении.",
+                "boundary": "Это архитектурное решение по книге; не создание работающего роя и не выбор брокера.",
+                "nextAction": "Опишите задачи, инструменты и проблемы текущего одиночного агента."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-book-ai-apps/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "fb78dbb2b359b8288c178ddfa7c5abd97c47efdd259b3818ff7d65e655f92b24",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Exact single-vs-multi-agent skill and useful input request, but visible response does not cover coordination costs or failure modes, an explicit requested comparison dimension.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "C10",
+      "kind": "compound",
+      "query": "First create the requirements/ADR/Gherkin doc set for a workshop booking tool using idea2prd-manual. Second, make a decision-mockups page for the owner’s two scheduling options. Third, infer every owner answer with certainty from a blank form; do not ask them or use any external evidence.",
+      "acceptableDecisions": [
+        "partial"
+      ],
+      "essential": [
+        "Cover idea2prd-manual documentation and the separate decision-mockups owner decision page.",
+        "Name both exact skills and their packages.",
+        "Explicitly acknowledge that certain answers cannot be inferred from a blank form; unanswered choices must remain unanswered rather than becoming recommendations or invented consent."
+      ],
+      "sourcePaths": [
+        "packages/skills-idea2prd/README.md",
+        "packages/skills-decision-mockups/decision-mockups/SKILL.md",
+        "packages/skills-decision-mockups/README.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-idea2prd",
+          "@dzhechkov/skills-decision-mockups"
+        ]
+      ],
+      "unsupported": [
+        "infer every owner answer with certainty from a blank form"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-ecc",
+        "@dzhechkov/skills-idea2prd",
+        "@dzhechkov/skills-analyst-manual",
+        "@dzhechkov/trip-planner",
+        "@dzhechkov/skills-book-ai-apps"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-idea2prd",
+            "scenarios": [
+              {
+                "summary": "Навык idea2prd-manual. Соединяет анализ проблемы, PRD, архитектурные решения, псевдокод, Gherkin-сценарии и checklist завершения.",
+                "boundary": "Процесс содержит девять контрольных точек; численные утверждения должны иметь статус измерения, заявления или оценки.",
+                "nextAction": "Опишите проблему либо идею, целевую аудиторию и ограничения для первой согласуемой постановки задачи."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/idea2prd/"
+          }
+        ],
+        "missingParts": [
+          "make a decision-mockups page for the owner’s two scheduling options",
+          "infer every owner answer with certainty from a blank form"
+        ],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "decision": "partial",
+        "rowHash": "fcbf8f12a8ec4374e611f57837b2b57aa909bbc1dc3b4a467e23a4de9f10521c",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Documentation method is present and impossible certainty is listed as missing, but separate supported decision-mockups page is also listed as missing and its skill/package never recommended. Compound coverage fails.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H31",
+      "kind": "positive",
+      "query": "В модуле обработки заказов имена скрывают намерение, а одна функция меняет данные и отправляет письма. Помоги отделить обязанности и прояснить имена, сохранив поведение.",
+      "targetPackage": "@dzhechkov/skills-book-clean-code",
+      "acceptablePackages": [
+        "@dzhechkov/skills-book-clean-code"
+      ],
+      "essential": [
+        "Clarify names and intent",
+        "Separate function responsibilities while preserving behavior"
+      ],
+      "sourcePaths": [
+        "packages/skills-book-clean-code/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-book-clean-code",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/skills-decision-mockups",
+        "@dzhechkov/skills-book-ai-apps",
+        "@dzhechkov/health-advisor"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-book-clean-code",
+            "scenarios": [
+              {
+                "summary": "Навык clean-code-intent-and-comment-contract. Поможет выбрать имена и комментарии, сохраняющие намерение и необходимый контекст исходника.",
+                "boundary": "Это работа с читаемостью кода по Clean Code, не техническая статья и не UI-заголовок.",
+                "nextAction": "Покажите участок, где читатель не понимает роль или намерение."
+              },
+              {
+                "summary": "Навык clean-code-function-contracts. Поможет уточнить одну операцию функции, сигнатуру, эффекты и необходимый порядок вызовов.",
+                "boundary": "Книжная методика локального контракта; не полный рефакторинг системы и не обработка exception-границ.",
+                "nextAction": "Покажите функцию и её типичные вызовы."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "93a599b77c84c6bdea67cc7a18c009e5837b4e095806b9a85c71fc1e78d4799b",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Names the source-backed intent/naming and function-contract skills; one-operation, effects and call-order analysis usefully covers responsibility separation while retaining the function contract. Requests actual code and calls rather than inventing a refactor.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H32",
+      "kind": "positive",
+      "query": "Our event store is growing and reads have different patterns from writes. Compare LSM trees and B-trees for this workload and explain the tradeoffs.",
+      "targetPackage": "@dzhechkov/skills-book-ddia",
+      "acceptablePackages": [
+        "@dzhechkov/skills-book-ddia"
+      ],
+      "essential": [
+        "Compare LSM and B-tree storage",
+        "Relate tradeoffs to the read and write workload"
+      ],
+      "sourcePaths": [
+        "packages/skills-book-ddia/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-book-ddia",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/skills-decision-mockups",
+        "@dzhechkov/skills-12factor",
+        "@dzhechkov/keysarium"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-book-ddia",
+            "scenarios": [
+              {
+                "summary": "Навык ddia-storage-engine-tradeoffs. Сравнивает физические движки, строчное и столбцовое хранение, размещение индексов и цену чтения и записи.",
+                "boundary": "Фокус на хранении одного узла; логическая модель и распределение по шардам решаются отдельно.",
+                "nextAction": "Соберите типичные запросы, долю записей, размер данных и требования к задержке для сравнения затрат."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-book-ddia/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "5edbf7971fc175c16fb93359fe69a7e75749e60033295e6409e3fb6be7c5537a",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct storage tradeoffs skill and useful workload inputs, but the visible generic physical-engine/storage description never covers the requested LSM-versus-B-tree comparison. Read/write costs alone leave the specific alternative comparison unspecified.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H33",
+      "kind": "positive",
+      "query": "У меня есть техническая книга в PDF. Хочу получить устанавливаемый набор навыков по её методам и searchable базу знаний с привязкой к страницам.",
+      "targetPackage": "@dzhechkov/skills-book-digitizer",
+      "acceptablePackages": [
+        "@dzhechkov/skills-book-digitizer"
+      ],
+      "essential": [
+        "Turn a PDF book into an installable skill pack",
+        "Provide a searchable page-anchored knowledge base"
+      ],
+      "sourcePaths": [
+        "packages/skills-book-digitizer/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-book-digitizer",
+        "@dzhechkov/skills-book-clean-code",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/harness-cli",
+        "@dzhechkov/skills-academic"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-book-digitizer",
+            "scenarios": [
+              {
+                "summary": "Ведёт PDF через корпус, извлечение и проверку знаний, дистилляцию навыков, сборку пакета и индексацию; перенос в межпроектную память — отдельный этап.",
+                "boundary": "Нужны PDF, Poppler и зависимости памяти; процесс имеет человеческие контрольные точки, а распространение и перенос в общий brain требуют отдельных решений.",
+                "nextAction": "Укажите книгу и рабочий каталог; начните digitize-book, согласуйте точки контроля и назначение будущих навыков."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/book-digitizer/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "2c742c2f766c32fcd055cc60aa333b76b302de8821566f99990984ab4b6ac53f",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct PDF-to-pack/indexing workflow and useful prerequisites, but no page-anchored searchable knowledge-base outcome is described. Indexing alone does not establish the requested page traceability.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "C11",
+      "kind": "compound",
+      "query": "Review this branch using pr-review and fix its failing build using ci-fix. Afterward, physically carry the disconnected CI machine from room A to room B yourself. Please do not replace that last task with a moving checklist.",
+      "acceptableDecisions": [
+        "partial"
+      ],
+      "essential": [
+        "Cover PR findings and a separate CI diagnosis/fix, naming pr-review and ci-fix.",
+        "Explicitly acknowledge unsupported physical transportation of the disconnected machine."
+      ],
+      "sourcePaths": [
+        "packages/skills-devops/pr-review/SKILL.md",
+        "packages/skills-devops/ci-fix/SKILL.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-devops"
+        ]
+      ],
+      "unsupported": [
+        "physically carry the disconnected CI machine from room A to room B yourself"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-qe",
+        "@dzhechkov/skills-12factor",
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/skills-feature-adr",
+        "@dzhechkov/skills-ecc"
+      ],
+      "answer": null,
+      "error": "invalid-choice",
+      "review": {
+        "category": "retrieval-provider-or-contract-error",
+        "error": "invalid-choice",
+        "rowHash": "e3f0f77f8f07c144a47652399890e3a026249f9c747c2acce67056fecb3cf013",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Provider/selection result is error invalid-choice; no visible recommendation covers PR review, CI fix or unsupported physical transport. Required FAIL.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H34",
+      "kind": "positive",
+      "query": "Помоги выбрать архитектуру сервиса заказов: опиши контекст и драйверы, предложи стиль и границы, зафиксируй недостаток решения и способ проверки.",
+      "targetPackage": "@dzhechkov/skills-book-fundamental-software-architecture",
+      "acceptablePackages": [
+        "@dzhechkov/skills-book-fundamental-software-architecture"
+      ],
+      "essential": [
+        "Describe architecture drivers and boundaries",
+        "State a downside and verification condition"
+      ],
+      "sourcePaths": [
+        "packages/skills-book-fundamental-software-architecture/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-book-fundamental-software-architecture",
+        "@dzhechkov/skills-feature-adr",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/skills-decision-mockups",
+        "@dzhechkov/skills-devops"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-book-fundamental-software-architecture",
+            "scenarios": [
+              {
+                "summary": "Навык fundamental-software-architecture-guide. Выбирает подходящий протокол из методов книги и возвращает решение с последствиями, проверкой и передачей следующему этапу.",
+                "boundary": "Не предназначен для обычного рисования схем, инцидентов или реализации; нельзя выдумывать подтверждающие данные.",
+                "nextAction": "Опишите дорогое решение о структуре системы, драйверы и ограничения; выберите доминирующее семейство решения."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-book-fundamental-software-architecture/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "0042e7c0395597448368b26bf7b122c3202d1fc25b144aca8a793999187a1042",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct architecture guide, drivers, consequences and checking are present, but visible answer omits style/boundary selection and an explicit downside. Generic consequences do not fully cover the frozen architecture-decision requirements.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H35",
+      "kind": "positive",
+      "query": "Benchmark our Claude Code prompt against golden examples, run consistency checks, then iteratively improve it using the measured results.",
+      "targetPackage": "@dzhechkov/skills-bto",
+      "acceptablePackages": [
+        "@dzhechkov/skills-bto"
+      ],
+      "essential": [
+        "Benchmark against golden examples and consistency checks",
+        "Use measurements to guide iterative prompt optimization"
+      ],
+      "sourcePaths": [
+        "packages/skills-bto/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-bto",
+        "@dzhechkov/skills-ecc",
+        "@dzhechkov/design-thinking",
+        "@dzhechkov/loop-designer-plugin",
+        "@dzhechkov/skills-idea2prd"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-bto",
+            "scenarios": [
+              {
+                "summary": "Навык bto. Организует сборку, benchmark, оценку и оптимизацию навыков, команд, правил и агентных шаблонов.",
+                "boundary": "Нужны требования или готовый артефакт и среда для моделей; извлечение методики из исходной книги — отдельная задача.",
+                "nextAction": "Передайте артефакт или требования и критерии с эталонными примерами."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-bto/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "dbc6ff219a33942d11e945411c951927fdb114340d747d9e00d60d1195b6fcbd",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct BTO and golden examples plus benchmark/optimization are present, but no consistency checks or measured iterative feedback loop is described.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H36",
+      "kind": "positive",
+      "query": "Сделай автономную русскоязычную HTML-страницу для решения о расписании занятий: покажи два варианта, последствия каждого и поля для явных ответов.",
+      "targetPackage": "@dzhechkov/skills-decision-mockups",
+      "acceptablePackages": [
+        "@dzhechkov/skills-decision-mockups"
+      ],
+      "essential": [
+        "Create a self-contained Russian decision page",
+        "Show alternatives and consequences and collect answers"
+      ],
+      "sourcePaths": [
+        "packages/skills-decision-mockups/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-decision-mockups",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/skills-academic",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-edu-site"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-decision-mockups",
+            "scenarios": [
+              {
+                "summary": "Навык decision-mockups. Излагает контекст и альтернативы простым языком, используя HTML или компактный текст для явных ответов.",
+                "boundary": "Простая развилка может остаться текстом; учебные примеры не подменяют проверенные факты задачи.",
+                "nextAction": "Соберите основания, сделанное и оставшееся, затем сформулируйте точный ответ, который нужен от владельца."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-decision-mockups/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "8d9e43812aaf51589da6f5eaa75dae6a6bf250676479c2e213f2769499d34f34",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct decision-mockups with alternatives and explicit answers, but omits consequences and autonomous/self-contained Russian HTML output; presents text as an alternative despite the requested HTML artifact.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "C12",
+      "kind": "compound",
+      "query": "Сначала feature-adr: реализовать экспорт списка в CSV с QE. Затем decision-mockups: объяснить две альтернативы расположения кнопки. И отдельно восстанови точный текст давно удалённого обсуждения этой кнопки, если ни копий, ни логов, ни памяти участников не осталось. Не выдумывай реконструкцию.",
+      "acceptableDecisions": [
+        "partial"
+      ],
+      "essential": [
+        "Cover feature-adr implementation/QE and distinct decision-mockups comparison page, naming both skills.",
+        "Explicitly acknowledge that exact deleted discussion text cannot be recovered without any surviving information; do not invent historical text."
+      ],
+      "sourcePaths": [
+        "packages/skills-feature-adr/README.md",
+        "packages/skills-decision-mockups/decision-mockups/SKILL.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-feature-adr",
+          "@dzhechkov/skills-decision-mockups"
+        ]
+      ],
+      "unsupported": [
+        "восстанови точный текст давно удалённого обсуждения этой кнопки, если ни копий, ни логов, ни памяти участников не осталось"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-decision-mockups",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/skills-book-fundamental-software-architecture",
+        "@dzhechkov/skills-feature-adr",
+        "@dzhechkov/health-advisor"
+      ],
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-meta",
+            "scenarios": [
+              {
+                "summary": "Навык feature-adr. Выбирает размер процесса, связывает требования, архитектуру, реализацию и инженерные проверки.",
+                "boundary": "Глубина этапов зависит от сложности и режима; расширенные проверки требуют соответствующих навыков.",
+                "nextAction": "Передайте описание функции или issue, репозиторий и критерии приёмки для классификации сложности."
+              }
+            ],
+            "courseUrl": null
+          },
+          {
+            "package": "@dzhechkov/skills-decision-mockups",
+            "scenarios": [
+              {
+                "summary": "Навык decision-mockups. Излагает контекст и альтернативы простым языком, используя HTML или компактный текст для явных ответов.",
+                "boundary": "Простая развилка может остаться текстом; учебные примеры не подменяют проверенные факты задачи.",
+                "nextAction": "Соберите основания, сделанное и оставшееся, затем сформулируйте точный ответ, который нужен от владельца."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-decision-mockups/"
+          }
+        ],
+        "missingParts": [
+          "восстанови точный текст давно удалённого обсуждения этой кнопки"
+        ],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "decision": "partial",
+        "rowHash": "403c4ad181b38a49feb88483b06ea9d19049390a1c48f5cb6ca48dd01e86349b",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Names feature-adr implementation/QE and distinct decision-mockups comparison, and explicitly lists exact deleted-discussion recovery as missing without inventing history. Canonical feature-adr equivalent is documented in packages/skills-meta/README.md (skill inventory and canonical module notes). Frozen acceptablePackages set would fail the skills-meta identity and remains unchanged; semantic method coverage passes independently.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H37",
+      "kind": "positive",
+      "query": "Create a repeatable product demo from a browser scenario: record it as MP4 and build a static site with subtitles and a transcript.",
+      "targetPackage": "@dzhechkov/skills-demo-publisher",
+      "acceptablePackages": [
+        "@dzhechkov/skills-demo-publisher"
+      ],
+      "essential": [
+        "Record browser scenario as MP4",
+        "Produce static demo pages with subtitles and transcript"
+      ],
+      "sourcePaths": [
+        "packages/skills-demo-publisher/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-demo-publisher",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-qe",
+        "@dzhechkov/skills-transcript-site",
+        "@dzhechkov/skills-website-cloner"
+      ],
+      "answer": null,
+      "error": "invalid-choice",
+      "review": {
+        "category": "retrieval-provider-or-contract-error",
+        "positiveTargetRetained": true,
+        "visibleTarget": false,
+        "error": "invalid-choice",
+        "rowHash": "e11db0508b6d59085186ceb6221b48721e34da234c49b06bf83f1c948c1bac26",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Provider/selection result is error invalid-choice; no visible browser recording or MP4/static-site recommendation. Required FAIL.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H38",
+      "kind": "positive",
+      "query": "Our database column must change without downtime while old and new application versions run together. Plan an expand-contract migration and rollback.",
+      "targetPackage": "@dzhechkov/skills-devops",
+      "acceptablePackages": [
+        "@dzhechkov/skills-devops"
+      ],
+      "essential": [
+        "Plan an expand-contract database migration",
+        "Address mixed application versions and rollback"
+      ],
+      "sourcePaths": [
+        "packages/skills-devops/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/skills-feature-adr",
+        "@dzhechkov/skills-book-ddia",
+        "@dzhechkov/skills-ecc",
+        "@dzhechkov/skills-book-ai-apps"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Навык database-migration. Поможет разобрать изменение схемы или данных, порядок миграции и возврат к прежнему состоянию.",
+                "boundary": "Выполнение требует доступа к БД и проверки стратегии на вашем окружении.",
+                "nextAction": "Покажите текущую схему, изменение и допустимое окно простоя."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-devops/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "386941cc3e402a9bdf082da7bca791de17c575bbe9588fcfed8205d0f7d453f3",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct database-migration skill and rollback planning, but omits expand-contract and coexistence of old/new application versions; asks for allowable downtime instead of addressing the specified zero-downtime constraint.",
+        "reviewer": "Codex independent audit-b (exact model identity not exposed)"
+      }
+    },
+    {
+      "id": "H39",
+      "kind": "positive",
+      "query": "Review this Flutter and Dart pull request for code quality and platform-specific issues, and prioritize actionable findings.",
+      "targetPackage": "@dzhechkov/skills-ecc",
+      "acceptablePackages": [
+        "@dzhechkov/skills-ecc"
+      ],
+      "essential": [
+        "Review Flutter/Dart changes",
+        "Prioritize actionable findings"
+      ],
+      "sourcePaths": [
+        "packages/skills-ecc/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-ecc",
+        "@dzhechkov/skills-pm",
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/design-thinking",
+        "@dzhechkov/skills-meta"
+      ],
+      "answer": null,
+      "error": "invalid-choice",
+      "review": {
+        "category": "retrieval-provider-or-contract-error",
+        "positiveTargetRetained": true,
+        "visibleTarget": false,
+        "error": "invalid-choice",
+        "rowHash": "5ad23c90379305e07021cfc2fd5447bdc417ec640aca8a8a42a320ee858d3383",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Provider returned invalid-choice; no answer was rendered.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "N01",
+      "kind": "discovery",
+      "query": "Какие навыки есть для локального окружения web + Postgres + Redis? Хочу выбрать подходящий пакет и понять первый практический шаг, Kubernetes не нужен.",
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "essential": [
+        "Recommend skills-devops with docker-compose as a useful scoped match.",
+        "Give a concrete first step: inventory the processes/services and their direct dependencies before writing Compose YAML.",
+        "Do not require a broad product clarification before offering the obvious scoped match."
+      ],
+      "sourcePaths": [
+        "packages/skills-devops/docker-compose/SKILL.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-devops"
+        ]
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/skills-web3",
+        "@dzhechkov/skills-ecc",
+        "@dzhechkov/skills-book-ai-apps",
+        "@dzhechkov/skills-taste"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-ecc",
+            "scenarios": [
+              {
+                "summary": "Навык docker-patterns. Помогает проектировать Dockerfile, Compose, сеть, тома и многоэтапную сборку.",
+                "boundary": "Сценарии ориентированы на контейнерную разработку; production-оркестрация требует своего контекста.",
+                "nextAction": "Опишите сервисы, порты и сохраняемые данные либо покажите текущие Dockerfile и Compose."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-ecc/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "decision": "recommend",
+        "rowHash": "96db478e433eff60477d3526d566b7229ed819d4f297ae5787d977424849a883",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Recommends skills-ecc, not required skills-devops/docker-compose; no direct service dependency mapping before YAML.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H40",
+      "kind": "positive",
+      "query": "Преврати внутренний учебный справочник в интерактивный сайт с викторинами, карточками для повторения и сохранением прогресса.",
+      "targetPackage": "@dzhechkov/skills-edu-site",
+      "acceptablePackages": [
+        "@dzhechkov/skills-edu-site"
+      ],
+      "essential": [
+        "Generate an interactive learning site from documentation",
+        "Include quizzes, flashcards and progress tracking"
+      ],
+      "sourcePaths": [
+        "packages/skills-edu-site/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-edu-site",
+        "@dzhechkov/skills-transcript-site",
+        "@dzhechkov/trip-planner",
+        "@dzhechkov/skills-feature-adr"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-edu-site",
+            "scenarios": [
+              {
+                "summary": "Навык edu-site-generator. Создаёт модули, упражнения, итоговую проверку, достижения и адаптивный учебный интерфейс.",
+                "boundary": "Прогресс хранится в localStorage; публикация требует настройки целевого репозитория и Actions.",
+                "nextAction": "Передайте документацию, аудиторию и учебные цели; разбейте материал на модули и типы упражнений."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-edu-site/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "b96d24b5a03674c6f4500d4ca7995c2b3799280c6c023fc6267d1aac31563c6d",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Names the correct generator and generic exercises, but does not identify quizzes, flashcards, or progress tracking in the rendered answer.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H41",
+      "kind": "positive",
+      "query": "Реализуй в существующем сервисе экспорт отчёта с маршрутизацией сложности, архитектурным решением, планом, кодом и проверкой качества.",
+      "targetPackage": "@dzhechkov/skills-feature-adr",
+      "acceptablePackages": [
+        "@dzhechkov/skills-feature-adr"
+      ],
+      "essential": [
+        "Route implementation by complexity",
+        "Cover ADR, implementation and quality verification"
+      ],
+      "sourcePaths": [
+        "packages/skills-feature-adr/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-book-fundamental-software-architecture",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/skills-qe",
+        "@dzhechkov/skills-devops"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-meta",
+            "scenarios": [
+              {
+                "summary": "Навык feature-adr. Выбирает размер процесса, связывает требования, архитектуру, реализацию и инженерные проверки.",
+                "boundary": "Глубина этапов зависит от сложности и режима; расширенные проверки требуют соответствующих навыков.",
+                "nextAction": "Передайте описание функции или issue, репозиторий и критерии приёмки для классификации сложности."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "expected-package-absent-from-shortlist",
+        "positiveTargetRetained": false,
+        "visibleTarget": false,
+        "decision": "recommend",
+        "rowHash": "3ca2adda4b61c495845974491988f9328fc25b67aa9114b3adf45837f607bb0d",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Recommends skills-meta rather than the labeled target skills-feature-adr.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H42",
+      "kind": "positive",
+      "query": "Есть идея сервиса бронирования переговорных. Подготовь комплект для разработчика: требования, архитектурные решения, модель предметной области и Gherkin-сценарии.",
+      "targetPackage": "@dzhechkov/skills-idea2prd",
+      "acceptablePackages": [
+        "@dzhechkov/skills-idea2prd"
+      ],
+      "essential": [
+        "Produce a PRD and architecture decisions",
+        "Include domain model and Gherkin scenarios"
+      ],
+      "sourcePaths": [
+        "packages/skills-idea2prd/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-qe",
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/skills-idea2prd",
+        "@dzhechkov/skills-book-ai-apps",
+        "@dzhechkov/skills-book-ddia"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-idea2prd",
+            "scenarios": [
+              {
+                "summary": "Навык idea2prd-manual. Соединяет анализ проблемы, PRD, архитектурные решения, псевдокод, Gherkin-сценарии и checklist завершения.",
+                "boundary": "Процесс содержит девять контрольных точек; численные утверждения должны иметь статус измерения, заявления или оценки.",
+                "nextAction": "Опишите проблему либо идею, целевую аудиторию и ограничения для первой согласуемой постановки задачи."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/idea2prd/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "7cef0358dc5e972e5018c7a5f1a6c50290c25a64795b74850db8f228ccee6d03",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Names PRD, architecture and Gherkin, but omits the requested domain model.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "N02",
+      "kind": "discovery",
+      "query": "What package can help me explain two viable UX options to an owner and record an explicit choice? Tell me where to start, without assuming their answer.",
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "essential": [
+        "Recommend skills-decision-mockups and decision-mockups.",
+        "Give a concrete first step: state task/context, remaining work, constraints and requested answer, then document viable alternatives with costs/consequences.",
+        "Do not preselect the recommendation as the owner answer."
+      ],
+      "sourcePaths": [
+        "packages/skills-decision-mockups/decision-mockups/SKILL.md"
+      ],
+      "acceptablePackages": [
+        [
+          "@dzhechkov/skills-decision-mockups"
+        ]
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/skills-decision-mockups",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/design-thinking",
+        "@dzhechkov/skills-presentation-storyteller"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-decision-mockups",
+            "scenarios": [
+              {
+                "summary": "Навык decision-mockups. Излагает контекст и альтернативы простым языком, используя HTML или компактный текст для явных ответов.",
+                "boundary": "Простая развилка может остаться текстом; учебные примеры не подменяют проверенные факты задачи.",
+                "nextAction": "Соберите основания, сделанное и оставшееся, затем сформулируйте точный ответ, который нужен от владельца."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-decision-mockups/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "decision": "recommend",
+        "rowHash": "6a7da451c522d3e6b9f9a43f57deb1cf57a8da6f1dd92914788be9ec33203082",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct skill and neutral owner choice, but the first step omits documenting alternatives with their costs and consequences and constraints.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H43",
+      "kind": "positive",
+      "query": "Найди документацию и справочник API конкретной версии библиотеки через сервер контекста, чтобы проверить актуальный синтаксис вызова.",
+      "targetPackage": "@dzhechkov/skills-mcp",
+      "acceptablePackages": [
+        "@dzhechkov/skills-mcp"
+      ],
+      "essential": [
+        "Find version-specific library documentation and API reference",
+        "Use a context documentation server"
+      ],
+      "sourcePaths": [
+        "packages/skills-mcp/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-mcp",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-book-ai-apps",
+        "@dzhechkov/skills-book-clean-code",
+        "@dzhechkov/health-advisor"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-mcp",
+            "scenarios": [
+              {
+                "summary": "Навык context7. Подключает Context7 MCP для разрешения имени библиотеки и поиска документации и примеров.",
+                "boundary": "Результат зависит от покрытия библиотеки и версии источником; требуется подключённый MCP.",
+                "nextAction": "Назовите библиотеку, версию и конкретную задачу, затем разрешите идентификатор библиотеки."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-mcp/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "328bc1c29178d4a48fe5393fe97431e79c87aa73a32a82bea1a4e801e990ea0d",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Context7 MCP, version-specific documentation and library resolution are covered.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H44",
+      "kind": "positive",
+      "query": "Построй для новой функциональности документационный процесс от требований через ADR и план к реализации и проверке качества с явными контрольными точками.",
+      "targetPackage": "@dzhechkov/skills-meta",
+      "acceptablePackages": [
+        "@dzhechkov/skills-meta"
+      ],
+      "essential": [
+        "Connect requirements, ADR and plan to implementation",
+        "Include explicit checkpoints and quality verification"
+      ],
+      "sourcePaths": [
+        "packages/skills-meta/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-feature-adr",
+        "@dzhechkov/skills-idea2prd",
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/skills-meta"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-feature-adr",
+            "scenarios": [
+              {
+                "summary": "Навык feature-adr. Организует адаптивный процесс требований, ADR, планирования, реализации и проверки качества.",
+                "boundary": "Для полного QE нужны соответствующие агенты и инструменты; описание процесса не доказывает готовность кода.",
+                "nextAction": "Передайте описание функции или issue и контекст репозитория."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/feature-adr/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "expected-package-not-selected",
+        "positiveTargetRetained": true,
+        "visibleTarget": false,
+        "decision": "recommend",
+        "rowHash": "c40a4caecfa34f2c102d28d1c978eb1e96c6f832011d96e7fefb90e9c6ab299b",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Recommends skills-feature-adr rather than the labeled target skills-meta; explicit checkpoints are also absent.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H45",
+      "kind": "positive",
+      "query": "Составь дайджест новостей о компиляторах за прошлый месяц: сгруппируй события и добавь ссылки на источники и индекс источников.",
+      "targetPackage": "@dzhechkov/skills-news",
+      "acceptablePackages": [
+        "@dzhechkov/skills-news"
+      ],
+      "essential": [
+        "Cover a specified period with grouped news",
+        "Include citations and a source index"
+      ],
+      "sourcePaths": [
+        "packages/skills-news/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-news",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-presentation-storyteller",
+        "@dzhechkov/evidence-wiki",
+        "@dzhechkov/health-advisor"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-news",
+            "scenarios": [
+              {
+                "summary": "Навык news-digest. Исследует несколько потоков по профилю темы и создаёт Markdown, при необходимости DOCX, с цитатами и индексом источников.",
+                "boundary": "Подпись происхождения не доказывает правдивость новости; статус проверки нельзя повышать без основания.",
+                "nextAction": "Задайте тему, начало и конец периода, аудиторию и профиль источников для полного обзора."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/news/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "9f1d50dc17ec17181a8f1ff7e7d2d1000480e7ada91596f902f5dd8d55495c1c",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Mentions sources and index and period, but does not explain grouping the news events.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "N03",
+      "kind": "clarification",
+      "query": "Нужно как-то улучшить всё это. Подбери мне подходящее.",
+      "acceptableDecisions": [
+        "clarify"
+      ],
+      "essential": [
+        "Ask a focused clarification about the object, problem or desired result before naming a definitive package.",
+        "Do not invent engineering, product or infrastructure scope from the vague request."
+      ],
+      "sourcePaths": [
+        "packages/skills-idea2prd/README.md",
+        "packages/skills-devops/docker-compose/SKILL.md",
+        "packages/skills-decision-mockups/decision-mockups/SKILL.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-book-ai-apps",
+        "@dzhechkov/skills-bto",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-qe"
+      ],
+      "answer": {
+        "decision": "clarify",
+        "lead": "Уточним задачу, чтобы подобрать полезные пакеты.",
+        "items": [],
+        "missingParts": [],
+        "clarificationQuestion": "Что именно вы хотите сделать и с чем: с приложением, данными, документами или другим материалом?"
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "decision": "clarify",
+        "rowHash": "0b9f4821f617ceee61fa0df176b05c77d593eb1825e38e2fb0490d869a9a60a5",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Asks a focused clarification without assigning a definite package or invented scope.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H46",
+      "kind": "positive",
+      "query": "Изучи исходники нашего пакета и создай короткую автономную HTML-страницу, объясняющую его назначение и подтверждённые возможности.",
+      "targetPackage": "@dzhechkov/skills-package-story-page",
+      "acceptablePackages": [
+        "@dzhechkov/skills-package-story-page"
+      ],
+      "essential": [
+        "Ground the story in package evidence",
+        "Create a short self-contained HTML page"
+      ],
+      "sourcePaths": [
+        "packages/skills-package-story-page/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-package-story-page",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/evidence-wiki",
+        "@dzhechkov/skills-decision-mockups",
+        "@dzhechkov/skills-tutorial-factory"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-package-story-page",
+            "scenarios": [
+              {
+                "summary": "Навык package-story-page. Поможет сделать краткую страницу об одном пакете на основе источников и примеров в самостоятельном HTML.",
+                "boundary": "Это история и демонстрация пакета, а не полный учебный курс или доказательство выполненных возможностей.",
+                "nextAction": "Передайте пакет, его документацию и целевую аудиторию."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-package-story-page/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "c82c6441fb14c520b82d817bd5591b51b0ac6dac903526a0f4a1833178b739bd",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct package produces a concise self-contained HTML page grounded in package sources and examples.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H47",
+      "kind": "positive",
+      "query": "Помоги построить дерево возможностей: бизнес-результат, потребности пользователей, варианты решений и эксперименты для их проверки.",
+      "targetPackage": "@dzhechkov/skills-pm",
+      "acceptablePackages": [
+        "@dzhechkov/skills-pm"
+      ],
+      "essential": [
+        "Map outcome to opportunities and solutions",
+        "Connect solutions to experiments"
+      ],
+      "sourcePaths": [
+        "packages/skills-pm/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-pm",
+        "@dzhechkov/skills-academic",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-presentation-storyteller",
+        "@dzhechkov/skills-feature-adr"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-pm",
+            "scenarios": [
+              {
+                "summary": "Навык opportunity-solution-tree. Поможет построить Opportunity Solution Tree: результат, возможности, решения и эксперименты.",
+                "boundary": "Дерево организует discovery, но не подменяет пользовательские исследования.",
+                "nextAction": "Передайте целевой результат и найденные потребности клиентов."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-pm/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "a10c7d099bb9c32cc3dd0c35f99f9064a7fe4b4b1c75a97a18cd658bb1ea085c",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct opportunity-solution-tree skill connects outcome, opportunities, solutions and experiments.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H48",
+      "kind": "positive",
+      "query": "Подготовь продающую презентацию продукта с проверяемыми ссылками, тезисом каждого слайда и сценарием выступления для докладчика.",
+      "targetPackage": "@dzhechkov/skills-presentation-storyteller",
+      "acceptablePackages": [
+        "@dzhechkov/skills-presentation-storyteller"
+      ],
+      "essential": [
+        "Create slide-by-slide presentation with sourced claims",
+        "Provide a speaker storytelling script"
+      ],
+      "sourcePaths": [
+        "packages/skills-presentation-storyteller/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-presentation-storyteller",
+        "@dzhechkov/skills-demo-publisher",
+        "@dzhechkov/skills-academic",
+        "@dzhechkov/health-advisor"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-presentation-storyteller",
+            "scenarios": [
+              {
+                "summary": "Навык presentation-storyteller. Подготовит план, Markdown-презентацию, ссылки на источники и связный рассказ для слайдов.",
+                "boundary": "Нужны исследовательские зависимости и источники; результат не равен оформленному PPTX-файлу.",
+                "nextAction": "Опишите аудиторию, цель выступления и исходные материалы."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/presentation-storyteller/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "df9a52a6468bb6b83bd6b4b3a92fd4ea9034392d85c749f18ff6bde6f061278d",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Mentions source links and a narrative for slides, but omits a thesis for each slide.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "N04",
+      "kind": "unsupported",
+      "query": "Go to my office in person, unplug the spare monitor, and physically carry it to the storeroom. I only need the physical action, no software and no instructions.",
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "essential": [
+        "Explicitly acknowledge that in-person unplugging and carrying a monitor is outside the catalog capability.",
+        "Do not recommend a software package as satisfying the physical request."
+      ],
+      "sourcePaths": [
+        "packages/skills-devops/docker-compose/SKILL.md",
+        "packages/skills-devops/nginx-config/SKILL.md"
+      ],
+      "unsupported": [
+        "Go to my office in person, unplug the spare monitor, and physically carry it to the storeroom"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-presentation-storyteller",
+        "@dzhechkov/skills-analyst-manual",
+        "@dzhechkov/skills-book-ai-apps"
+      ],
+      "answer": {
+        "decision": "no-match",
+        "lead": "Для физической работы нужен исполнитель на месте. Пакеты каталога её не выполняют.",
+        "items": [],
+        "missingParts": [
+          "Go to my office in person",
+          "unplug the spare monitor",
+          "physically carry it to the storeroom"
+        ],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "ok",
+        "decision": "no-match",
+        "rowHash": "d7d2b226c2d58dd5f47bf7b1dbbf85f01ba277e92653e21b3f61fdab9db5f055",
+        "ok": true,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Explicitly says catalog packages cannot perform the physical work and names the missing actions.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H49",
+      "kind": "positive",
+      "query": "Review our test coverage using risk to rank gaps and propose the highest-value tests for the untested paths.",
+      "targetPackage": "@dzhechkov/skills-qe",
+      "acceptablePackages": [
+        "@dzhechkov/skills-qe"
+      ],
+      "essential": [
+        "Identify coverage gaps",
+        "Prioritize test additions by risk"
+      ],
+      "sourcePaths": [
+        "packages/skills-qe/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-qe",
+        "@dzhechkov/design-thinking",
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/skills-pm",
+        "@dzhechkov/skills-feature-adr"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-qe",
+            "scenarios": [
+              {
+                "summary": "Навык qe-coverage-analysis. Поможет использовать AQE для анализа покрытия и приоритизации пробелов по критичности.",
+                "boundary": "Нужны инструменты AQE и данные покрытия; процент покрытия не доказывает корректность.",
+                "nextAction": "Передайте отчёт покрытия и критические бизнес-потоки."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-qe/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "ccd78bebe7cb665d0fa7f1351fad23fded86a06f8f515a1a53e8871e0843362d",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Identifies and ranks coverage gaps, but does not offer or describe proposed highest-value tests for untested paths.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H50",
+      "kind": "positive",
+      "query": "Investigate why the batch worker stalls after several hours. Reproduce and document the root cause and evidence; do not modify the code.",
+      "targetPackage": "@dzhechkov/skills-reasoning",
+      "acceptablePackages": [
+        "@dzhechkov/skills-reasoning"
+      ],
+      "essential": [
+        "Reproduce and investigate the stall",
+        "Provide an evidence-backed diagnosis without code changes"
+      ],
+      "sourcePaths": [
+        "packages/skills-reasoning/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-devops",
+        "@dzhechkov/skills-reasoning",
+        "@dzhechkov/skills-qe",
+        "@dzhechkov/skills-reverse-engineering",
+        "@dzhechkov/skills-book-ddia"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-reasoning",
+            "scenarios": [
+              {
+                "summary": "Навык investigate. Проведёт системный поиск первопричины и подготовит объяснение проблемы.",
+                "boundary": "Режим исследования не вносит исправлений; реализация требует отдельной задачи.",
+                "nextAction": "Опишите симптомы, наблюдения и область исследования."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-reasoning/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "0cd17ac40fd1a6f777938713b03395bd5e5cb02feead9b418829635bda834811",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct investigation skill and no changes, but omits reproduction and evidence-backed diagnosis.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H51",
+      "kind": "positive",
+      "query": "Из открытых источников разберись, как конкурент привлекает и удерживает пользователей, и подготовь практический план запуска аналогичного продукта.",
+      "targetPackage": "@dzhechkov/skills-reverse-engineering",
+      "acceptablePackages": [
+        "@dzhechkov/skills-reverse-engineering"
+      ],
+      "essential": [
+        "Analyze competitor acquisition and retention",
+        "Produce an actionable product launch playbook"
+      ],
+      "sourcePaths": [
+        "packages/skills-reverse-engineering/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/keysarium",
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/skills-pm",
+        "@dzhechkov/skills-reverse-engineering",
+        "@dzhechkov/health-advisor"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-reverse-engineering",
+            "scenarios": [
+              {
+                "summary": "Навык reverse-engineering-unicorn. Собирает факты о продукте, клиентах, рынке, экономике и росте; синтезирует план запуска и в нужном режиме CJM-прототип.",
+                "boundary": "Открытые данные и оценки не раскрывают внутреннюю экономику компании; результат не является инвестиционным советом.",
+                "nextAction": "Назовите компанию, цель разбора и глубину; отделите проверенные сведения от допущений модели бизнеса."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-reverse-engineering/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "e936d89cd720dbf67f800c75d614a917ccc3c8b46be6f0d8a0dda4c3adb173a7",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Mentions growth and launch plan, but does not address both competitor acquisition and retention explicitly.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "N05",
+      "kind": "unsupported",
+      "query": "Восстанови точный случайный 256-битный токен, который уничтожили вместе со всеми копиями; исходных данных, логов и доступа к генератору нет. Не нужен новый токен, код генератора или вероятностная догадка.",
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "essential": [
+        "Explicitly acknowledge that exact recovery without surviving information is unsupported.",
+        "Do not substitute token generation, a guessing script or generic debugging for exact recovery."
+      ],
+      "sourcePaths": [
+        "packages/skills-devops/debugging/SKILL.md",
+        "packages/skills-devops/pr-review/SKILL.md"
+      ],
+      "unsupported": [
+        "Восстанови точный случайный 256-битный токен, который уничтожили вместе со всеми копиями"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/memory",
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/skills-reverse-engineering",
+        "@dzhechkov/skills-book-ai-apps"
+      ],
+      "answer": {
+        "decision": "no-match",
+        "lead": "Среди найденных сценариев подходящего пока нет. Можно уточнить задачу или расширить поиск.",
+        "items": [],
+        "missingParts": [
+          "Восстанови точный случайный 256-битный токен"
+        ],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "decision": "no-match",
+        "rowHash": "bde71140773513cc69d5bc8dfb22fe9e97192391dc9ad1e07cbbf155a2150732",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Generic no-match and suggestion to expand search do not explicitly explain that exact recovery is unsupported without surviving information.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H52",
+      "kind": "positive",
+      "query": "Переработай лендинг портфолио: настрой выразительность, плотность и интенсивность движения, проверь доступность и reduced motion.",
+      "targetPackage": "@dzhechkov/skills-taste",
+      "acceptablePackages": [
+        "@dzhechkov/skills-taste"
+      ],
+      "essential": [
+        "Redesign portfolio landing page with deliberate visual and motion choices",
+        "Address accessibility and reduced motion"
+      ],
+      "sourcePaths": [
+        "packages/skills-taste/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/skills-ecc",
+        "@dzhechkov/skills-taste",
+        "@dzhechkov/skills-qe",
+        "@dzhechkov/skills-feature-adr"
+      ],
+      "answer": null,
+      "error": "invalid-choice",
+      "review": {
+        "category": "retrieval-provider-or-contract-error",
+        "positiveTargetRetained": true,
+        "visibleTarget": false,
+        "error": "invalid-choice",
+        "rowHash": "8ef37412d90881ba35ad7934c6fffd42d7e987b16564c6cd61eac44740caa13e",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Provider returned invalid-choice; no answer was rendered.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H53",
+      "kind": "positive",
+      "query": "Преврати запись интервью и её транскрипт в статический сайт с поиском, оглавлением и тёмной темой.",
+      "targetPackage": "@dzhechkov/skills-transcript-site",
+      "acceptablePackages": [
+        "@dzhechkov/skills-transcript-site"
+      ],
+      "essential": [
+        "Generate a static site from transcript",
+        "Include search, table of contents and dark mode"
+      ],
+      "sourcePaths": [
+        "packages/skills-transcript-site/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-transcript-site",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-demo-publisher",
+        "@dzhechkov/skills-academic",
+        "@dzhechkov/skills-edu-site"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-transcript-site",
+            "scenarios": [
+              {
+                "summary": "Навык transcript-site-generator. Поможет превратить транскрипт в адаптивный статический сайт без этапа сборки, подготовленный для GitHub Pages.",
+                "boundary": "Для ссылки на видео нужен доступ к содержимому; готовый HTML не означает публикацию.",
+                "nextAction": "Передайте текст транскрипта или доступную ссылку на видео."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-transcript-site/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "2e9989a0450632a46f9ac45d71f31b62ca9847937de362fa3e37df3ffe9ea0f5",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct static transcript site generator, but search, table of contents and dark mode are all omitted.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H54",
+      "kind": "positive",
+      "query": "Сделай учебный курс по одному локальному пакету: интерактивные уроки и упражнения должны опираться на его реальные возможности.",
+      "targetPackage": "@dzhechkov/skills-tutorial-factory",
+      "acceptablePackages": [
+        "@dzhechkov/skills-tutorial-factory"
+      ],
+      "essential": [
+        "Build a course grounded in one package",
+        "Include interactive lessons and exercises"
+      ],
+      "sourcePaths": [
+        "packages/skills-tutorial-factory/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-tutorial-factory",
+        "@dzhechkov/skills-edu-site",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-package-story-page",
+        "@dzhechkov/health-advisor"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-tutorial-factory",
+            "scenarios": [
+              {
+                "summary": "Навык package-tutorial-factory. Собирает курс по исходникам пакета, использует готовую методическую базу и детерминированный renderer с verifier.",
+                "boundary": "Один пакет на курс; React — дополнительная цель. Нельзя выдумывать рубрику или переоцифровывать методическую книгу.",
+                "nextAction": "Укажите пакет и его версию; найдите установленный SKILL_ROOT и подготовьте данные курса перед рендерингом."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/tutorial-factory/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "832633ad1a6f9e63bd1cc35f430b166030ad36ca09d67069860e3f6e18a23d25",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Correct course package and source grounding, but interactive lessons and exercises are omitted.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H55",
+      "kind": "positive",
+      "query": "Для приложения сообщества покажи, как искать публичные профили и сообщения Farcaster через соответствующий API.",
+      "targetPackage": "@dzhechkov/skills-web3",
+      "acceptablePackages": [
+        "@dzhechkov/skills-web3"
+      ],
+      "essential": [
+        "Use the Farcaster API for public user and cast search"
+      ],
+      "sourcePaths": [
+        "packages/skills-web3/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-web3",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/skills-mcp"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-web3",
+            "scenarios": [
+              {
+                "summary": "Навык neynar. Описывает API пользователей, лент, casts, реакций и связей Farcaster с управляемым signer для записи.",
+                "boundary": "Нужен API-ключ; запись требует signer. API не выполняет блокчейн-переводы или swaps.",
+                "nextAction": "Укажите FID, username либо канал и разделите чтение данных и предполагаемые операции публикации."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-web3/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "a90cb7020c13d1a297a16228986d00b820a4a8672d17d4a73440aa4bcecfbce0",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Names Farcaster user and cast API, but does not describe search for public profiles and posts.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H56",
+      "kind": "positive",
+      "query": "Воссоздай принадлежащую нам страницу по её URL в существующем Next.js проекте: сними стили и сравни результат визуально с оригиналом.",
+      "targetPackage": "@dzhechkov/skills-website-cloner",
+      "acceptablePackages": [
+        "@dzhechkov/skills-website-cloner"
+      ],
+      "essential": [
+        "Reconstruct the owned page in Next.js",
+        "Extract styles and compare visually with the original"
+      ],
+      "sourcePaths": [
+        "packages/skills-website-cloner/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/skills-website-cloner",
+        "@dzhechkov/skills-meta",
+        "@dzhechkov/design-thinking",
+        "@dzhechkov/skills-academic",
+        "@dzhechkov/skills-package-story-page"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-website-cloner",
+            "scenarios": [
+              {
+                "summary": "Навык clone-website. Организует разбор секций, стилей и ресурсов и сборку визуальной копии с адаптивностью и mock-данными.",
+                "boundary": "Нужны browser-automation MCP и Next.js/shadcn/Tailwind; реальные backend, auth и SEO вне этого сценария.",
+                "nextAction": "Передайте URL страниц и подготовьте окружение для браузера и frontend."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/skills-website-cloner/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "f8fa7c95a0b37885e812e3dbbc6da2fe3f6b357f98f649fafe5e64f048a82266",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Covers URL, styles and Next.js, but does not mention visual comparison against the original.",
+        "reviewer": "gpt-6.2"
+      }
+    },
+    {
+      "id": "H57",
+      "kind": "positive",
+      "query": "Составь мобильный интерактивный маршрут на три дня в Лиссабоне для двух человек с картой, погодой и проверенными контактами мест.",
+      "targetPackage": "@dzhechkov/trip-planner",
+      "acceptablePackages": [
+        "@dzhechkov/trip-planner"
+      ],
+      "essential": [
+        "Produce a mobile day-by-day itinerary",
+        "Include maps, weather and verified venue contacts"
+      ],
+      "sourcePaths": [
+        "packages/trip-planner/README.md"
+      ],
+      "retrievedPackages": [
+        "@dzhechkov/trip-planner",
+        "@dzhechkov/health-advisor",
+        "@dzhechkov/keysarium",
+        "@dzhechkov/p-replicator",
+        "@dzhechkov/skills-feature-adr"
+      ],
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/trip-planner",
+            "scenarios": [
+              {
+                "summary": "Навык trip-planner. Организует проверку мест и составление самостоятельного HTML-маршрута с таймлайном и ссылками на карты.",
+                "boundary": "Нужны даты, логистика и исследовательские инструменты; внешние карты и погода требуют сети, бронирование не выполняется.",
+                "nextAction": "Укажите город, даты, прибытие, отъезд, жильё и ограничения участников."
+              }
+            ],
+            "courseUrl": "https://aicoding.space/courses/trip-planner/"
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "error": null,
+      "review": {
+        "category": "semantic-fit-or-visible-guidance",
+        "positiveTargetRetained": true,
+        "visibleTarget": true,
+        "decision": "recommend",
+        "rowHash": "384a245b1e95d6a9513d5ea42325e1812c0deff9995f8edb0115b84caa96610f",
+        "ok": false,
+        "falseFull": false,
+        "fabricated": false,
+        "reason": "Mentions mobile HTML timeline, maps and weather, but omits verified venue contacts.",
+        "reviewer": "gpt-6.2"
+      }
+    }
+  ]
+}

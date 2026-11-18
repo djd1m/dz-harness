@@ -21,3 +21,5 @@ In the initial fresh assessments, a Russian pair was not recognized, a bilingual
 All 57 previous positive tasks retain a matching package on saved rankings. This is package retrieval evidence. The runtime code is `dcc801c3acf3983d482c8adbcaa42728c4e86211`. Catalog and full index identities remain unchanged. The new integration reuses the existing public response fields, provider, index and quota paths.
 
 The native QE history is still unestablished. The reviewed legacy records survive, and the supported journal migration path has not been found. The code is available for review while evidence for release remains open. Independent evaluation results, hashes and actual visible answers are in [the action coverage receipts](evidence/action-coverage-results.json).
+
+The subsequent [wide acceptance](WIDE-ACCEPTANCE.md) kept the runtime unchanged and independently reviewed all 74 fresh cases. It failed the semantic release criteria.
