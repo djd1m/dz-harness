@@ -156,12 +156,23 @@ export function discoverSkillPackDirs(cwd) {
  * The double-count AM-1 guards against is handled where it belongs — `buildRegistry` dedupes by
  * skill id, so a skill reachable through both its canon and a plugin is listed once.
  */
-export function discoverSkillCarryingDirs(cwd) {
+export function discoverSkillCarryingDirs(cwd, options) {
     const seen = new Set();
     const out = [];
+    const providerKey = (pack, dir) => {
+        if (!options?.includeAlternativeProviders)
+            return pack;
+        try {
+            return realpathSync(dir);
+        }
+        catch {
+            return dir;
+        }
+    };
     for (const { pack, dir } of discoverSkillPackDirs(cwd)) {
-        if (!seen.has(pack)) {
-            seen.add(pack);
+        const key = providerKey(pack, dir);
+        if (!seen.has(key)) {
+            seen.add(key);
             out.push({ pack, dir });
         }
     }
@@ -174,9 +185,10 @@ export function discoverSkillCarryingDirs(cwd) {
             continue;
         }
         for (const e of entries) {
-            if (seen.has(e.name))
-                continue;
             const dir = join(base, e.name);
+            const key = providerKey(e.name, dir);
+            if (seen.has(key))
+                continue;
             const isDir = e.isDirectory() || (e.isSymbolicLink() && (() => { try {
                 return statSync(dir).isDirectory();
             }
@@ -185,7 +197,7 @@ export function discoverSkillCarryingDirs(cwd) {
             } })());
             if (!isDir || !packCarriesSkills(dir))
                 continue;
-            seen.add(e.name);
+            seen.add(key);
             out.push({ pack: e.name, dir });
         }
     }

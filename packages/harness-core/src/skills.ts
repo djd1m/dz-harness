@@ -563,16 +563,7 @@ export function getSkillInfo(skillsDir: string, id: string): SkillInfo | undefin
  */
 export type LoadedSkill = CanonicalSkill & { readonly skipped?: readonly SkippedEntry[] };
 
-/**
- * Load one `<skillsDir>/<id>/` directory into a {@link CanonicalSkill}: its
- * `SKILL.md` document plus every other file as a bundled asset. Junk entries
- * and broken/cyclic symlinks encountered along the way are named in
- * `.skipped` (feature `skills-walk-symlinks-and-junk`, FR-1/FR-2) — omitted
- * entirely when nothing was skipped, never a silent drop.
- *
- * @throws if the skill directory has no `SKILL.md`.
- */
-export function loadSkillFromDir(skillsDir: string, id: string): LoadedSkill {
+function readSkillDocument(skillsDir: string, id: string) {
   const skillDir = join(skillsDir, id);
   const skillMdPath = join(skillDir, 'SKILL.md');
   if (!existsSync(skillMdPath)) {
@@ -581,6 +572,21 @@ export function loadSkillFromDir(skillsDir: string, id: string): LoadedSkill {
   assertSkillMdContained(skillDir, skillMdPath, id);
   const document = parseSkillDocument(readFileSync(skillMdPath, 'utf-8'));
   const frontmatter = ClaudeSkillFrontmatterSchema.parse(parseYaml(document.frontmatterYaml));
+  return { skillDir, skillMdPath, document, frontmatter };
+}
+
+/** Read dependency metadata without walking or loading the skill's assets. */
+export function readSkillDependencies(skillsDir: string, id: string): unknown {
+  return readSkillDocument(skillsDir, id).frontmatter.dependencies;
+}
+
+/**
+ * Load one skill document and its bundled assets. Junk entries and broken or cyclic
+ * symlinks encountered during the walk are reported in `.skipped`.
+ * @throws if the skill directory has no `SKILL.md`.
+ */
+export function loadSkillFromDir(skillsDir: string, id: string): LoadedSkill {
+  const { skillDir, skillMdPath, document, frontmatter } = readSkillDocument(skillsDir, id);
   const walk = walkFiles(skillDir);
   const assets: SkillAsset[] = walk.files
     .filter((path) => path !== skillMdPath)

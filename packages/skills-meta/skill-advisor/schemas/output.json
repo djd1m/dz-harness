@@ -41,7 +41,8 @@
     },
     "pipeline": {
       "type": "array",
-      "description": "Ordered list of recommended names to run in sequence (for multi-step tasks).",
+      "uniqueItems": true,
+      "description": "Optional execution order of distinct required recommendation names. One name is valid; omit when no order adds information. Every name must also occur in recommendations. Optional complements stay outside this array. Fit rank may differ from prerequisite-first execution order.",
       "items": { "type": "string" }
     },
     "gaps": {

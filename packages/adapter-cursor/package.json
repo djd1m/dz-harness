@@ -1,6 +1,6 @@
 {
   "name": "@dzhechkov/adapter-cursor",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Cursor platform adapter - transforms canonical skills into per-skill .cursor/rules/<id>.mdc project rules (Cursor's 3-key frontmatter + body; intentionally transforming, not byte-identical).",
   "type": "module",
   "license": "MIT",
@@ -29,7 +29,6 @@
     "sbom.json"
   ],
   "scripts": {
-    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -37,7 +36,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@dzhechkov/core": "workspace:*"
+    "@dzhechkov/core": "0.2.31"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",

@@ -27,23 +27,23 @@ Issues and questions: use this repository's issue tracker.
 
 | Package | Version |
 |---|---|
-| `@dzhechkov/adapter-agents-md` | 0.1.10 |
-| `@dzhechkov/adapter-claude` | 0.2.10 |
-| `@dzhechkov/adapter-codex` | 0.2.9 |
-| `@dzhechkov/adapter-copilot` | 0.1.10 |
-| `@dzhechkov/adapter-cursor` | 0.1.10 |
-| `@dzhechkov/adapter-gemini` | 0.1.10 |
-| `@dzhechkov/adapter-hermes` | 0.2.9 |
-| `@dzhechkov/adapter-openclaude` | 0.1.9 |
-| `@dzhechkov/adapter-opencode` | 0.2.9 |
-| `@dzhechkov/adapter-windsurf` | 0.1.10 |
+| `@dzhechkov/adapter-agents-md` | 0.1.11 |
+| `@dzhechkov/adapter-claude` | 0.2.11 |
+| `@dzhechkov/adapter-codex` | 0.2.10 |
+| `@dzhechkov/adapter-copilot` | 0.1.11 |
+| `@dzhechkov/adapter-cursor` | 0.1.11 |
+| `@dzhechkov/adapter-gemini` | 0.1.11 |
+| `@dzhechkov/adapter-hermes` | 0.2.10 |
+| `@dzhechkov/adapter-openclaude` | 0.1.10 |
+| `@dzhechkov/adapter-opencode` | 0.2.10 |
+| `@dzhechkov/adapter-windsurf` | 0.1.11 |
 | `@dzhechkov/cloudru-hub` | 0.1.20 |
 | `@dzhechkov/cloudru-vm-linux-x64` | 0.2.10 |
 | `@dzhechkov/core` | 0.2.31 |
 | `@dzhechkov/design-thinking` | 1.0.15 |
 | `@dzhechkov/evidence-wiki` | 0.2.7 |
-| `@dzhechkov/harness-cli` | 0.8.61 |
-| `@dzhechkov/harness-core` | 0.8.68 |
+| `@dzhechkov/harness-cli` | 0.8.63 |
+| `@dzhechkov/harness-core` | 0.8.70 |
 | `@dzhechkov/harness-presets` | 0.5.26 |
 | `@dzhechkov/health-advisor` | 1.10.9 |
 | `@dzhechkov/keysarium` | 1.7.21 |
@@ -59,7 +59,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-book-ai-apps` | 0.2.11 |
 | `@dzhechkov/skills-book-clean-code` | 0.1.2 |
 | `@dzhechkov/skills-book-ddia` | 0.1.6 |
-| `@dzhechkov/skills-book-digitizer` | 0.2.20 |
+| `@dzhechkov/skills-book-digitizer` | 0.2.22 |
 | `@dzhechkov/skills-book-fundamental-software-architecture` | 0.1.4 |
 | `@dzhechkov/skills-bto` | 1.4.7 |
 | `@dzhechkov/skills-decision-mockups` | 0.2.0 |
@@ -70,7 +70,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-feature-adr` | 1.5.26 |
 | `@dzhechkov/skills-idea2prd` | 0.1.16 |
 | `@dzhechkov/skills-mcp` | 0.3.12 |
-| `@dzhechkov/skills-meta` | 0.9.75 |
+| `@dzhechkov/skills-meta` | 0.9.77 |
 | `@dzhechkov/skills-news` | 0.1.17 |
 | `@dzhechkov/skills-package-story-page` | 0.2.5 |
 | `@dzhechkov/skills-pm` | 0.1.6 |

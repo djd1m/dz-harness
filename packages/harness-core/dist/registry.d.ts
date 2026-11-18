@@ -46,7 +46,9 @@ export declare function discoverSkillPackDirs(cwd: string): {
  * The double-count AM-1 guards against is handled where it belongs — `buildRegistry` dedupes by
  * skill id, so a skill reachable through both its canon and a plugin is listed once.
  */
-export declare function discoverSkillCarryingDirs(cwd: string): {
+export declare function discoverSkillCarryingDirs(cwd: string, options?: {
+    readonly includeAlternativeProviders?: boolean;
+}): {
     pack: string;
     dir: string;
 }[];

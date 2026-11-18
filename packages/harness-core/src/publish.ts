@@ -51,12 +51,50 @@ export type RegistryProbe =
  */
 export const PUBLISH_PROBE_SCRIPT_ENV = 'DZ_PUBLISH_PROBE_SCRIPT';
 
+/** Replace only the effective root version string; JSON.parse has already validated the input. */
+function replaceTopLevelVersionToken(json: string, oldVersion: string, newVersion: string): string {
+  if (newVersion === oldVersion) return json;
+  const quoted = /"(?:\\.|[^"\\])*"/y;
+  const nesting: string[] = [];
+  let versionValue: { start: number; end: number } | undefined;
+  for (let i = 0; i < json.length;) {
+    const char = json[i];
+    if (char === '"') {
+      quoted.lastIndex = i;
+      const token = quoted.exec(json);
+      if (token === null) throw new Error('package.json: cannot locate a complete JSON string token');
+      if (nesting.length === 1 && nesting[0] === '{') {
+        let colon = quoted.lastIndex;
+        while (/\s/.test(json[colon] ?? '')) colon++;
+        if (json[colon] === ':' && JSON.parse(token[0]) === 'version') {
+          let valueStart = colon + 1;
+          while (/\s/.test(json[valueStart] ?? '')) valueStart++;
+          // Reset on every root occurrence: JSON.parse uses the last duplicate key.
+          versionValue = undefined;
+          if (json[valueStart] === '"') {
+            quoted.lastIndex = valueStart;
+            const value = quoted.exec(json);
+            if (value !== null) versionValue = { start: valueStart, end: quoted.lastIndex };
+          }
+        }
+      }
+      i += token[0].length;
+    } else {
+      if (char === '{' || char === '[') nesting.push(char);
+      else if (char === '}' || char === ']') nesting.pop();
+      i++;
+    }
+  }
+  if (versionValue === undefined) throw new Error('package.json: effective top-level version string token missing');
+  return json.slice(0, versionValue.start) + JSON.stringify(newVersion) + json.slice(versionValue.end);
+}
+
 /** Result for a single package publish attempt. */
 export interface PublishResult {
   readonly name: string;
   readonly oldVersion: string;
   readonly newVersion: string;
-  readonly status: 'published' | 'skipped' | 'error';
+  readonly status: 'published' | 'staged' | 'skipped' | 'error';
   readonly firstPublish?: boolean;
   readonly probe?: RegistryProbe['kind'];
   /** Present (true) only when `DZ_PUBLISH_PROBE_SCRIPT` answered instead of the registry. */
@@ -158,6 +196,7 @@ export interface ReleaseLineReport {
 export interface PublishReport {
   readonly packages: readonly PublishResult[];
   readonly published: number;
+  readonly staged: number;
   readonly skipped: number;
   readonly errors: number;
   readonly dryRun: boolean;
@@ -1277,8 +1316,9 @@ export function publishPackages(
     let originalReadme: string | undefined;
     const probeLog: ProbeOutcome[] = [];
     try {
-      // Bump version in package.json
-      writeFileSync(pkgJsonPath, originalPkgJson.replace(`"version": "${oldVersion}"`, `"version": "${newVersion}"`));
+      // The same exact-byte edit feeds staging and the ordinary publish transport.
+      const bumpedPkgJson = replaceTopLevelVersionToken(originalPkgJson, oldVersion, newVersion);
+      writeFileSync(pkgJsonPath, bumpedPkgJson);
       // Keep the package's README version footer in lock-step with the bump, so the version
       // shown on npmjs.com always matches the published package (no more manual off-by-one).
       originalReadme = syncReadmeVersion(pkg.dir, oldVersion, newVersion);
@@ -1289,7 +1329,7 @@ export function publishPackages(
         // just ran two lines above. Reuse the SAME preview computed before the dry-run branch: it is a
         // pure function of the same pre-sync text and the same old/new versions, so it already
         // describes exactly what the write above just did.
-        results.push({ name: pkg.name, oldVersion, newVersion, status: 'published', claimCheck: claimCheckSummary, readmeSync: readmeSyncSummary });
+        results.push({ name: pkg.name, oldVersion, newVersion, status: newVersion === oldVersion ? 'skipped' : 'staged', claimCheck: claimCheckSummary, readmeSync: readmeSyncSummary });
         continue;
       }
 
@@ -1666,6 +1706,7 @@ export function publishPackages(
       };
     }),
     published: results.filter((r) => r.status === 'published').length,
+    staged: results.filter((r) => r.status === 'staged').length,
     skipped: results.filter((r) => r.status === 'skipped').length,
     errors: results.filter((r) => r.status === 'error').length,
     dryRun: opts.dryRun === true,

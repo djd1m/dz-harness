@@ -29,13 +29,20 @@ methods at the decisions it's about — e.g. DDIA → `ddia-replication-topology
 
 ## Install & use
 
+In a new project with the DZ CLI installed:
+
 ```bash
-dz init --target claude-code --select digitize-book
-# then, in your agent:  «оцифруй вот эту книгу — хочу, чтобы агент проектировал по её методикам»
+dz init --target codex --select digitize-book --no-hooks --no-integrations
 ```
 
-Prerequisites: `poppler-utils` (ingest) and, for the KB, `dz setup --memory agentdb`
-(installs `agentdb` + `better-sqlite3`).
+Use `--target claude-code` for Claude Code. The two opt-outs keep this install focused on skills.
+Selection installs the orchestrator, all book stages
+and the two supporting skills from the meta pack. Open a new session in that project and ask:
+“Use $digitize-book to ingest this PDF and show me the chapters at the first checkpoint.”
+
+Install Poppler (`pdftotext`, `pdfinfo`, `pdfimages`) for PDF ingest. The first checkpoint writes
+a page-anchored corpus and manifest locally. For the later KB stage, set up the AgentDB memory
+backend with `dz setup --target codex --memory agentdb` for a Codex project.
 
 ## Usage scenarios
 
@@ -244,7 +251,7 @@ Two kinds of guarantee, and the difference matters:
   auto-published; distribution is your explicit CP5 decision. `files[]` whitelist + no-`origin`
   `sources.json`. The ingest is deterministic. The book KB is a separate namespace (book KUs never
   pollute `dz recommend`). The **word-shingling verbatim-check is now a shipped deterministic gate**
-  (`scripts/shingling-check.mjs`) run at pack assembly: any uncited verbatim run ≥8 words fails the
+  (`book-pack-assemble/scripts/shingling-check.mjs`) run at pack assembly: any uncited verbatim run ≥8 words fails the
   pack (cited ≤25-word quotes with a page anchor are exempt) — the paraphrase rule is mechanically
   enforced, no longer merely agent-enforced.
 - **Protocol (agent-enforced, fail-open — NOT mechanically proven):** KU provenance is

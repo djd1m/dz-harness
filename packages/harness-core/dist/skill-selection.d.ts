@@ -16,9 +16,7 @@
  * outcome. A pure resolver can be called at the top of the seam and interrogated without side
  * effects; a resolver tangled with the filesystem cannot.
  *
- * DELIBERATELY NOT HERE: dependency closure (an orchestrator pulling its stage skills). That is
- * PR-B. Mixing the two would put a correctness fix and a semantic change in one unreviewable
- * change, and the exit-contract fix is what unblocks the rest.
+ * Dependency closure uses the same provider precedence for every referenced skill.
  */
 /** One skill root and the ids it offers, in the order discovery returned them. */
 export interface SkillRoot {
@@ -61,6 +59,8 @@ export interface SelectResolution {
  * in the argument does not duplicate an installation.
  */
 export declare function resolveSelection(select: readonly string[], roots: readonly SkillRoot[]): SelectResolution;
+/** Resolve required dependencies in dependency-first order, using only winning providers. */
+export declare function resolveSkillDependencies(selection: SelectResolution, roots: readonly SkillRoot[], readDependencies: (provider: ChosenProvider) => unknown): SelectResolution;
 /**
  * The refusal an explicit `--select` owes its caller. Returns null when there is nothing to refuse.
  *

@@ -49,7 +49,7 @@ import { MODEL_PRICES } from '@dzhechkov/harness-core';
 // ablation-c-start (ADR-001): the pure assignment core — no fs, no lock, no ledger — for
 // `dz experiment assign|status`.
 import { assignArm, readAssignments, verifyAssignmentRecord } from '@dzhechkov/harness-core';
-import { createSkill, getSkillInfo, listSkillsDetailed, formatSkillLoadFailures, formatSkillApplyFailures, resolveTargetName, formatTargetProblem, formatTargetAliasNote, TARGET_NAMES_SORTED, runDoctor, runInit, discoverSkillIds, loadSkillFromDir, resolveSelection, formatSelectRefusal, runIntegrationsVerify, resolvePackageSkillRoots, PACKAGE_SKILL_LAYOUTS, benchmarkSkill, benchmarkSkills, scanMcp, reconcileCapabilities, RECONCILE_BANNER, buildRegistry, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs, verifiedScopeNote, checkUpstream, compareSkills, checkAllUpstream, sweepSkillDrift, syncCanonicalSkill, checkUpgrades, discoverPackages, matchesPublishFilter, validatePublishFilters, discoverSourcePackages, fetchAllDownloads, filterByCategory, pretrain, recommend, generatePlugin, publishPackages, runSetup, memoryBackendSourceLabel, runMigrate, searchRegistry, runSync, runVerify, runInitAgentsMd, runInitGeminiMd, runSyncAgentsPolicy, runSyncCodexHooks, resolveCodexHome, withProjectLockSync, withDirLockSync, storeExists, isRepoBoundary, 
+import { createSkill, getSkillInfo, listSkillsDetailed, formatSkillLoadFailures, formatSkillApplyFailures, resolveTargetName, formatTargetProblem, formatTargetAliasNote, TARGET_NAMES_SORTED, runDoctor, runInit, discoverSkillIds, loadSkillFromDir, resolveSelection, resolveSkillDependencies, readSkillDependencies, formatSelectRefusal, runIntegrationsVerify, resolvePackageSkillRoots, PACKAGE_SKILL_LAYOUTS, benchmarkSkill, benchmarkSkills, scanMcp, reconcileCapabilities, RECONCILE_BANNER, buildRegistry, discoverSkillPackDirs, discoverSkillCarryingDirs, discoverVerifiablePackDirs, verifiedScopeNote, checkUpstream, compareSkills, checkAllUpstream, sweepSkillDrift, syncCanonicalSkill, checkUpgrades, discoverPackages, matchesPublishFilter, validatePublishFilters, discoverSourcePackages, fetchAllDownloads, filterByCategory, pretrain, recommend, generatePlugin, publishPackages, runSetup, memoryBackendSourceLabel, runMigrate, searchRegistry, runSync, runVerify, runInitAgentsMd, runInitGeminiMd, runSyncAgentsPolicy, runSyncCodexHooks, resolveCodexHome, withProjectLockSync, withDirLockSync, storeExists, isRepoBoundary, 
 // dz workflow run (feature dz-workflow-run): the pure scheduler + the dispatch adapters.
 TRACE_RUNID_RE, WF_RUN_OWNER_HOST, preflight, runWorkflow, makeClaudePDispatcher, makeCodexExecDispatcher, NamedLockTimeoutError, NamedLockCompromisedError, POLICY_SOURCES, detectPolicyDrift, hasPolicyFence, TARGET_NAMES, buildParityMatrix, computeParity, PARITY_FEATURES, downgradeForStaleEvidence, findStaleTranscriptEvidence, TARGET_CAPABILITIES, TARGET_SHORT_LABELS, applyLegStatus, applyLegReasonMessage, probeApplyLeg, resolveAgentdbPath, WORKFLOW_TEMPLATES_RETIRED_MESSAGE, parsePlan, isParseErrors, validatePlan, normalizePlan, planDigest, toTraceProjection, renderPlan, mergeRender, lint, lintExitCode, LOOP_BLOBS, parseTrace, assembleTimeline, runInvariants, deriveAttestation, stampAttestation, corroborate, NOT_WITNESSED, renderTimelineHtml, importEcc, recordPattern, recordLessonForms, normalizeLessonForms, resolveLearningBackend, storeStats, consolidateSessions, pruneNoisePatterns, lessonDeltaReport, removePatternsByIds, snapshotStore, recallHybrid, teachGuard, mirrorPatternsToVector, mirrorEntriesToVector, patternVectorEntry, readMemoryLearningConfig, promotePatterns, quarantineExpiryCandidates, pruneQuarantinePatterns, clearAgentdbQuarantine, vectorMirrorEnabled, vectorTierStatus, resolveVectorEngine, reindexVectorStore, harmonizeVectorStore, importRvfCheckpoint, renderFeatureAdrPhaseLine, renderRecallObservationLine, statuslineData, countLearningStoreRowsReadonly, readStoreMark, writeStoreMark, resetStoreMark, checkStoreHealth, planStoreGuardPrune, storeGuardPath, storeSnapshotPath, writeFeatureAdrState, writeFeatureAdrStateDetailed, CHECKPOINT_STAGES, estimateEta, extractStageSamples, formatEta, parseCheckpointLines, segmentRun, computeSpendReport, deriveCostLedger, deriveStageUsageReport, renderStageUsageReport, planLedgerBackfill, listCostLedgerRuns, resolveLedgerRunId, AMBIGUOUS, stampCheckpointLine, LEDGER_FILL_SOURCE, renderCostLedger, verifyCostLedgerReport, costLedgerJsonl, COST_LEDGER_SCOPE, spendReport, claimCheck, summarize, BUNDLED_SLOP_REGISTRY_URL, DEFAULT_SLOP_CONFIG, parseSlopRegistry, slopLint, validateSlopLintConfig, queryBookKnowledge, loadStorePatternsSync, patternRecordId, patternIdentityOf, mergeLessonMatchedForms, SWARM_BRIEF_CONTRACT, checkSwarmBrief, visibleText, loadStoreRecords, findExactLesson, recordToPattern, bundleSkills, brainHome, brainAgentdbPath, listPreReindexSnapshots, rotatePreReindexSnapshots, scanSnapshotDir, listBrain, bookKbPath, promoteProjectToBrain, updateBrainSource, queryBrain, groundPrompt, expandKu, reindexBrainVectors, buildPrimer, exportBrainSlice, importBrainSlice, registerKusToBrain, RECALL_USAGE_LOG_RELATIVE, RECALL_USAGE_LOG_MAX_BYTES, parseRecallUsageLog, buildRecallUsageReport, EVENT_CHAIN_TAIL_BYTES, EMPTY_LOG_TAIL, readTailInfo, appendChainedLines, verifyEventChainText, classifyChainDefects, liveSegmentStart, CHAINED_JOURNALS, buildManifest, buildSbom, resolveTrustRoot, decideVerifyPolicy, explainPackVerificationFailure, resolveReinforceTarget, isShippedSource, generateSigningKeypair, appendTransition, readTransitions, transitionLogPath, evaluateGuard, GUARD_OPS, resolveRules, auditRecord, guardExitCode, DEFAULT_RULES, parsePnpmLockImporters, scannableStubPath, 
 // guard-promotion (feature guard-promotion, scout idea #1)
@@ -120,7 +120,7 @@ const USAGE = `dz - DZ cross-platform harness CLI
 
 Usage:
   dz codex-recall-observe [--project <dir>] [--binary <codex>] [--codex-home <dir>] | --status --observer <id> [--json]   (experimental owned App Server stdio proxy; status is recorded local telemetry)
-  dz init   --target <name> [--skills-dir <dir>] [--project <dir>] [--preset <name>] [--select id,id,...] [--force] [--enrich] [--allow-integrations <sha256:digest>] [--no-integrations] [--no-hooks] [--no-verify]   (integration manifests require exact digest consent; --no-integrations = explicit skills-only)
+  dz init   --target <name> [--skills-dir <dir>] [--project <dir>] [--preset <name>] [--select id,id,...] [--no-deps] [--force] [--enrich] [--allow-integrations <sha256:digest>] [--no-integrations] [--no-hooks] [--no-verify]   (integration manifests require exact digest consent; --no-integrations = explicit skills-only)
   dz verify [--skills-dir <dir>] [--target <name>]
   dz sync   [--canonical <dir>] [--project <dir>] [--dry-run] [--force]
   dz update   (alias of sync)
@@ -195,7 +195,7 @@ Usage:
   dz backlog jira <id> [--project <dir>] [--json]                          (draft a Jira issue via the configurable adapter (backlog.jira.adapter: jira-mcp|copilot-mcp|none); none writes an auditable jira-outbox/<id>.json stub)
   dz backlog harmonize [--apply] [--threshold <0-1>] [--project <dir>] [--json]   (batch semantic dedup of the backlog ideas; --dry-run default, --apply snapshots first)
   dz routing recommend [--tier <t>] [--apply] [--json]   (per-stage args.models suggestion from REAL telemetry — harness records + imported run-meta sidecars — printed WITH its basis + current/STALE/UNFED store receipt; qe is FORCED cross-family of code; --apply feeds .dz/routing-outcomes.json idempotently by runId)
-  dz setup --target <name> [--preset <name>] [--select id,id,...] [--skills-dir <dir>] [--project <dir>] [--memory agentdb] [--no-memory] [--no-hooks] [--no-verify] [--install-driver] [--force] [--enrich]   (--target codex ALSO installs + LIVE-verifies the codex hooks; an unverified hook exits non-zero WITHOUT aborting the rest of setup)
+  dz setup --target <name> [--preset <name>] [--select id,id,...] [--no-deps] [--skills-dir <dir>] [--project <dir>] [--memory agentdb] [--no-memory] [--no-hooks] [--no-verify] [--install-driver] [--force] [--enrich]   (--target codex ALSO installs + LIVE-verifies the codex hooks; an unverified hook exits non-zero WITHOUT aborting the rest of setup)
   dz teach "<pattern>" [--from-file <path>] [--class-form "<template with :slot>"] [--reward <0-1>] [--domain <name>] [--type rule|success-pattern|lesson-learned] [--project <dir>] [--no-mirror] [--allow-cold-start] [--retro-receipt <session:debt-id>]   (class form is optional; rejection never blocks the specific write; --project pins the learned store to <dir>/.dz; retro receipt requires a pending admission)
   dz teach --from-json <file> [--project <dir>] [--no-mirror]   (bulk-import a 'dz recall --all --json' export — share a learned store across machines)
   dz consolidate [--sessions-dir <dir>] [--project <dir>] [--no-mirror] [--prune-noise [--apply]] [--prune-quarantine [--apply]]   (both prunes: DRY-RUN by default; --apply snapshots then deletes; prune-quarantine = expired unproven lessons ONLY, never coupled to noise)
@@ -341,14 +341,14 @@ function parseArgs(argv) {
  * is what makes a globally-installed `dz` find its bundled packs when run in a project
  * that does not itself depend on them. Shared by `installSkills` and `bundle`.
  */
-function discoverSkillsDirs(cwd, explicitSkillsDir) {
+function discoverSkillsDirs(cwd, explicitSkillsDir, includeAlternativeProviders = false) {
     if (explicitSkillsDir !== undefined)
         return [resolve(cwd, explicitSkillsDir)];
     const skillsDirs = [];
     const defaultDir = resolve(cwd, '.claude/skills');
     if (existsSync(defaultDir))
         skillsDirs.push(defaultDir);
-    for (const { dir: carrier } of discoverSkillCarryingDirs(cwd)) {
+    for (const { dir: carrier } of discoverSkillCarryingDirs(cwd, { includeAlternativeProviders })) {
         for (const { rel } of PACKAGE_SKILL_LAYOUTS) {
             const dir = resolve(carrier, rel);
             // Alternate layouts can be absent, unreadable, or occupied by an ordinary file.
@@ -364,42 +364,37 @@ function discoverSkillsDirs(cwd, explicitSkillsDir) {
         skillsDirs.push(defaultDir);
     return skillsDirs;
 }
+function planSkillInstall(cwd, explicitSkillsDir, select, selection, writeErr) {
+    const skillsDirs = discoverSkillsDirs(cwd, explicitSkillsDir, selection.explicit);
+    const roots = skillsDirs.map(dir => ({ dir, ids: discoverSkillIds(dir) }));
+    const requested = [...new Set(select ?? roots.flatMap(root => root.ids))];
+    const initial = resolveSelection(requested, roots);
+    const refusal = formatSelectRefusal(initial, roots);
+    if (refusal !== null)
+        return { refusal, missing: initial.missing };
+    try {
+        const resolution = selection.explicit && !selection.noDeps
+            ? resolveSkillDependencies(initial, roots, ({ dir, id }) => readSkillDependencies(dir, id))
+            : initial;
+        for (const shadow of resolution.shadowed) {
+            writeErr(`dz: skill '${shadow.id}' is offered by ${shadow.alsoIn.length + 1} roots; ` +
+                `installing from ${shadow.chosen} (earlier root wins). Also present in: ${shadow.alsoIn.join(', ')}`);
+        }
+        const dependencies = resolution.chosen.filter(({ id }) => !requested.includes(id)).map(({ id }) => id);
+        return { skillsDirs, resolution, requested, dependencies };
+    }
+    catch (error) {
+        return { refusal: `dz: --select refused — ${error instanceof Error ? error.message : String(error)}. Nothing was written.`, missing: [] };
+    }
+}
 /**
  * Discover skill directories (explicit > `.claude/skills` > discovered package layouts)
  * and compile each requested skill from its winning provider to `target`. Shared across
  * them. Shared by `dz init` and `dz setup` so both install identically.
  */
 async function installSkills(opts) {
-    const { target, projectRoot, cwd, explicitSkillsDir, select, force, enrich } = opts;
-    const skillsDirs = discoverSkillsDirs(cwd, explicitSkillsDir);
-    // PREFLIGHT (backlog 9d15b9b6, PR-A) — resolve the REQUEST once, before anything is written.
-    //
-    // Two defects lived in asking each root independently instead of resolving the request: a skill
-    // present in two roots was installed TWICE and counted twice (the field report's `2 skill(s)` was
-    // one skill installed twice), and a skill present in NO root produced a warning and exit 0 —
-    // `0 skill(s)` reading as success. Both are gone once the decision happens here.
-    //
-    // Placement is load-bearing: an exit 1 that arrives after hooks and memory are written leaves a
-    // half-configured project, which is worse than either clean outcome. This runs before the loop
-    // below and before every target adapter.
-    //
-    // Dependency closure is deliberately NOT resolved here — that is PR-B. This preflight fixes the
-    // count and the exit contract, and gives that work a base it can trust.
-    const roots = skillsDirs.map((dir) => ({ dir, ids: discoverSkillIds(dir) }));
-    const requested = select ?? [...new Set(roots.flatMap(root => root.ids))];
-    const resolution = resolveSelection(requested, roots);
-    for (const shadow of resolution.shadowed) {
-        opts.writeErr?.(`dz: skill '${shadow.id}' is offered by ${shadow.alsoIn.length + 1} roots; ` +
-            `installing from ${shadow.chosen} (earlier root wins). Also present in: ${shadow.alsoIn.join(', ')}`);
-    }
-    const refusal = formatSelectRefusal(resolution, roots);
-    if (refusal !== null) {
-        return {
-            selectRefusal: refusal,
-            results: [], dirsSearched: skillsDirs.length, written: 0, skipped: 0,
-            missing: [...resolution.missing], failures: [], applyFailures: [], integrations: [],
-        };
-    }
+    const { target, projectRoot, force, enrich } = opts;
+    const { skillsDirs, resolution } = opts.plan;
     // Route only the winning rows. A partly shadowed root can still own other ids.
     const groups = skillsDirs.map(skillsDir => ({
         skillsDir, select: resolution.chosen.filter(row => row.dir === skillsDir).map(row => row.id),
@@ -521,7 +516,14 @@ async function cmdInit(options, flags, cwd, write, writeErr) {
     const presetName = options.get('preset');
     const selectArg = options.get('select');
     let select;
-    if (presetName !== undefined) {
+    if (selectArg !== undefined) {
+        select = selectArg.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
+        if (select.length === 0) {
+            write('dz init: --select requires comma-separated skill ids');
+            return 1;
+        }
+    }
+    else if (presetName !== undefined) {
         const preset = getPreset(presetName);
         if (preset === undefined) {
             write(`dz init: --preset must be one of: ${PRESET_NAMES.join(', ')}`);
@@ -529,21 +531,16 @@ async function cmdInit(options, flags, cwd, write, writeErr) {
         }
         select = preset.skills;
     }
-    else if (selectArg !== undefined) {
-        select = selectArg.split(',').map((s) => s.trim()).filter((s) => s.length > 0);
-        if (select.length === 0) {
-            write('dz init: --select requires comma-separated skill ids');
-            return 1;
-        }
+    const plan = planSkillInstall(cwd, explicitSkillsDir, select, { explicit: selectArg !== undefined, noDeps: flags.has('no-deps') }, writeErr);
+    if (plan.refusal !== undefined) {
+        writeErr(plan.refusal);
+        writeMissingSkillsHint(writeErr, plan.missing, selectArg === undefined ? presetName : undefined, explicitSkillsDir);
+        return 1;
     }
-    // Discover skill directories + install (shared with `dz setup`).
     const r = await installSkills({
         target,
         projectRoot,
-        cwd,
-        explicitSkillsDir,
-        select,
-        writeErr,
+        plan,
         force: flags.has('force'),
         enrich: flags.has('enrich'),
         noHooks: flags.has('no-hooks'),
@@ -551,13 +548,6 @@ async function cmdInit(options, flags, cwd, write, writeErr) {
         noVerify: flags.has('no-verify'),
         ...(options.get('allow-integrations') !== undefined ? { allowIntegrations: options.get('allow-integrations') } : {}),
     });
-    // PR-A: an explicit --select that named a skill no root provides is a REFUSAL, not a warning.
-    // Printed and returned here, before any target adapter runs — nothing has been written yet.
-    if (r.selectRefusal !== undefined) {
-        writeErr(r.selectRefusal);
-        writeMissingSkillsHint(writeErr, r.missing, presetName, explicitSkillsDir);
-        return 1;
-    }
     // Codex keeps its established user-registry writer, but its result is normalized into the same
     // two-outcome contract before JSON/human rendering. A write without a live ready observation is
     // a refusal with applied=true, never a second success channel.
@@ -577,10 +567,12 @@ async function cmdInit(options, flags, cwd, write, writeErr) {
         }
     }
     if (flags.has('json')) {
-        write(JSON.stringify({ target, skills: { count: r.results.length, written: r.written, skipped: r.skipped }, integrations: integrationOutcomes, integrationDigest: r.integrationDigest ?? null }));
+        write(JSON.stringify({ target, skills: { count: r.results.length, written: r.written, skipped: r.skipped }, ...(selectArg !== undefined ? { selection: { requested: plan.requested, dependencies: plan.dependencies } } : {}), integrations: integrationOutcomes, integrationDigest: r.integrationDigest ?? null }));
     }
     else {
         write(`dz init --target ${target}: ${r.results.length} skill(s), ${r.written} file(s) written, ${r.skipped} skipped`);
+        if (plan.dependencies.length > 0)
+            write(`  Required dependencies: ${plan.dependencies.join(', ')}`);
         if (r.dirsSearched > 1)
             write(`  (searched ${r.dirsSearched} skill directories)`);
         for (const outcome of integrationOutcomes) {
@@ -593,7 +585,7 @@ async function cmdInit(options, flags, cwd, write, writeErr) {
             write(`${label}: ${outcome.status.toUpperCase()} (${detail})`);
         }
     }
-    writeMissingSkillsHint(write, r.missing, presetName, explicitSkillsDir);
+    writeMissingSkillsHint(write, r.missing, selectArg === undefined ? presetName : undefined, explicitSkillsDir);
     // Skip-and-collect must not become skip-and-SILENCE: a skill that failed to load is
     // named on stderr and the command exits 1 (it exited 1 before too — by throwing).
     if (r.failures.length > 0 || r.applyFailures.length > 0) {
@@ -6016,12 +6008,10 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
         }
         select = selectedPreset.skills;
     }
-    const roots = discoverSkillsDirs(cwd, options.get('skills-dir')).map(dir => ({ dir, ids: discoverSkillIds(dir) }));
-    const selected = resolveSelection(select, roots);
-    const refusal = formatSelectRefusal(selected, roots);
-    if (refusal !== null) {
-        writeErr(refusal);
-        writeMissingSkillsHint(writeErr, selected.missing, selectArg !== undefined ? undefined : preset, options.get('skills-dir'));
+    const plan = planSkillInstall(cwd, options.get('skills-dir'), select, { explicit: selectArg !== undefined, noDeps: flags.has('no-deps') }, writeErr);
+    if (plan.refusal !== undefined) {
+        writeErr(plan.refusal);
+        writeMissingSkillsHint(writeErr, plan.missing, selectArg !== undefined ? undefined : preset, options.get('skills-dir'));
         return 1;
     }
     write(`\n╔══════════════════════════════════════════════════════╗`);
@@ -6090,15 +6080,12 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
     // Honors --select (overrides the preset); otherwise installs the resolved preset's skills.
     write(`║  4. Installing skills...                              ║`);
     const install = await installSkills({
-        target, projectRoot, cwd, explicitSkillsDir: options.get('skills-dir'), select,
-        writeErr,
+        target, projectRoot, plan,
         force: flags.has('force'), enrich: flags.has('enrich'), noHooks: flags.has('no-hooks') || flags.has('no-memory') || setupIncomplete,
         noIntegrations: flags.has('no-integrations') || setupIncomplete,
         noVerify: flags.has('no-verify'),
         ...(options.get('allow-integrations') !== undefined ? { allowIntegrations: options.get('allow-integrations') } : {}),
     });
-    if (install.selectRefusal !== undefined)
-        writeErr(install.selectRefusal);
     for (const line of formatSkillLoadFailures(install.failures))
         writeErr(line);
     for (const line of formatSkillApplyFailures(install.applyFailures))
@@ -6144,6 +6131,8 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
     if (install) {
         write(`dz setup: ${install.results.length} skill(s), ${install.written} file(s) written, ${install.skipped} skipped`
             + (install.dirsSearched > 1 ? `  (searched ${install.dirsSearched} skill dirs)` : ''));
+        if (plan.dependencies.length > 0)
+            write(`  Required dependencies: ${plan.dependencies.join(', ')}`);
         for (const outcome of setupIntegrationOutcomes) {
             write(`dz setup integration ${outcome.component}: ${outcome.status.toUpperCase()}${outcome.reasonCode ? ` (${outcome.reasonCode})` : ''}`);
         }
@@ -6162,7 +6151,7 @@ async function cmdSetup(options, flags, cwd, write, writeErr) {
         write(`\n✗ setup reported ${erroredSteps.length} failed step(s): ${erroredSteps.join(', ')} — exit 1`);
     }
     const integrationsOk = !setupIntegrationOutcomes.some((row) => row.status === 'refused');
-    const skillsOk = install.selectRefusal === undefined && install.missing.length === 0
+    const skillsOk = install.missing.length === 0
         && install.failures.length === 0 && install.applyFailures.length === 0;
     const setupOk = setupSucceeded({ codexHooksOk, failedStepCount: erroredSteps.length, integrationsOk, skillsOk });
     if (setupOk) {
@@ -8036,6 +8025,7 @@ registrySeam) {
     const report = {
         ...publishReport,
         packages: [...publishReport.packages, ...privateSkips.values()],
+        staged: publishReport.staged ?? 0,
         skipped: publishReport.skipped + privateSkips.size,
         mirror,
     };
@@ -8045,9 +8035,9 @@ registrySeam) {
         return exitCode;
     }
     write(`\ndz publish${dryRun ? ' --dry-run' : ''}${bumpOnly ? ' --bump-only' : ''}${claimCheckOpt !== 'warn' ? ` --claim-check ${claimCheckOpt}` : ''}`);
-    write(`  Published: ${report.published}  Skipped: ${report.skipped}  Errors: ${report.errors}\n`);
+    write(`  Published: ${report.published}  Staged: ${report.staged}  Skipped: ${report.skipped}  Errors: ${report.errors}\n`);
     for (const pkg of report.packages) {
-        const icon = pkg.status === 'published' ? '✓' : pkg.status === 'skipped' ? '○' : '✗';
+        const icon = pkg.status === 'published' ? '✓' : pkg.status === 'staged' ? '◇' : pkg.status === 'skipped' ? '○' : '✗';
         // A one-line preview inline; on error the FULL captured npm error prints below (truncating a publish
         // failure to 60 chars is how a release stays undiagnosable — the reason lives past char 60).
         const detail = pkg.error && pkg.status !== 'error' && pkg.probe !== 'unknown' ? ` (${pkg.error.slice(0, 60)})` : '';
