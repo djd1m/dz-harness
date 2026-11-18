@@ -1,0 +1,1076 @@
+{
+  "scope": "regression development questions; documentation snapshot; no native runtime test",
+  "suite": "regression",
+  "createdAt": "2026-11-09T21:48:50.346Z",
+  "model": "anthropic/claude-haiku-5.5",
+  "inputs": {
+    "questionFile": "evaluation-questions.json",
+    "questionsSha256": "85929e3e405fbe2bf672dd9315d5a11e036c786ad97f33cf038dda58e8954591",
+    "coverageFile": "coverage-regression-v2.json",
+    "coverageSha256": "3c8fee7faad7bf55f3858e008849da96842953e68a04ade1bd2798df94a2227e",
+    "promptSha256": "1075e5fda23d7443c94f899bc724e1c37a098bf2794ee98068eb67808842883a",
+    "sourceHashes": {
+      "evaluate.mjs": "9ada0e8df18d64dec9c5b9c221927a3b9e9fc29d73fb00d6bfaf4dcc17263c71",
+      "search.mjs": "f098246c9ee0e7210f5ed61f3a2f4679c600f77e8317b0784bed2bad9c0e5ec6",
+      "selector.mjs": "2c728f6bcd4eb2f2049b1a4efb7538131caf9b265194de2b4f7a2b1f30d0a54e",
+      "scoring.mjs": "bb2219a620bbf599d63a9052b47a25b47ad88b2a65e9f1421ec9a9cbf491b1fb",
+      "catalog.mjs": "8818c8876aae870be1e35ec3b7ad0a4b5f2368f9e6c32081dda8cf6c27e99103",
+      "cli.mjs": "0e7357ad60fa1201c7e1971f2e960874a8ff19c16fdf73aecddf653fe1654845"
+    }
+  },
+  "catalogRevision": "47c7322a376b3bbd8e1d3f0499f1410b973a62620646c32f7efb9cc360e5ed43",
+  "approvedRecords": 32,
+  "excluded": [],
+  "rows": [
+    {
+      "id": "q01",
+      "query": "Мы уже решили перейти с REST на GraphQL. Сохрани короткое архитектурное решение с причинами и последствиями прямо по итогам этой беседы.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "meta-capture-adr"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "meta-capture-adr"
+        ]
+      ],
+      "retrievedIds": [
+        "meta-capture-adr",
+        "meta-feature-adr",
+        "website-clone-page",
+        "pm-feature-priority",
+        "reasoning-diagnose"
+      ],
+      "retrievalMs": 22.565951999999996,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 1615,
+        "completion_tokens": 138,
+        "total_tokens": 1753,
+        "cost": 0.000228195,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0002305,
+          "upstream_inference_prompt_cost": 0.0001615,
+          "upstream_inference_completions_cost": 0.000069
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 107,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "recommend",
+        "scenarioIds": [
+          "meta-capture-adr"
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 1669.7154850000002
+    },
+    {
+      "id": "q02",
+      "query": "Закрыли большой проект. Найди в его папке полезные команды, шаблоны и правила, которые можно перенести в следующие проекты.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "meta-knowledge-harvest"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "meta-knowledge-harvest"
+        ]
+      ],
+      "retrievedIds": [
+        "devops-observability",
+        "bto-build",
+        "bto-evaluate",
+        "mcp-context7-docs",
+        "mcp-gmail-search"
+      ],
+      "retrievalMs": 3.6145349999999894,
+      "retrievedRelevant": false,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 1588,
+        "completion_tokens": 125,
+        "total_tokens": 1713,
+        "cost": 0.000219087,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0002213,
+          "upstream_inference_prompt_cost": 0.0001588,
+          "upstream_inference_completions_cost": 0.0000625
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 103,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "no-match",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": false,
+      "matchesRequestedDecision": false,
+      "responseMs": 1565.688936
+    },
+    {
+      "id": "q03",
+      "query": "В рабочей базе большая таблица заказов. Нужно переименовать колонку без остановки сервиса, предусмотреть совместимость старой версии приложения и откат.",
+      "coverage": "partial",
+      "relevantScenarioIds": [
+        "devops-database-migration"
+      ],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [
+        "devops-database-migration",
+        "reasoning-diagnose",
+        "devops-cloudru-deploy",
+        "meta-explore-product",
+        "devops-observability"
+      ],
+      "retrievalMs": 1.968432000000007,
+      "retrievedRelevant": true,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "valid": false,
+      "correct": false,
+      "error": "Picker failed or returned invalid output",
+      "responseMs": 5227.650418
+    },
+    {
+      "id": "q04",
+      "query": "У микросервисов есть разрозненные логи. Хочу связать запросы сквозными трассами, задать цели надёжности и получить дашборд с полезными алертами.",
+      "coverage": "partial",
+      "relevantScenarioIds": [
+        "devops-observability"
+      ],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [
+        "devops-observability",
+        "mcp-context7-docs",
+        "mcp-git-research",
+        "mcp-gmail-search",
+        "reasoning-diagnose"
+      ],
+      "retrievalMs": 1.8146720000000016,
+      "retrievedRelevant": true,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 1583,
+        "completion_tokens": 267,
+        "total_tokens": 1850,
+        "cost": 0.000288882,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0002918,
+          "upstream_inference_prompt_cost": 0.0001583,
+          "upstream_inference_completions_cost": 0.0001335
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 245,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "no-match",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": false,
+      "responseMs": 2028.820128
+    },
+    {
+      "id": "q05",
+      "query": "Найди в моей почте Google письма со счетами за прошлый месяц и пометь их отдельным ярлыком.",
+      "coverage": "partial",
+      "relevantScenarioIds": [
+        "mcp-gmail-search"
+      ],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [
+        "mcp-gmail-search",
+        "news-monitor-delta",
+        "news-period-digest",
+        "mcp-context7-docs"
+      ],
+      "retrievalMs": 2.1436929999999847,
+      "retrievedRelevant": true,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 1331,
+        "completion_tokens": 199,
+        "total_tokens": 1530,
+        "cost": 0.000230274,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0002326,
+          "upstream_inference_prompt_cost": 0.0001331,
+          "upstream_inference_completions_cost": 0.0000995
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 177,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "no-match",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": false,
+      "responseMs": 1635.7565959999993
+    },
+    {
+      "id": "q06",
+      "query": "Агент всё время использует старый API библиотеки. Нужен способ получать актуальную документацию и примеры для конкретной версии прямо во время разработки.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "mcp-context7-docs"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "mcp-context7-docs"
+        ]
+      ],
+      "retrievedIds": [
+        "mcp-context7-docs",
+        "meta-feature-adr",
+        "news-period-digest",
+        "bto-build",
+        "bto-evaluate"
+      ],
+      "retrievalMs": 1.8334329999997863,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "valid": false,
+      "correct": false,
+      "error": "Picker failed or returned invalid output",
+      "responseMs": 2675.554432
+    },
+    {
+      "id": "q07",
+      "query": "На тестовом стенде хочу искусственно задержать ответы зависимого сервиса и проверить, сработает ли предохранитель и восстановится ли система после сбоя.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "qe-chaos-latency"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "qe-chaos-latency"
+        ]
+      ],
+      "retrievedIds": [
+        "qe-chaos-latency",
+        "qe-generate-tests",
+        "reasoning-diagnose",
+        "devops-observability",
+        "reasoning-agents-md"
+      ],
+      "retrievalMs": 2.344822999999451,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "valid": false,
+      "correct": false,
+      "error": "Picker failed or returned invalid output",
+      "responseMs": 2327.493885
+    },
+    {
+      "id": "q08",
+      "query": "Собери за октябрь связный обзор событий в генеративном ИИ: релизы, исследования, важные сделки, со ссылками на источники и проверкой полноты.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "news-period-digest"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "news-period-digest"
+        ]
+      ],
+      "retrievedIds": [
+        "news-period-digest",
+        "news-monitor-delta",
+        "presentation-speaker",
+        "presentation-sales",
+        "devops-cloudru-deploy"
+      ],
+      "retrievalMs": 2.08834300000035,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "valid": false,
+      "correct": false,
+      "error": "Picker failed or returned invalid output",
+      "responseMs": 2578.6853040000005
+    },
+    {
+      "id": "q09",
+      "query": "У меня сохранён прошлый обзор релизов. Покажи только действительно новые события после него, исключи уже виденные и дубли.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "news-monitor-delta"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "news-monitor-delta"
+        ]
+      ],
+      "retrievedIds": [
+        "news-monitor-delta",
+        "news-period-digest",
+        "qe-generate-tests",
+        "reverse-cjm"
+      ],
+      "retrievalMs": 2.623043000000507,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "valid": false,
+      "correct": false,
+      "error": "Picker failed or returned invalid output",
+      "responseMs": 2899.069421
+    },
+    {
+      "id": "q10",
+      "query": "В бэклоге тридцать идей, ресурсов на пять. Есть оценки влияния, трудозатрат и рисков; помоги выбрать первые пять под нашу продуктовую цель.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "pm-feature-priority"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "pm-feature-priority"
+        ]
+      ],
+      "retrievedIds": [
+        "pm-feature-priority",
+        "pm-sprint-plan",
+        "bto-evaluate",
+        "reverse-cjm",
+        "meta-explore-product"
+      ],
+      "retrievalMs": 3.7960149999998976,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 1693,
+        "completion_tokens": 216,
+        "total_tokens": 1909,
+        "cost": 0.000274527,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0002773,
+          "upstream_inference_prompt_cost": 0.0001693,
+          "upstream_inference_completions_cost": 0.000108
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 185,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "recommend",
+        "scenarioIds": [
+          "pm-feature-priority"
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 1813.7783109999991
+    },
+    {
+      "id": "q11",
+      "query": "Выгрузил результаты эксперимента с двумя вариантами регистрации. Проверь размер выборки, перекос распределения пользователей и доверительный интервал: выкатывать вариант или продолжать сбор данных?",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "pm-ab-test-analysis"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "pm-ab-test-analysis"
+        ]
+      ],
+      "retrievedIds": [
+        "qe-chaos-latency",
+        "devops-database-migration",
+        "reverse-cjm",
+        "pm-ab-test-analysis",
+        "bto-evaluate"
+      ],
+      "retrievalMs": 2.6064040000001114,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "valid": false,
+      "correct": false,
+      "error": "Picker failed or returned invalid output",
+      "responseMs": 2571.0365219999994
+    },
+    {
+      "id": "q12",
+      "query": "Есть инструкция для кодового агента и эталонные ответы. Хочу измерить её качество и стабильность, затем улучшать формулировки с повторной оценкой.",
+      "coverage": "partial",
+      "relevantScenarioIds": [
+        "bto-evaluate"
+      ],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [
+        "bto-evaluate",
+        "reasoning-agents-md",
+        "meta-knowledge-harvest",
+        "bto-build"
+      ],
+      "retrievalMs": 2.5894429999998465,
+      "retrievedRelevant": true,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 1462,
+        "completion_tokens": 309,
+        "total_tokens": 1771,
+        "cost": 0.000297693,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0003007,
+          "upstream_inference_prompt_cost": 0.0001462,
+          "upstream_inference_completions_cost": 0.0001545
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 287,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "no-match",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": false,
+      "responseMs": 1884.5809719999997
+    },
+    {
+      "id": "q13",
+      "query": "Разберись, почему после повторного входа теряется корзина. Нужны воспроизведение и документ с первопричиной; код менять и исправления предлагать пока нельзя.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "reasoning-diagnose"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "reasoning-diagnose"
+        ]
+      ],
+      "retrievedIds": [
+        "reasoning-diagnose",
+        "reasoning-refactor",
+        "mcp-context7-docs",
+        "meta-knowledge-harvest",
+        "website-clone-multiple"
+      ],
+      "retrievalMs": 1.9642820000008214,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 1662,
+        "completion_tokens": 301,
+        "total_tokens": 1963,
+        "cost": 0.000313533,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0003167,
+          "upstream_inference_prompt_cost": 0.0001662,
+          "upstream_inference_completions_cost": 0.0001505
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 269,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "recommend",
+        "scenarioIds": [
+          "reasoning-diagnose"
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 2217.490258
+    },
+    {
+      "id": "q14",
+      "query": "У нас четыре связанных репозитория, и агент каждый раз заново выясняет, кто чем владеет. Подготовь для каждого постоянные архитектурные инструкции с границами ответственности и направлением зависимостей.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "reasoning-agents-md"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "reasoning-agents-md"
+        ]
+      ],
+      "retrievedIds": [
+        "reasoning-agents-md",
+        "news-period-digest",
+        "pm-sprint-plan",
+        "reasoning-refactor",
+        "bto-build"
+      ],
+      "retrievalMs": 1.8486530000009225,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 1627,
+        "completion_tokens": 335,
+        "total_tokens": 1962,
+        "cost": 0.000326898,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0003302,
+          "upstream_inference_prompt_cost": 0.0001627,
+          "upstream_inference_completions_cost": 0.0001675
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 303,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "recommend",
+        "scenarioIds": [
+          "reasoning-agents-md"
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 2267.067557999999
+    },
+    {
+      "id": "q15",
+      "query": "Разбери, как зарабатывает Miro, кто его покупает и как он растёт. На этой основе нужен практический план запуска похожего бизнеса, а не копия интерфейса.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "reverse-business"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "reverse-business"
+        ]
+      ],
+      "retrievedIds": [
+        "reverse-business",
+        "website-clone-page",
+        "bto-evaluate",
+        "news-monitor-delta",
+        "pm-ab-test-analysis"
+      ],
+      "retrievalMs": 2.4671029999990424,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 1676,
+        "completion_tokens": 192,
+        "total_tokens": 1868,
+        "cost": 0.000260964,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0002636,
+          "upstream_inference_prompt_cost": 0.0001676,
+          "upstream_inference_completions_cost": 0.000096
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 164,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "recommend",
+        "scenarioIds": [
+          "reverse-business"
+        ]
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 1514.698434
+    },
+    {
+      "id": "q16",
+      "query": "Есть наш пакет командной строки с README и примерами. Сделай по нему интерактивный учебный курс с упражнениями и финальным тестом, который открывается одним HTML-файлом без сети.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "tutorial-create"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "tutorial-create"
+        ]
+      ],
+      "retrievedIds": [
+        "tutorial-create",
+        "tutorial-check",
+        "reasoning-agents-md",
+        "reasoning-diagnose",
+        "bto-evaluate"
+      ],
+      "retrievalMs": 2.2918829999998707,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "valid": false,
+      "correct": false,
+      "error": "Picker failed or returned invalid output",
+      "responseMs": 2378.171407
+    },
+    {
+      "id": "q17",
+      "query": "Вот URL нашего старого лендинга. Воссоздай его внешний вид и интерактивность на новом фронтенде, включая мобильную версию. Готовый каркас Next.js с Tailwind и доступ к браузерной автоматизации уже есть.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "website-clone-page"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "website-clone-page"
+        ]
+      ],
+      "retrievedIds": [
+        "website-clone-page",
+        "bto-evaluate",
+        "qe-generate-tests",
+        "pm-ab-test-analysis",
+        "website-clone-multiple"
+      ],
+      "retrievalMs": 2.597084000000905,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "valid": false,
+      "correct": false,
+      "error": "Picker failed or returned invalid output",
+      "responseMs": 2451.5507319999997
+    },
+    {
+      "id": "q18",
+      "query": "Нужна презентация нашего сервиса для потенциального заказчика: аргументы с проверенными ссылками и связный текст выступления к каждому слайду. Содержимое можно отдать в Markdown.",
+      "coverage": "full",
+      "relevantScenarioIds": [
+        "presentation-sales",
+        "presentation-speaker"
+      ],
+      "acceptableScenarioSets": [
+        [
+          "presentation-sales"
+        ],
+        [
+          "presentation-speaker"
+        ],
+        [
+          "presentation-sales",
+          "presentation-speaker"
+        ]
+      ],
+      "retrievedIds": [
+        "presentation-speaker",
+        "news-period-digest",
+        "presentation-sales",
+        "news-monitor-delta",
+        "reasoning-agents-md"
+      ],
+      "retrievalMs": 2.1611330000014277,
+      "retrievedRelevant": true,
+      "retrievedComplete": true,
+      "modelAttempted": true,
+      "valid": false,
+      "correct": false,
+      "error": "Picker failed or returned invalid output",
+      "responseMs": 2518.4754269999994
+    },
+    {
+      "id": "q19",
+      "query": "Хочу сделать как у конкурента. С чего начать?",
+      "coverage": "clarify",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [
+        "reverse-cjm"
+      ],
+      "retrievalMs": 2.930544999999256,
+      "retrievedRelevant": false,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 760,
+        "completion_tokens": 141,
+        "total_tokens": 901,
+        "cost": 0.000145035,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0001465,
+          "upstream_inference_prompt_cost": 0.000076,
+          "upstream_inference_completions_cost": 0.0000705
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 119,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "clarify",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 1275.3865809999988
+    },
+    {
+      "id": "q20",
+      "query": "Помоги с тестами.",
+      "coverage": "clarify",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [
+        "qe-generate-tests",
+        "reasoning-refactor"
+      ],
+      "retrievalMs": 2.2461939999993774,
+      "retrievedRelevant": false,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 935,
+        "completion_tokens": 59,
+        "total_tokens": 994,
+        "cost": 0.00012177,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.000123,
+          "upstream_inference_prompt_cost": 0.0000935,
+          "upstream_inference_completions_cost": 0.0000295
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 37,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "clarify",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 920.6185050000004
+    },
+    {
+      "id": "q21",
+      "query": "Мне нужен мониторинг.",
+      "coverage": "clarify",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [],
+      "retrievalMs": 1.7534529999993538,
+      "retrievedRelevant": false,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 452,
+        "completion_tokens": 22,
+        "total_tokens": 474,
+        "cost": 0.000055638,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0000562,
+          "upstream_inference_prompt_cost": 0.0000452,
+          "upstream_inference_completions_cost": 0.000011
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 0,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "clarify",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 781.8135260000017
+    },
+    {
+      "id": "q22",
+      "query": "Сочини короткое поздравление бабушке с юбилеем в стихах.",
+      "coverage": "no-match",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [],
+      "retrievalMs": 1.7573630000006233,
+      "retrievedRelevant": false,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 466,
+        "completion_tokens": 169,
+        "total_tokens": 635,
+        "cost": 0.000129789,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0001311,
+          "upstream_inference_prompt_cost": 0.0000466,
+          "upstream_inference_completions_cost": 0.0000845
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 147,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "no-match",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 1294.347778999998
+    },
+    {
+      "id": "q23",
+      "query": "Закажи доставку двух пицц на мой домашний адрес сегодня к семи.",
+      "coverage": "no-match",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [
+        "devops-cloudru-deploy",
+        "website-clone-multiple",
+        "website-clone-page"
+      ],
+      "retrievalMs": 2.15229299999919,
+      "retrievedRelevant": false,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 1292,
+        "completion_tokens": 69,
+        "total_tokens": 1361,
+        "cost": 0.000162063,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0001637,
+          "upstream_inference_prompt_cost": 0.0001292,
+          "upstream_inference_completions_cost": 0.0000345
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 47,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "no-match",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 969.7513459999991
+    },
+    {
+      "id": "q24",
+      "query": "Обрежь этот аудиофайл до первых тридцати секунд и сохрани в WAV.",
+      "coverage": "no-match",
+      "relevantScenarioIds": [],
+      "acceptableScenarioSets": [],
+      "retrievedIds": [],
+      "retrievalMs": 2.0558529999998427,
+      "retrievedRelevant": false,
+      "retrievedComplete": false,
+      "modelAttempted": true,
+      "modelCalled": true,
+      "usage": {
+        "prompt_tokens": 473,
+        "completion_tokens": 158,
+        "total_tokens": 631,
+        "cost": 0.000125037,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0001263,
+          "upstream_inference_prompt_cost": 0.0000473,
+          "upstream_inference_completions_cost": 0.000079
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 136,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "actualModel": "anthropic/claude-haiku-5.5",
+      "choice": {
+        "decision": "no-match",
+        "scenarioIds": []
+      },
+      "valid": true,
+      "correct": true,
+      "matchesRequestedDecision": true,
+      "responseMs": 1314.0311269999984
+    }
+  ],
+  "summary": {
+    "fullCoverage": 14,
+    "fullCoverageRetrieved": 13,
+    "correct": 14,
+    "total": 24,
+    "modelAttempts": 24
+  }
+}

@@ -1,0 +1,1404 @@
+{
+  "scope": "Paired replay of identical frozen Haiku drafts and source snapshots; direct stateless gateway roles, not E2B native runtime. Single observation per case/profile; development examples, not heldout.",
+  "reports": [
+    {
+      "id": "feature",
+      "reviewer": "anthropic/claude-haiku-5.5",
+      "selector": "frozen Haiku draft from live-team-smoke-v2",
+      "editor": "anthropic/claude-haiku-5.5",
+      "elapsedMs": 22497,
+      "result": {
+        "ok": false,
+        "error": "advice_team_failed",
+        "stage": "review"
+      },
+      "trace": [
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 22479,
+          "usage": {
+            "prompt_tokens": 26468,
+            "completion_tokens": 5227,
+            "total_tokens": 31695,
+            "cost": 0.005207697,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0052603,
+              "upstream_inference_prompt_cost": 0.0026468,
+              "upstream_inference_completions_cost": 0.0026135
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 3466,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "ddaeee75309cb71f69d6c0a3ff35b29c8bb045bdff323cd02032ba94850a7b55",
+            "checks": [
+              {
+                "id": "why:feature-adr",
+                "status": "uncertain",
+                "reason": "Большая часть обоснования подтверждается источником feature-adr: конвейер с шагами требований, ADR с проверкой тестируемости, плана, кода, QE/ревью и флота QE для L/XL, а также Complexity Router, который пропускает ненужные шаги. Режим Reference описан как резервный вариант без agentic-qe. Однако клауза «Для существующего приложения подходит, так как работа начинается с требований» в источнике не встречается: источник говорит о фичах «любой сложности» и не упоминает существующие приложения. Это вывод самого советника, а не утверждение источника.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "pipeline для разработки фич любой сложности"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "Complexity Router автоматически определяет масштаб (S/M/L/XL) и пропускает ненужные шаги."
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "Group 8 (sequential): Step 9 (after Step 8, L/XL only — fleet assessment)"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "Reference mode is the honest fallback for a machine without agentic-qe"
+                  }
+                ]
+              },
+              {
+                "id": "why:explore",
+                "status": "uncertain",
+                "reason": "Подтверждено, что explore уточняет расплывчатые запросы и не предлагает решений до завершения исследования, а feature-adr использует explore на шаге 1 для уточнения требований, поэтому порядок «explore перед feature-adr» согласуется с источниками. Однако утверждение, что при сформулированных требованиях explore «не нужен», источниками не подтверждено: там сказано только, что шаг 1 feature-adr содержит сбор требований, без указания, что explore в этом случае излишен.",
+                "evidence": [
+                  {
+                    "source": "explore",
+                    "quote": "Transform vague requests into crystal-clear, actionable task specifications"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "| explore | Step 1 | Requirements clarification |"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "unsupported",
+                "reason": "Frontmatter источника feature-adr содержит name, description, trust_tier и связанные поля, но не содержит поля type со значением skill. Источник explore также не содержит такого поля. Утверждение, что тип взят из frontmatter источника, не подтверждается ни одним из источников.",
+                "evidence": []
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "Источник feature-adr помечен как coverage «excerpt», то есть передан фрагментом. Поэтому детали шагов 8 и 9 и файлы agentic-qe нельзя считать проверенными полностью. Отметка о неполноте корректна.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "\"coverage\":\"excerpt\""
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "Для задачи «от требований через архитектуру до проверок» подходят feature-adr (основной конвейер) и explore (уточнение требований), и они не дублируют друг друга. Ответ на вопрос «какой первым» условный: explore первым, если требования расплывчаты, иначе feature-adr. Это корректный ответ, а не утверждение о выполнении навыков. Существование внешних требований к установке не блокирует рекомендацию, так как справочный режим описан в источнике.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Порядок согласован: explore относится к шагу 1 feature-adr (требования), далее идут архитектура/ADR, план, код и проверки. Условная рекомендация explore перед feature-adr не противоречит источникам, поскольку explore используется внутри шага 1 feature-adr.",
+                "evidence": []
+              }
+            ],
+            "issues": [
+              "Клауза «Для существующего приложения подходит» в why:feature-adr не подтверждена источником feature-adr; её стоит убрать или пометить как собственный вывод советника.",
+              "Клауза «explore не нужен, если требования сформулированы» в why:explore является выводом, а не утверждением источника; уточнить формулировку или подкрепить.",
+              "gap:0 утверждает, что тип skill взят из frontmatter источника, но в frontmatter такого поля нет; эту строку нужно исправить, например, указав, что тип не подтверждён источниками.",
+              "Поле type в рекомендациях не подтверждено источниками; установочные команды не оценивались, так как они сгенерированы хостом."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "reviewer": "anthropic/claude-haiku-5.5",
+      "selector": "frozen Haiku draft from live-team-smoke-v2",
+      "editor": "anthropic/claude-haiku-5.5",
+      "elapsedMs": 59077,
+      "result": {
+        "ok": false,
+        "error": "advice_team_failed",
+        "stage": "second_review"
+      },
+      "trace": [
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 23691,
+          "usage": {
+            "prompt_tokens": 20649,
+            "completion_tokens": 5663,
+            "total_tokens": 26312,
+            "cost": 0.004847436,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0048964,
+              "upstream_inference_prompt_cost": 0.0020649,
+              "upstream_inference_completions_cost": 0.0028315
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 4066,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "3a2bd72d5775ba190cde2bb3e10961f41d7d5c1641086fb5c8c6967b6bac2327",
+            "checks": [
+              {
+                "id": "why:goap-research-ed25519",
+                "status": "supported",
+                "reason": "Каждое утверждение rationale подтверждается источником: обязательный source URL для фактов, FETCH_VERIFIED для реального HTTP-запроса, отказ отчётного гейта для ASSERTED (источник не открывали), Ed25519 не доказывает истинность, неизвестные домены получают класс D (0.40), Python и cryptography нужны для скриптов. Утверждение про GitHub («источник не описан явно») является корректным наблюдением: в источнике перечислены PubMed, PMC, DOI, WHO, GitHub не упоминается.",
+                "evidence": [
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "1. Every factual claim needs a source URL."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`evidence_fetch.fetch_source()` performed the request and got a 2xx body"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`ASSERTED` claims must not appear in a report at all."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "It does not prove that the claim is true"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "D `0.40` (everything else, including unknown domains)"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "for this package's real health sources (PubMed, PMC, DOI, WHO)"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "Install Python crypto dependencies in a virtual environment:"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "unsupported",
+                "reason": "Часть про то, что в снимке реестра у записей указан только id, не подтверждается ни одним из источников: они не описывают реестр и его снимок. Часть про git-mcp как MCP-сервер подтверждается описанием источника, но это не покрывает всё утверждение. Упоминания OpenCode в источниках нет.",
+                "evidence": [
+                  {
+                    "source": "git-mcp",
+                    "quote": "Git version control via the [@cyanheads/git-mcp-server](https://github.com/cyanheads/git-mcp-server)."
+                  }
+                ]
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "Источник прямо говорит, что strict/paranoid планирование недостижимо без реальных ключей и signed-source интеграции (флаги issuer_keys_available и source_class_verified). Ограничение FETCH_VERIFIED как доставки байтов, а не качества источника, также указано в источнике.",
+                "evidence": [
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`strict`/`paranoid` high-stakes PLANNING is honestly unreachable out of the box"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`FETCH_VERIFIED` means the bytes arrived — not that the source is right."
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "uncertain",
+                "reason": "Выбранный навык релевантен для части задачи (фиксация источников и проверяемых ссылок), но источник описывает медицинские исследования: тиры источников, гейт популяции и самообучение ориентированы на health-данные, а GitHub не описан. Рекомендация не отмечает этого несоответствия явно, поэтому пригодность для GitHub-проектов остаётся неподтверждённой. Избыточных выборов нет, так как выбран один навык.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Конвейер согласован: выбран один навык, условных рекомендаций и порядка выполнения нет, а git-mcp исключён в gap, что соответствует его описанию как MCP-сервера.",
+                "evidence": []
+              }
+            ],
+            "issues": [
+              "Навык ориентирован на медицинские исследования (PubMed, PMC, DOI, WHO, гейт популяции пациента, медицинское хранилище самообучения), а задача касается GitHub-проектов. Рекомендация не объясняет этого несоответствия и не предупреждает, что тиры источников и гейт не описывают GitHub.",
+              "Утверждение о снимке реестра (только id у записей) и о маршруте установки для OpenCode не подтверждается предоставленными источниками и остаётся недоказанным."
+            ]
+          }
+        },
+        {
+          "role": "editor",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 11824,
+          "usage": {
+            "prompt_tokens": 22190,
+            "completion_tokens": 2255,
+            "total_tokens": 24445,
+            "cost": 0.003313035,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0033465,
+              "upstream_inference_prompt_cost": 0.002219,
+              "upstream_inference_completions_cost": 0.0011275
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1832,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Исследовать GitHub-проекты и сохранять проверяемые ссылки на источники.",
+            "recommendations": [
+              {
+                "name": "goap-research-ed25519",
+                "type": "skill",
+                "fit": "medium",
+                "why": "Фиксирует источники и проверяемые ссылки: fetch_source записывает реальный HTTP-ответ (FETCH_VERIFIED), отчётный гейт отклоняет ASSERTED-утверждения. Ed25519 доказывает только неизменность записи, не истинность. Неизвестные домены получают класс D (0.40). Источник не описывает GitHub; тиры и гейт популяции ориентированы на медицину. Нужны Python и пакет cryptography.",
+                "install": "dz init --target opencode --select goap-research-ed25519"
+              }
+            ],
+            "gaps": [
+              "Навык описан для медицинских исследований (PubMed, DOI, WHO, гейт популяции); для GitHub-проектов тиры и гейт не применимы напрямую, а проверка подтверждает только доставку байтов, не качество проекта.",
+              "Маршрут установки для OpenCode и команда dz init не подтверждены предоставленными источниками; strict и paranoid недостижимы без реальных подписанных источников и ключей эмитентов."
+            ]
+          }
+        },
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 23493,
+          "usage": {
+            "prompt_tokens": 20628,
+            "completion_tokens": 5330,
+            "total_tokens": 25958,
+            "cost": 0.004680522,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0047278,
+              "upstream_inference_prompt_cost": 0.0020628,
+              "upstream_inference_completions_cost": 0.002665
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 3830,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "2b7024ee719d6efd98b8f26151080969f77613803f5445ac5aa5574f92775c08",
+            "checks": [
+              {
+                "id": "why:goap-research-ed25519",
+                "status": "supported",
+                "reason": "Each clause is backed by the goap-research-ed25519 text. FETCH_VERIFIED is produced by fetch_source, and the report gate rejects ASSERTED claims. Ed25519 proves integrity and provenance, not truth. Unknown domains get class D at 0.40. The source is medicine-oriented (PubMed, PMC, DOI, WHO, patient profile). Python and cryptography are required.",
+                "evidence": [
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`evidence_fetch.fetch_source()` performed the request and got a 2xx body"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`ASSERTED` claims must not appear in a report at all."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "It does not prove that the claim is true"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "everything else, including unknown domains"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "for this package's real health sources (PubMed, PMC, DOI, WHO)"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "Install Python crypto dependencies in a virtual environment"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "supported",
+                "reason": "The source explicitly frames the package around health sources and says the FETCH_VERIFIED check means only that bytes were received, not that the source is authoritative or the claim follows. The inference that tiers and the population gate do not apply directly to GitHub projects is a reasonable reading of a source that does not mention GitHub, and the quotes support the health framing.",
+                "evidence": [
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "for this package's real health sources (PubMed, PMC, DOI, WHO)"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "it means the bytes were received."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "Provenance, not truth."
+                  }
+                ]
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "The sources mention the dz CLI only generally and never confirm an OpenCode install route or 'dz init', so that part is accurate. The source states that strict and paranoid planning is unreachable out of the box without real signed-source capability and issuer keys.",
+                "evidence": [
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`strict`/`paranoid` high-stakes PLANNING is honestly unreachable out of the box"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "needs `dz` on PATH"
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "uncertain",
+                "reason": "The pick has real but partial relevance. Its fetch-and-record path and the ASSERTED gate fit verifiable source links, and the medium fit and caveats are stated honestly. However, the core tiers and gate are medical, and the sources do not show that the skill helps with GitHub project research specifically. The git-mcp source was supplied but not picked. That is defensible because git-mcp covers version-control operations, not source research, but the advice does not explain that choice. Whether the single pick is sufficient for the 'first set' is a judgment the sources cannot settle.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "The advice has one recommendation, no conditional picks, and no declared execution order, so there is no internal inconsistency to find. The install command is host-generated and is not required to be documented by the source.",
+                "evidence": []
+              }
+            ],
+            "issues": [
+              "taskFit is only partially supported: the advice does not explain why git-mcp, which was supplied as a source, is excluded from a GitHub-oriented first set. This is a reasoning gap, not a factual error.",
+              "The advice presents one medium-fit skill as the 'first set' for a GitHub task, while its own gaps say the tiers and population gate do not apply. The user is left with a tool that only partly matches the task, and the advice does not say what GitHub-specific verification remains necessary."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "cloudru",
+      "reviewer": "anthropic/claude-haiku-5.5",
+      "selector": "frozen Haiku draft from live-team-smoke-v2",
+      "editor": "anthropic/claude-haiku-5.5",
+      "elapsedMs": 23056,
+      "result": {
+        "ok": false,
+        "error": "advice_team_failed",
+        "stage": "review"
+      },
+      "trace": [
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 23001,
+          "usage": {
+            "prompt_tokens": 7424,
+            "completion_tokens": 5637,
+            "total_tokens": 13061,
+            "cost": 0.003525291,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0035609,
+              "upstream_inference_prompt_cost": 0.0007424,
+              "upstream_inference_completions_cost": 0.0028185
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 3622,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "3a3c7a952e387ace0a9df559cbe3f8d8f640602e2ef57d0b83047fd9486e46b9",
+            "checks": [
+              {
+                "id": "why:deploy-on-cloudru-vm",
+                "status": "supported",
+                "reason": "Источник описывает клонирование и анализ репозитория, синтез compose, сбор четырёх учётных данных, развёртывание через cloudru-vm, проверку через verify и выдачу IP и SSH-строки. Установка CLI через go install указана в источнике. Ограничение фрагментом подтверждается полем coverage источника.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "clone & analyze any GitHub/GitLab"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "collect the four required Cloud.ru credentials"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "go install github.com/dzhechko/cloudru-vm-cli/cmd/cloudru-vm@latest"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "HTTP health-check of exposed ports"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "\"coverage\":\"excerpt\""
+                  }
+                ]
+              },
+              {
+                "id": "why:canary-watch",
+                "status": "uncertain",
+                "reason": "Перечень проверок (HTTP, консоль, производительность, статические ресурсы, SSE), режим наблюдения за окно и отсутствие привязки к Cloud.ru подтверждаются источником. Фраза «нужен только если» является собственным выводом рекомендации: источник указывает сценарии использования, но не утверждает, что skill нужен исключительно при наблюдении после релиза. Утверждение «шаг verify покрывает базовую проверку» подтверждается описанием verify, но не сравнением покрытия.",
+                "evidence": [
+                  {
+                    "source": "canary-watch",
+                    "quote": "Monitors a deployed URL for regressions."
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "Continuous monitoring during a launch window"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "SSE Streams — do event-stream endpoints connect"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "check every N minutes for M hours"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "HTTP health-check of exposed ports"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "unsupported",
+                "reason": "Ни один из предоставленных источников не описывает снимок реестра, его содержимое или подтверждение типа skill и установочных данных. Утверждение нельзя проверить по источникам.",
+                "evidence": []
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "Источник deploy-on-cloudru-vm требует четыре учётные данные и просит пользователя их предоставить. Источник canary-watch описывает мониторинг развёрнутого URL, из чего следует, что он не управляет инфраструктурой. Отсутствие управления инфраструктурой выводится из описания функций, а не из явного запрета, но описание согласуется с этим выводом.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "collect the four required Cloud.ru credentials"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "Monitors a deployed URL for regressions."
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "deploy-on-cloudru-vm закрывает развёртывание, проверку и базовое сопровождение (status, logs, destroy). canary-watch добавляет непрерывный мониторинг, что относится к запросу на проверки и сопровождение. Перекрытие с verify признано в рекомендации, а ограничения (фрагмент, учётные данные) указаны.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "unsupported",
+                "reason": "Порядок deploy → canary-watch согласуется с источниками, так как canary-watch описан как проверка после развёртывания. Однако canary-watch в rationale назван условным («нужен только если»), а pipeline включает его безусловно. Это внутреннее противоречие.",
+                "evidence": []
+              }
+            ],
+            "issues": [
+              "Pipeline включает canary-watch безусловно, тогда как rationale описывает его как условный («Нужен только если требуется наблюдение после релиза»). Нужно либо пометить шаг как условный, либо изменить rationale.",
+              "Gap о снимке реестра не подтверждён предоставленными источниками; при этом host сообщает, что членство в реестре проверено. Утверждение лучше переформулировать или снять.",
+              "canary-watch имеет trust_tier 0 («Community (imported from ECC)»), что в рекомендации не отражено. Это не основание для отказа, но ограничение стоит указать.",
+              "В canary-watch уведомления и журнал описаны с опорой на desktop-уведомления и путь ~/.claude/canary-watch.log, что привязано к среде Claude Code. Целевой установщик — opencode, поэтому совместимость с выбранной средой не подтверждена источником.",
+              "Источник canary-watch не описывает интеграцию с Cloud.ru или с выводом cloudru-vm status; совместная работа с deploy-on-cloudru-vm по URL предполагается, но не описана."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "feature",
+      "reviewer": "anthropic/claude-sonnet-5.5",
+      "selector": "frozen Haiku draft from live-team-smoke-v2",
+      "editor": "anthropic/claude-haiku-5.5",
+      "elapsedMs": 33465,
+      "result": {
+        "ok": false,
+        "error": "advice_team_failed",
+        "stage": "second_review"
+      },
+      "trace": [
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 7442,
+          "usage": {
+            "prompt_tokens": 26468,
+            "completion_tokens": 1092,
+            "total_tokens": 27560,
+            "cost": 0.06321744,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.063856,
+              "upstream_inference_prompt_cost": 0.052936,
+              "upstream_inference_completions_cost": 0.01092
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "ddaeee75309cb71f69d6c0a3ff35b29c8bb045bdff323cd02032ba94850a7b55",
+            "checks": [
+              {
+                "id": "why:feature-adr",
+                "status": "supported",
+                "reason": "Шаги 1, 3, 6, 7, 8, 9 и Complexity Router подтверждены. Режим agentic-qe требует установки aqe, справочный режим описан как запасной вариант без установки. Уточнение «существующего приложения» является выводом, но не противоречит источнику. Шаг 3 назван ADR + shift-left, а проверка тестируемости упомянута.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "11-step feature development pipeline with Complexity Router (S/M/L/XL)"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "| **L** | 11-30 files, 2-4 domains | 0→1→2→3→3.5→4→5→6→7→8→9 | New module, integration |"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "Reference mode is the honest fallback for a\nmachine without agentic-qe"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "3  ADR + Shift-Left          | - | ✓ Nygard/ITD"
+                  }
+                ]
+              },
+              {
+                "id": "why:explore",
+                "status": "supported",
+                "reason": "Источник описывает уточнение расплывчатых запросов вопросами и итоговый Task Brief, запрещает предлагать решения до завершения исследования. Feature-adr в списке внешних навыков указывает explore как используемый на шаге 1 для уточнения требований, что подтверждает условную рекомендацию.",
+                "evidence": [
+                  {
+                    "source": "explore",
+                    "quote": "Transform vague requests into crystal-clear, actionable task specifications through systematic Socratic questioning."
+                  },
+                  {
+                    "source": "explore",
+                    "quote": "Premature solutions:** Don't hint at solutions before exploration is complete"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "| explore | Step 1 | Requirements clarification |"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "uncertain",
+                "reason": "Утверждение о снимке реестра не проверяется по источникам. Frontmatter feature-adr не содержит поля type: skill, а тип явно не указан.",
+                "evidence": []
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "Оба источника помечены как excerpt, тексты модулей шагов 8 и 9 и файлов agentic-qe в источнике не представлены, только их перечень и таблицы.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "├── references/\n│   ├── complexity-matrix.md"
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "Выбор feature-adr первым соответствует задаче: конвейер от требований через ADR и архитектуру до QE. Explore дан как условное необязательное дополнение, избыточности нет. Оговорка про aqe уместна.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Порядок явно не запрашивался; условная связка explore → feature-adr согласуется с описаниями.",
+                "evidence": []
+              }
+            ],
+            "issues": [
+              "Заявление gap:0 о типе skill не подкреплено frontmatter: поля type там нет."
+            ]
+          }
+        },
+        {
+          "role": "editor",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 9430,
+          "usage": {
+            "prompt_tokens": 27578,
+            "completion_tokens": 1932,
+            "total_tokens": 29510,
+            "cost": 0.003686562,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0037238,
+              "upstream_inference_prompt_cost": 0.0027578,
+              "upstream_inference_completions_cost": 0.000966
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1467,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Провести новую возможность в действующем приложении от требований до проверок и выбрать первый навык.",
+            "recommendations": [
+              {
+                "name": "feature-adr",
+                "type": "skill",
+                "fit": "high",
+                "why": "Конвейер разработки фичи: требования (шаг 1), ADR с проверкой тестируемости (шаг 3), план (шаг 6), код (шаг 7), QE и ревью (шаг 8). Complexity Router подбирает шаги под размер задачи. Подходит для существующего приложения, так как начинается с требований. Режим agentic-qe требует установленного aqe; без него доступен справочный режим.",
+                "install": "dz init --target opencode --select feature-adr"
+              },
+              {
+                "name": "explore",
+                "type": "skill",
+                "fit": "medium",
+                "why": "Уточняет расплывчатые запросы вопросами и даёт техническое задание без решений. Используйте его перед feature-adr, если требования неясны. Если они уже сформулированы, шаг 1 feature-adr покрывает эту задачу.",
+                "install": "dz init --target opencode --select explore"
+              }
+            ],
+            "gaps": [
+              "Снимок реестра не содержит поля type, а frontmatter источников его не задаёт; тип skill не подтверждён реестром, хост должен проверить его.",
+              "Источник feature-adr дан фрагментом: детали шагов 8–9 и файлы agentic-qe проверены не полностью."
+            ]
+          }
+        },
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 16571,
+          "usage": {
+            "prompt_tokens": 26330,
+            "completion_tokens": 2533,
+            "total_tokens": 28863,
+            "cost": 0.0772101,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.07799,
+              "upstream_inference_prompt_cost": 0.05266,
+              "upstream_inference_completions_cost": 0.02533
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1457,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "f3d7a4e61063b01678eff5ad9eb28542f84b4b782372d4855a3eec39d3b23d0d",
+            "checks": [
+              {
+                "id": "why:feature-adr",
+                "status": "supported",
+                "reason": "Источник подтверждает шаги конвейера: требования, ADR с проверкой тестируемости (shift-left), план, код, QE и ревью. Complexity Router подбирает активные шаги под размер задачи. Без установленного aqe происходит откат в reference-режим. Фраза про существующее приложение — вывод из того, что конвейер начинается с требований. Он умеренный и не искажает источник.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "Complexity Router автоматически определяет масштаб (S/M/L/XL) и пропускает ненужные шаги."
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "ADR testability validation (Level 4: Risk Analysis in Design)"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "4. If flag present but not installed → WARN and fall back to reference mode"
+                  }
+                ]
+              },
+              {
+                "id": "why:explore",
+                "status": "supported",
+                "reason": "Explore уточняет расплывчатые запросы вопросами и выдаёт Task Brief без решений. Feature-adr использует explore на шаге 1 для уточнения требований, а шаг 1 собирает требования для всех уровней сложности.",
+                "evidence": [
+                  {
+                    "source": "explore",
+                    "quote": "Transform vague requests into crystal-clear, actionable task specifications through systematic Socratic questioning."
+                  },
+                  {
+                    "source": "explore",
+                    "quote": "Never solve before you understand."
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "| explore | Step 1 | Requirements clarification |"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "uncertain",
+                "reason": "Frontmatter источников действительно не содержит поля type. Но снимок реестра в источниках не приведён, поэтому утверждение о его содержимом проверить нельзя.",
+                "evidence": []
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "Источник feature-adr помечен как фрагмент (coverage: excerpt). Модули шагов и файлы agentic-qe в нём только перечислены в дереве файлов, их содержимого нет. Поэтому детали шагов 8–9 и файлов agentic-qe проверить нельзя.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "qe-ref-shift-left-testing/REFERENCE.md"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "09-fleet-qe.md"
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "Feature-adr покрывает путь от требований через ADR и архитектуру до QE и подходит как первый навык. Explore подан как условный предшественник на случай неясных требований, лишним он не выглядит. Оговорка про тип навыка и фрагментарность источника уместна.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Явного конвейера нет. Порядок в рекомендациях (при неясных требованиях explore перед feature-adr, иначе сразу feature-adr) согласован с описаниями.",
+                "evidence": []
+              }
+            ],
+            "issues": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "reviewer": "anthropic/claude-sonnet-5.5",
+      "selector": "frozen Haiku draft from live-team-smoke-v2",
+      "editor": "anthropic/claude-haiku-5.5",
+      "elapsedMs": 36184,
+      "result": {
+        "ok": true,
+        "advice": {
+          "task": "Исследовать GitHub-проекты и сохранять проверяемые ссылки на источники.",
+          "recommendations": [
+            {
+              "name": "goap-research-ed25519",
+              "type": "skill",
+              "fit": "medium",
+              "why": "Подходит для проверяемых ссылок: каждый факт требует source URL, fetch_source фиксирует реальный HTTP-ответ (FETCH_VERIFIED), а report gate отклоняет утверждения без открытия источника. Ограничения: навык создан для high-stakes исследований и требует study_population для фактов, что для GitHub-проектов является лишней нагрузкой. Ed25519 доказывает только неизменность записи, а не истинность; неизвестные домены получают класс D (0.40); для GitHub источник не описан явно; нужны Python и пакет cryptography.",
+              "install": "dz init --target opencode --select goap-research-ed25519"
+            }
+          ],
+          "gaps": [
+            "Снимок реестра не передан, поэтому тип записи и маршрут установки dz init для OpenCode не проверены. git-mcp не выбран: по описанию источника это MCP-сервер, а не навык.",
+            "Режимы strict и paranoid недостижимы без реальных подписанных источников и ключей эмитентов; проверка ограничена доставкой байтов и не оценивает качество GitHub-проектов."
+          ]
+        }
+      },
+      "trace": [
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 14708,
+          "usage": {
+            "prompt_tokens": 20649,
+            "completion_tokens": 2121,
+            "total_tokens": 22770,
+            "cost": 0.06188292,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.062508,
+              "upstream_inference_prompt_cost": 0.041298,
+              "upstream_inference_completions_cost": 0.02121
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 890,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "3a2bd72d5775ba190cde2bb3e10961f41d7d5c1641086fb5c8c6967b6bac2327",
+            "checks": [
+              {
+                "id": "why:goap-research-ed25519",
+                "status": "supported",
+                "reason": "Каждая часть обоснования подтверждается текстом навыка: требование source URL, FETCH_VERIFIED через fetch_source, отклонение ASSERTED в report gate, ограничения Ed25519, класс D для неизвестных доменов и зависимость от cryptography. Фраза «для GitHub источник не описан явно» соответствует тексту: GitHub в нём не упоминается.",
+                "evidence": [
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "Every factual claim needs a source URL."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`FETCH_VERIFIED` | `evidence_fetch.fetch_source()` performed the request and got a 2xx body"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`ASSERTED` claims must not appear in a report at all."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "It does not prove that the claim is true"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "D `0.40` (everything else, including unknown domains)"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": ".venv/bin/pip install cryptography"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "uncertain",
+                "reason": "Вторая часть подтверждается: git-mcp описан как MCP-сервер. Первая часть («в снимке реестра у записей указан только id…») опирается на данные реестра, которых в источниках нет, поэтому проверить её нельзя. Кроме того, в рекомендации тип указан как skill, а в gap он назван неподтверждённым.",
+                "evidence": [
+                  {
+                    "source": "git-mcp",
+                    "quote": "Git version control via the [@cyanheads/git-mcp-server]"
+                  },
+                  {
+                    "source": "git-mcp",
+                    "quote": "## MCP Server"
+                  }
+                ]
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "Источник прямо говорит, что strict/paranoid недостижимы по умолчанию без ключей эмитентов и подписанной доставки, а FETCH_VERIFIED означает только получение байтов, а не авторитетность источника.",
+                "evidence": [
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`strict`/`paranoid` high-stakes PLANNING is honestly unreachable out of the box."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "it means the bytes were received. It does **not** mean the"
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "uncertain",
+                "reason": "Выбор одного навыка для проверяемых ссылок логичен, git-mcp верно исключён, а ограничения названы. Но навык ориентирован на медицинские исследования: study_population обязателен для всех фабрик, есть profile и population gate. Для GitHub-проектов это существенное трение, которое в рекомендации не упомянуто. Оценка fit «medium» остаётся приемлемой.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Pipeline не задан. Задача порядок не требует, а единственная рекомендация не условная.",
+                "evidence": []
+              }
+            ],
+            "issues": [
+              "В рекомендации не сказано, что навык заточен под медицинские/high-stakes исследования: обязательный study_population и population gate. Для GitHub-проектов это лишняя нагрузка.",
+              "В gap:0 тип skill назван неподтверждённым, но в recommendations он указан как skill. Данные «снимка реестра» в источниках отсутствуют."
+            ]
+          }
+        },
+        {
+          "role": "editor",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 7625,
+          "usage": {
+            "prompt_tokens": 22125,
+            "completion_tokens": 1698,
+            "total_tokens": 23823,
+            "cost": 0.003030885,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0030615,
+              "upstream_inference_prompt_cost": 0.0022125,
+              "upstream_inference_completions_cost": 0.000849
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1213,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Исследовать GitHub-проекты и сохранять проверяемые ссылки на источники.",
+            "recommendations": [
+              {
+                "name": "goap-research-ed25519",
+                "type": "skill",
+                "fit": "medium",
+                "why": "Подходит для проверяемых ссылок: каждый факт требует source URL, fetch_source фиксирует реальный HTTP-ответ (FETCH_VERIFIED), а report gate отклоняет утверждения без открытия источника. Ограничения: навык создан для high-stakes исследований и требует study_population для фактов, что для GitHub-проектов является лишней нагрузкой. Ed25519 доказывает только неизменность записи, а не истинность; неизвестные домены получают класс D (0.40); для GitHub источник не описан явно; нужны Python и пакет cryptography.",
+                "install": "dz init --target opencode --select goap-research-ed25519"
+              }
+            ],
+            "gaps": [
+              "Снимок реестра не передан, поэтому тип записи и маршрут установки dz init для OpenCode не проверены. git-mcp не выбран: по описанию источника это MCP-сервер, а не навык.",
+              "Режимы strict и paranoid недостижимы без реальных подписанных источников и ключей эмитентов; проверка ограничена доставкой байтов и не оценивает качество GitHub-проектов."
+            ]
+          }
+        },
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 13824,
+          "usage": {
+            "prompt_tokens": 20682,
+            "completion_tokens": 1932,
+            "total_tokens": 22614,
+            "cost": 0.06007716,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.060684,
+              "upstream_inference_prompt_cost": 0.041364,
+              "upstream_inference_completions_cost": 0.01932
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 833,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "ba3ea272944a1ec193df9a99c0b767b3ef4bb63212230794dcec9e98e74d6bb0",
+            "checks": [
+              {
+                "id": "why:goap-research-ed25519",
+                "status": "supported",
+                "reason": "Каждая часть обоснования подтверждается источником: обязательный URL, FETCH_VERIFIED через fetch_source, report gate, требование study_population, ограничения Ed25519, класс D и зависимость от Python и cryptography. Фраза «лишняя нагрузка для GitHub» — оценка автора, а не утверждение об источнике. Отсутствие GitHub в описанных тирах подтверждается молчанием источника, а не прямым текстом.",
+                "evidence": [
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "1. Every factual claim needs a source URL."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`evidence_fetch.fetch_source()` performed the request and got a 2xx body"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "`ASSERTED` claims must not appear in a report at all."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "Every newly created fact must state who the finding was measured in."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "Ed25519 does not prove truthfulness or prevent hallucination."
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "D `0.40` (everything else, including unknown domains)"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": ".venv/bin/pip install cryptography"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "supported",
+                "reason": "Описание git-mcp в источнике подтверждает, что это MCP-сервер. Первая часть («снимок реестра не передан») относится к самому запросу, источники её не опровергают.",
+                "evidence": [
+                  {
+                    "source": "git-mcp",
+                    "quote": "Git version control via the [@cyanheads/git-mcp-server]"
+                  },
+                  {
+                    "source": "git-mcp",
+                    "quote": "- **Package:** `@cyanheads/git-mcp-server`"
+                  }
+                ]
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "Источник прямо говорит, что strict и paranoid недостижимы без ключей эмитентов и подписанной доставки. Он же указывает, что FETCH_VERIFIED означает только получение байтов, а не качество источника.",
+                "evidence": [
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "**Stated plainly: for this package's real health sources (PubMed, PMC, DOI, WHO) neither"
+                  },
+                  {
+                    "source": "goap-research-ed25519",
+                    "quote": "it means the bytes were received. It does **not** mean the"
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "Выбран один релевантный навык с оговорками: он даёт проверяемые источники, но создан для медицинских и high-stakes исследований. Исключение git-mcp обосновано, избыточных рекомендаций нет. Уровень fit «medium» соответствует этим ограничениям.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Порядок выполнения в запросе не требуется, а рекомендация одна и условных выборов нет, так что противоречий нет.",
+                "evidence": []
+              }
+            ],
+            "issues": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "cloudru",
+      "reviewer": "anthropic/claude-sonnet-5.5",
+      "selector": "frozen Haiku draft from live-team-smoke-v2",
+      "editor": "anthropic/claude-haiku-5.5",
+      "elapsedMs": 35026,
+      "result": {
+        "ok": false,
+        "error": "advice_team_failed",
+        "stage": "second_review"
+      },
+      "trace": [
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 7337,
+          "usage": {
+            "prompt_tokens": 7424,
+            "completion_tokens": 1223,
+            "total_tokens": 8647,
+            "cost": 0.02680722,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.027078,
+              "upstream_inference_prompt_cost": 0.014848,
+              "upstream_inference_completions_cost": 0.01223
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "3a3c7a952e387ace0a9df559cbe3f8d8f640602e2ef57d0b83047fd9486e46b9",
+            "checks": [
+              {
+                "id": "why:deploy-on-cloudru-vm",
+                "status": "supported",
+                "reason": "Вся формулировка подтверждается источником: полный путь от репозитория до работающего приложения, анализ, compose, сбор учётных данных, CLI, проверка, IP и SSH. Четыре значения и установка через go install тоже указаны. Покрытие помечено как excerpt.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "Repo URL → running app on a Cloud.ru VM, one conversation: clone & analyze any GitHub/GitLab"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "collect the four required Cloud.ru credentials"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "go install github.com/dzhechko/cloudru-vm-cli/cmd/cloudru-vm@latest"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "hand\n  back the public IP / connection URL / ssh string"
+                  }
+                ]
+              },
+              {
+                "id": "why:canary-watch",
+                "status": "supported",
+                "reason": "Источник подтверждает проверки HTTP, консоли, производительности, статических ресурсов, SSE и режим длительного наблюдения. Он не привязан к Cloud.ru. Базовую проверку verify даёт deploy-on-cloudru-vm.",
+                "evidence": [
+                  {
+                    "source": "canary-watch",
+                    "quote": "Static Assets — are JS, CSS, image, and font requests returning 2xx/3xx with expected content types?"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "SSE Streams — do event-stream endpoints connect and receive an initial event or heartbeat?"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "/canary-watch https://myapp.com --interval 5m --duration 2h"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "cloudru-vm verify          # HTTP health-check of exposed ports"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "uncertain",
+                "reason": "Это утверждение о содержимом снимка реестра, которого в источниках нет. Подтвердить или опровергнуть его по ним нельзя.",
+                "evidence": []
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "Источник требует запрашивать у пользователя четыре значения. canary-watch описывает только проверки и мониторинг URL и не содержит управления инфраструктурой Cloud.ru; это следует из описанных функций.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "The CLI requires four values. Check env first, then `.cloudru-vm.yaml`, then **ask the user**"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "Monitors a deployed URL for regressions."
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "deploy-on-cloudru-vm прямо подходит для развёртывания из GitHub на Cloud.ru. canary-watch уместен для проверок и сопровождения после релиза и честно описан как необязательный. Оговорки (учётные данные, установка CLI, неполное покрытие) корректны. Выбор нереднудантный.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Порядок deploy, затем canary-watch логичен и согласуется с рационалами: мониторинг идёт после развёртывания, а canary-watch условный.",
+                "evidence": []
+              }
+            ],
+            "issues": []
+          }
+        },
+        {
+          "role": "editor",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 8525,
+          "usage": {
+            "prompt_tokens": 8423,
+            "completion_tokens": 1487,
+            "total_tokens": 9910,
+            "cost": 0.001569942,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0015858,
+              "upstream_inference_prompt_cost": 0.0008423,
+              "upstream_inference_completions_cost": 0.0007435
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 889,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Развернуть приложение из GitHub на Cloud.ru, настроить проверки после развёртывания и сопровождение.",
+            "recommendations": [
+              {
+                "name": "deploy-on-cloudru-vm",
+                "type": "skill",
+                "fit": "high",
+                "why": "Источник описывает полный путь от ссылки на репозиторий до работающего приложения на ВМ Cloud.ru: анализ репозитория, подготовку docker-compose.yml, сбор учётных данных, развёртывание через CLI cloudru-vm, проверку работоспособности и выдачу публичного IP и строки SSH. Пользователь должен предоставить четыре учётные данные Cloud.ru, а CLI нужно установить отдельно (через go install). Покрытие источника неполное (фрагмент).",
+                "install": "dz init --target opencode --select deploy-on-cloudru-vm"
+              },
+              {
+                "name": "canary-watch",
+                "type": "skill",
+                "fit": "medium",
+                "why": "Дополняет развёртывание непрерывной проверкой URL: HTTP-статус, ошибки консоли, производительность, статические ресурсы и SSE-потоки, а также режим наблюдения в течение заданного времени. Нужен только если требуется наблюдение после релиза; skill не привязан к Cloud.ru, а шаг verify из deploy-on-cloudru-vm покрывает базовую проверку. Источник также является фрагментом.",
+                "install": "dz init --target opencode --select canary-watch"
+              }
+            ],
+            "gaps": [
+              "Для развёртывания нужны четыре учётные данные Cloud.ru, которые пользователь должен предоставить; canary-watch выполняет только проверки URL и не управляет инфраструктурой Cloud.ru."
+            ],
+            "pipeline": [
+              "deploy-on-cloudru-vm"
+            ]
+          }
+        },
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 19155,
+          "usage": {
+            "prompt_tokens": 7313,
+            "completion_tokens": 2659,
+            "total_tokens": 9972,
+            "cost": 0.04080384,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.041216,
+              "upstream_inference_prompt_cost": 0.014626,
+              "upstream_inference_completions_cost": 0.02659
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1311,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "0e49d962ead791898357f7902d85258f376b501e3b29509ae8bfda51ba31067c",
+            "checks": [
+              {
+                "id": "why:deploy-on-cloudru-vm",
+                "status": "supported",
+                "reason": "Источник описывает весь заявленный путь: анализ репозитория, compose, сбор учётных данных, деплой через cloudru-vm, verify и выдачу IP и SSH. Установка CLI через go install описана отдельно. Оговорка: регион и образ CLI может подсказать через list-zones и list-images, а пользователь лишь выбирает. Поэтому «должен предоставить четыре» немного упрощено, но в целом соответствует «ask the user for whatever is absent». Метка coverage=excerpt подтверждает пометку о фрагменте.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "collect the four required Cloud.ru credentials (asking the user for anything missing)"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "go install github.com/dzhechko/cloudru-vm-cli/cmd/cloudru-vm@latest"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "hand\n  back the public IP / connection URL / ssh string"
+                  }
+                ]
+              },
+              {
+                "id": "why:canary-watch",
+                "status": "supported",
+                "reason": "Источник перечисляет HTTP-статус, ошибки консоли, производительность, статические ресурсы и SSE, а также режим sustained watch с интервалом и длительностью. Он не привязан к Cloud.ru. Базовую проверку покрывает шаг verify в deploy-on-cloudru-vm.",
+                "evidence": [
+                  {
+                    "source": "canary-watch",
+                    "quote": "Static Assets — are JS, CSS, image, and font requests returning 2xx/3xx with expected content types?"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "SSE Streams — do event-stream endpoints connect and receive an initial event or heartbeat?"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "/canary-watch https://myapp.com --interval 5m --duration 2h"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "cloudru-vm verify          # HTTP health-check of exposed ports"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "supported",
+                "reason": "Для deploy-on-cloudru-vm источник требует четыре значения и просит спрашивать у пользователя недостающие. canary-watch только мониторит развёрнутый URL и не провижионит инфраструктуру.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "The CLI requires four values."
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "Monitors a deployed URL for regressions."
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "deploy-on-cloudru-vm прямо подходит под развёртывание из GitHub на Cloud.ru и включает status, verify, logs и destroy для сопровождения. canary-watch дополняет его пост-деплойным мониторингом и помечен как условный, так что избыточным выбором не выглядит. Оговорки о границах навыков уместны.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "uncertain",
+                "reason": "Пайплайн содержит только deploy-on-cloudru-vm. canary-watch рекомендован как условный, но в порядок применения не включён. Пользователь просил объяснить порядок, а пользователь явно просит «настроить проверки», так что место canary-watch после деплоя не указано.",
+                "evidence": []
+              }
+            ],
+            "issues": [
+              "Пайплайн не включает canary-watch, хотя он рекомендован для проверок после развёртывания, и условный порядок «после деплоя» не выражен.",
+              "canary-watch ссылается на Claude-специфичные механизмы (~/.claude/canary-watch.log, PostToolUse hooks), а install-команды заданы для target opencode. Совместимость в источнике не подтверждена."
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

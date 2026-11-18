@@ -1,0 +1,4 @@
+NOTE  C9: twin scan over 13 target(s), 13 on disk, 0 unlisted twins (byte-identical only; drifted copies need identity tests)
+NOTE  C8: all 9 requirement ids referenced
+SKIP  C4: no acid corpus declared (no --acid, no `| A<n> |` table in 00_complexity_assessment.md) — acid-naming check SKIPPED
+K2 plan-completeness: PASS (0 failure(s), 0 warning(s), 1 skip(s)) over 3 ADRs, tier M, in /var/lib/aicoding/dz-harness-opencode-20261109/features/advisor-hybrid-service

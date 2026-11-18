@@ -1,0 +1,54 @@
+{
+  "schema": "fa-review-convergence-1",
+  "phase": "ideation",
+  "nonce": "de785a9d-4fc1-4fc7-af0f-2aae07db2c67",
+  "revision": "3849acee5c7bb085854c1ddd4c59db09addd334a52ae1e758ec6ba3e4a0f9f54",
+  "author": null,
+  "reviews": [
+    {
+      "reviewer": "qcsd-risk",
+      "family": "owner-exception",
+      "independent": true,
+      "verdict": "clean",
+      "conditions": [],
+      "verifications": [],
+      "newRisks": {
+        "assessment": "none identified after complete scope review",
+        "evidence": "Verified prepared manifest hashes. ADR-002 amendment and architecture now preserve both existing ledgers with missing-file preflight and exactly one reservation per guard; separate preview reservation avoids double counting. Writable parent-directory mounts with mapped nonroot UID satisfy actual sibling lock/temp/rename persistence. Active ownership lasts until upstream settles on timeout/disconnect; stage deadlines and 90s shutdown grace bound drain. Stopped-owner-only stale-lock recovery retains counters. Cross-boundary revision/model/dimension/lexicalizer checks fail integrity mismatch; unpaid health avoids quota consumption. Search has no key or published port, advisor alone mounts the existing key, website dependencies and deployment remain untouched. These close the earlier prose findings at design level; runtime implementation remains to be verified in QE.",
+        "conditions": []
+      },
+      "authorAssessmentChecked": false,
+      "deltaVerification": null
+    },
+    {
+      "reviewer": "qcsd-quality",
+      "family": "owner-exception",
+      "independent": true,
+      "verdict": "clean",
+      "conditions": [],
+      "verifications": [],
+      "newRisks": {
+        "assessment": "No new serious risks identified after reviewing the complete prepared ideation scope and affected existing HTTP, admission, selector and request-ledger boundaries.",
+        "evidence": "Verified all six current source digests against prepared manifest. ADR-002 Review amendment and 05_architecture explicitly retain both existing ledgers, require existence preflight, reserve the model ledger once in the container callback and keep that callback out of preview createPreview, resolving the identified ledger-bypass ambiguity. They specify writable parent-directory mounts with mapped nonroot UID, separate read-only secret, active admission until work settles, stopped-owner lock-only recovery, unpaid health and revision validation. Architecture sets embedding/search/selector stage deadlines and longer Caddy/stop budgets. Compared these choices to existing advisor-http.mjs, advisor-admission.mjs, preview-server.mjs, request-ledger.mjs and selector.mjs read during this independent review. ADR-001 retains generic immutable snapshot boundaries and trusted adapter IDs; ADR-003 retains source approval and frozen positive/negative semantic checks. Scope remains two isolated containers plus reusable module, no public publication. This is design verification only; actual container restrictions, reservation counts, state continuity, timeout behavior and semantic results still require implementation tests.",
+        "conditions": []
+      },
+      "authorAssessmentChecked": false,
+      "deltaVerification": null
+    },
+    {
+      "reviewer": "qcsd-testability",
+      "family": "owner-exception",
+      "independent": true,
+      "verdict": "clean",
+      "conditions": [],
+      "verifications": [],
+      "newRisks": {
+        "assessment": "none identified after complete scope review",
+        "evidence": "Verified all prepared manifest digests and amended ADR-002/architecture against existing HTTP/admission boundaries. Both ledger parent-directory mounts, mapped UID, missing-state refusal, active ownership until upstream settles, 5s/2s/60s stages and 75s/90s proxy/shutdown budgets make failure and continuity tests feasible. Unpaid health and revision handshake are explicit. Confirmed preview-server passes dialogueContract, so dialogue.mjs is the correct instruction target; previous search.mjs target concern withdrawn. Repository ownership clarified. Portability via external tarball consumer, real disk/HTTP snapshots, container isolation and frozen semantic positive/negative questions remain explicit acceptance checks. This is design verification, not runtime test evidence.",
+        "conditions": []
+      },
+      "authorAssessmentChecked": false,
+      "deltaVerification": null
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+[
+  {
+    "file": "01-source-grounding.md",
+    "title": "skill-advisor: ground capability claims and caveats in the selected provider sources",
+    "url": "https://github.com/djd1m/dz-harness/issues/26"
+  },
+  {
+    "file": "02-conditional-pipeline.md",
+    "title": "skill-advisor: preserve conditions and avoid redundant first-set pipeline steps",
+    "url": "https://github.com/djd1m/dz-harness/issues/27"
+  },
+  {
+    "file": "03-opencode-installation.md",
+    "title": "skill-advisor: distinguish native OpenCode installation from toolkit and external CLI setup",
+    "url": "https://github.com/djd1m/dz-harness/issues/28"
+  }
+]

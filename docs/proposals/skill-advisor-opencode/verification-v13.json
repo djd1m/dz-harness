@@ -1,0 +1,11 @@
+{
+  "sourceHashesMatch": {
+    "SKILL.md": true,
+    "scripts/check-opencode-advice.mjs": true,
+    "evals/opencode.test.mjs": true
+  },
+  "mechanicalSmokePassed": true,
+  "deleted": true,
+  "independentlyAbsent": true,
+  "semanticAcceptance": "Separate human/model editorial review required; mechanical pass does not establish instruction adherence or factual correctness."
+}

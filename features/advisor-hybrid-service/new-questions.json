@@ -1,0 +1,118 @@
+{
+  "frozenAt": "2026-11-10T08:59:35.094292+00:00",
+  "scope": "Fresh development phrases fixed before new model run; known x38 remains regression. Decisions/IDs require independent semantic audit; no unseen-population claim.",
+  "cases": [
+    {
+      "id": "n01",
+      "query": "We chose Redis over Memcached. Capture the background, alternatives and consequences in a short ADR.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-capture-adr"
+        ]
+      ]
+    },
+    {
+      "id": "n02",
+      "query": "Мы договорились хранить события в PostgreSQL, а не Kafka. Запиши контекст выбора, отвергнутый вариант и компромиссы коротким ADR.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-capture-adr"
+        ]
+      ]
+    },
+    {
+      "id": "n03",
+      "query": "Сохрани принятое решение о REST вместо GraphQL: что обсуждали, почему выбрали REST и какие минусы приняли.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-capture-adr"
+        ]
+      ]
+    },
+    {
+      "id": "n04",
+      "query": "The team picked a modular monolith rather than microservices. Record the decision and what other options were on the table.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-capture-adr"
+        ]
+      ]
+    },
+    {
+      "id": "n05",
+      "query": "Выбрали SQLite вместо PostgreSQL для локального прототипа. Подготовь краткую запись решения; неизвестные причины оставь для моей проверки.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-capture-adr"
+        ]
+      ]
+    },
+    {
+      "id": "n06",
+      "query": "Document our settled decision to use server-side sessions instead of JWT, including the reasons and rejected alternative.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-capture-adr"
+        ]
+      ]
+    },
+    {
+      "id": "n07",
+      "query": "Нужно выбрать архитектуру системы платежей с нуля, сравнить решения и затем реализовать её. Это ещё не принятое решение.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "meta-feature-adr"
+        ]
+      ]
+    },
+    {
+      "id": "n08",
+      "query": "Найди в Gmail письмо аудитора, а затем переведи ему деньги с нашего счёта.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "mcp-gmail-search"
+        ]
+      ]
+    },
+    {
+      "id": "n09",
+      "query": "Спроектируй миграцию и выполни её в production.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "devops-database-migration"
+        ]
+      ]
+    },
+    {
+      "id": "n10",
+      "query": "Найди в библиотечной документации пример API и оплати авиабилеты моей картой.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "mcp-context7-docs"
+        ]
+      ]
+    },
+    {
+      "id": "n11",
+      "query": "Оплати мой коммунальный счёт банковским переводом.",
+      "expectedDecision": "no-match",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "n12",
+      "query": "Помоги с этим, пожалуйста.",
+      "expectedDecision": "clarify",
+      "acceptableScenarioSets": []
+    }
+  ]
+}

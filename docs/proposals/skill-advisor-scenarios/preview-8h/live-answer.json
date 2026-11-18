@@ -1,0 +1,26 @@
+{
+  "query": "Сделать учебный курс по README нашего CLI с упражнениями и подключить вход через SSO.",
+  "response": {
+    "decision": "partial",
+    "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+    "items": [
+      {
+        "package": "@dzhechkov/skills-tutorial-factory",
+        "scenarios": [
+          {
+            "summary": "Описывает создание учебного сайта по пакету с упражнениями и проверкой знаний.",
+            "boundary": "При недостатке учебного материала процесс должен остановиться; форматы различаются по интерактивности.",
+            "nextAction": "Укажите пакет и желаемый формат курса."
+          }
+        ],
+        "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/tutorial-factory/"
+      }
+    ],
+    "missingParts": [
+      "подключить вход через SSO"
+    ],
+    "clarificationQuestion": null
+  },
+  "scope": "one real browser/provider request; no skill execution",
+  "checkedAt": "2026-11-09T22:41:18.447Z"
+}

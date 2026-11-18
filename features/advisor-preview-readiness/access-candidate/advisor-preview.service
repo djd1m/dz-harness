@@ -1,0 +1,23 @@
+# Uninstalled candidate: configure protected EnvironmentFile and dedicated account first.
+[Unit]
+Description=Private dz-harness advisor preview
+After=network-online.target
+
+[Service]
+Type=simple
+User=advisor-preview
+Group=advisor-preview
+WorkingDirectory=/var/lib/aicoding/dz-harness-opencode-20261109
+EnvironmentFile=/etc/aicoding/advisor-preview.env
+ExecStart=/usr/bin/python3 /var/lib/aicoding/dz-harness-opencode-20261109/integrations/skill-advisor-catalog/start-preview.py --gateway
+Restart=no
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/aicoding/advisor-private-state
+UMask=0077
+TimeoutStopSec=70
+
+[Install]
+WantedBy=multi-user.target

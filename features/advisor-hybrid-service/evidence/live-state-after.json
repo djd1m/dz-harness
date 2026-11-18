@@ -1,0 +1,14 @@
+{
+  "model.json": {
+    "version": 1,
+    "limit": 30,
+    "attempts": 4
+  },
+  "admission.json": {
+    "version": 1,
+    "total": 2,
+    "day": "2026-11-10",
+    "daily": 2,
+    "last": 1794302512400
+  }
+}

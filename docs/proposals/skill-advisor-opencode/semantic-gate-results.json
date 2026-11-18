@@ -1,0 +1,1251 @@
+{
+  "nativeV14": {
+    "passed": true,
+    "deleted": true,
+    "independentlyAbsent": true,
+    "sourceSha256AtRun": {
+      "SKILL.md": "642879c21e391522f12f4c1074022852bbe8546fbf06bc727a91d7ce8b2868de",
+      "scripts/check-opencode-advice.mjs": "f91f30112638aeca0fbbc369a1a54ebebd24254f9b2bb656e0b9a22bc867d509",
+      "scripts/check-advice-review.mjs": "e381a7b54265e56c69e6fb8cda319e7c975b52040eab705d084442acadaaad49",
+      "evals/advice-review.test.mjs": "c171667e66ae23559f91a827874d17754dbc87c17f6935888f3bfc7535cbdefc",
+      "evals/opencode.test.mjs": "c5cb486d53167ed5c920a01dbb5e38ceffa03fca421f91b067129dc13b09b1b1"
+    },
+    "turns": [
+      {
+        "id": "feature",
+        "prompt": "В действующем приложении надо провести новую возможность от требований через архитектурное решение до проверок. Какой навык взять первым?",
+        "checked": {
+          "task": "В действующем приложении провести новую возможность от требований через архитектурное решение до проверок.",
+          "recommendations": [
+            {
+              "name": "feature-adr",
+              "type": "skill",
+              "fit": "high",
+              "why": "Единый конвейер разработки фичи: требования (шаг 1), ADR с проверкой тестируемости (шаг 3), архитектура (шаг 5), SPARC-план (шаг 6), код (шаг 7), QE-ревью (шаг 8). Сложность задаёт Complexity Router (S/M/L/XL) и набор шагов; K1/K2-гейты блокируют код до проверки плана.",
+              "install": "dz init --target opencode --select feature-adr"
+            },
+            {
+              "name": "architecture-decision-records",
+              "type": "skill",
+              "fit": "medium",
+              "why": "Дополняет этап архитектурного решения: фиксирует ADR по ходу сессии с контекстом, альтернативами и обоснованием. Полезен, если нужен отдельный журнал решений вне конвейера feature-adr.",
+              "install": "dz init --target opencode --select architecture-decision-records"
+            }
+          ],
+          "gaps": [
+            "Режим Reference feature-adr не запускает агентную QE-флотилию; полные проверки шагов 8–9 требуют установленного agentic-qe (флаг --full-qe).",
+            "Конвейер feature-adr требует выполнения шагов в каталоге features/<slug>/; интеграция с существующим приложением зависит от структуры репозитория."
+          ],
+          "pipeline": [
+            "feature-adr",
+            "architecture-decision-records"
+          ]
+        },
+        "gateAccepted": true,
+        "expectedPrimary": true,
+        "nativeSkillLoaded": true,
+        "primarySourceRead": true,
+        "ms": 15568
+      },
+      {
+        "id": "research",
+        "prompt": "Нужно исследовать GitHub-проекты и сохранить проверяемые ссылки на источники. Подбери первый набор навыков и объясни ограничения.",
+        "checked": {
+          "task": "Исследовать GitHub-проекты и сохранить проверяемые ссылки на источники.",
+          "recommendations": [
+            {
+              "name": "goap-research-ed25519",
+              "type": "skill",
+              "fit": "high",
+              "why": "Прямо покрывает задачу: правило «каждое фактическое утверждение требует URL источника», фиксация источника через fetch_source с байтовым хешем (evidence class FETCH_VERIFIED) и Ed25519-подпись фактов для аудита. Подпись доказывает только, что запись не изменена, а не что утверждение истинно; проверка контента остается за исследователем.",
+              "install": "dz init --target opencode --select goap-research-ed25519"
+            }
+          ],
+          "gaps": [
+            "Ed25519-подпись не доказывает истинность фактов и не предотвращает галлюцинации; для проверки содержимого нужна ручная оценка источников.",
+            "Для strict/paranoid режимов нужны реальные pinned-ключи издателей и source_class_verified; по умолчанию для GitHub-источников эти режимы недостижимы, доступны development и moderate.",
+            "Скилл не выполняет сам обход GitHub-репозиториев: сбор данных требует отдельного инструмента или MCP (например, git-mcp или gitlab), которые в этой выборке не проверялись по исходникам."
+          ]
+        },
+        "gateAccepted": true,
+        "expectedPrimary": true,
+        "nativeSkillLoaded": true,
+        "primarySourceRead": true,
+        "ms": 10384
+      },
+      {
+        "id": "cloudru",
+        "prompt": "Развернуть приложение из GitHub на Cloud.ru, настроить проверки и сопровождение. Объясни выбор навыков, порядок применения и ограничения.",
+        "checked": {
+          "task": "Развернуть приложение из GitHub на Cloud.ru, настроить проверки и сопровождение.",
+          "recommendations": [
+            {
+              "name": "deploy-on-cloudru-vm",
+              "type": "skill",
+              "fit": "high",
+              "why": "Прямо покрывает задачу: клонирует репозиторий GitHub, при необходимости синтезирует docker-compose.yml, запрашивает четыре учётные данные Cloud.ru, разворачивает через CLI cloudru-vm, проверяет здоровье (verify) и выдаёт IP, URL и SSH-строку. Проверки и сопровождение (status, logs, destroy) входят в протокол навыка.",
+              "install": "dz init --target opencode --select deploy-on-cloudru-vm"
+            }
+          ],
+          "gaps": [
+            "Навык использует внешний бинарник cloudru-vm (Go CLI, npm-пакета нет); его нужно установить отдельно, установка навыка этого не делает.",
+            "Учётные данные Cloud.ru (ключ IAM, ID проекта, регион, ID образа) должен предоставить пользователь; навык не получает их самостоятельно.",
+            "Для проверки и сопровождения после деплоя навык опирается на verify и logs cloudru-vm; отдельного мониторинга (canary-watch, trust_tier 0) в выборку не включено как избыточное."
+          ],
+          "pipeline": [
+            "deploy-on-cloudru-vm"
+          ]
+        },
+        "gateAccepted": true,
+        "expectedPrimary": true,
+        "nativeSkillLoaded": true,
+        "primarySourceRead": true,
+        "ms": 13632
+      }
+    ]
+  },
+  "historicalMissingSource": {
+    "trial": "v13-feature",
+    "selected": [
+      "feature-adr",
+      "explore"
+    ],
+    "sourcesAvailable": [
+      "feature-adr"
+    ],
+    "result": "request creation rejects missing selected source before model call"
+  },
+  "reviews": [
+    {
+      "trial": "positive-control-review-v2",
+      "model": "anthropic/claude-haiku-5.5",
+      "startedAt": "2026-11-09T20:28:19.876Z",
+      "finishedAt": "2026-11-09T20:28:29.187Z",
+      "originalUserTaskIncluded": true,
+      "requestHash": "835e52cd12d60b896ccc86be2deea4639c357a14d52cd21f766412bde732c9ef",
+      "sources": [
+        {
+          "id": "deploy-on-cloudru-vm",
+          "coverage": "excerpt",
+          "sha256": "3b734b65872e8b37dc9dfd6184b7cc19aeac786d1efa293a310d703eb88f87d5"
+        }
+      ],
+      "review": {
+        "requestHash": "835e52cd12d60b896ccc86be2deea4639c357a14d52cd21f766412bde732c9ef",
+        "checks": [
+          {
+            "id": "why:deploy-on-cloudru-vm",
+            "status": "supported",
+            "reason": "Источник описывает навык как превращение репозитория GitHub/GitLab в работающее приложение на ВМ Cloud.ru и явно указывает команду `cloudru-vm verify` для HTTP-проверки открытых портов. Обоснование в целом подтверждено.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "Repo URL → running app on a Cloud.ru VM, one conversation: clone & analyze any GitHub/GitLab"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "# HTTP health-check of exposed ports"
+              }
+            ]
+          },
+          {
+            "id": "taskFit",
+            "status": "supported",
+            "reason": "Выбран один навык, который прямо соответствует задаче: деплой GitHub-репозитория на ВМ Cloud.ru и проверка доступности. Избыточных выборов нет. Источник также документирует внешние предпосылки (установка CLI, четыре учетных данных Cloud.ru), которые не отражены в gaps, но это вопрос полноты, а не несоответствия задаче.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "The CLI requires four values. Check env first, then `.cloudru-vm.yaml`, then **ask the user**"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "# cloudru-vm is a Go CLI (no npm package; pre-built binaries not yet released):"
+              }
+            ]
+          },
+          {
+            "id": "pipeline",
+            "status": "supported",
+            "reason": "Пайплайн состоит из одного навыка, который совпадает с единственной рекомендацией. Условных рекомендаций и порядка выполнения не заявлено, поэтому согласованность соблюдена.",
+            "evidence": []
+          }
+        ],
+        "issues": [
+          "В gaps пусто, хотя источник указывает существенные внешние предпосылки: установка бинарника cloudru-vm (через go install или сборку из исходников) и наличие четырех учетных данных Cloud.ru, которые пользователь должен предоставить. Это не опровергает рекомендацию, но делает список пробелов неполным."
+        ]
+      },
+      "result": {
+        "accepted": false,
+        "issues": [
+          "В gaps пусто, хотя источник указывает существенные внешние предпосылки: установка бинарника cloudru-vm (через go install или сборку из исходников) и наличие четырех учетных данных Cloud.ru, которые пользователь должен предоставить. Это не опровергает рекомендацию, но делает список пробелов неполным."
+        ]
+      },
+      "error": null,
+      "usage": {
+        "prompt_tokens": 4999,
+        "completion_tokens": 2125,
+        "total_tokens": 7124,
+        "cost": 0.001546776,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0015624,
+          "upstream_inference_prompt_cost": 0.0004999,
+          "upstream_inference_completions_cost": 0.0010625
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1228,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "kind": "hand-authored control"
+    },
+    {
+      "trial": "positive-control-review",
+      "model": "anthropic/claude-haiku-5.5",
+      "startedAt": "2026-11-09T20:27:24.877Z",
+      "finishedAt": "2026-11-09T20:27:33.000Z",
+      "originalUserTaskIncluded": false,
+      "requestHash": "8f4cc3d4459896274f5aac13d7b89187925c228684b80819dc501b0ca18215ac",
+      "sources": [
+        {
+          "id": "deploy-on-cloudru-vm",
+          "coverage": "excerpt",
+          "sha256": "3b734b65872e8b37dc9dfd6184b7cc19aeac786d1efa293a310d703eb88f87d5"
+        }
+      ],
+      "review": {
+        "requestHash": "8f4cc3d4459896274f5aac13d7b89187925c228684b80819dc501b0ca18215ac",
+        "checks": [
+          {
+            "id": "why:deploy-on-cloudru-vm",
+            "status": "supported",
+            "reason": "The source describes the skill as taking a repo URL to a running app on a Cloud.ru VM, cloning and analyzing GitHub/GitLab repos, and deploying via cloudru-vm. Step 5 documents `cloudru-vm verify` as an HTTP health-check of exposed ports. Together these support both halves of the rationale.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "Take a repository URL, understand what it is, and get it **running on a Cloud.ru VM with a public"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "verify          # HTTP health-check of exposed ports"
+              }
+            ]
+          },
+          {
+            "id": "taskFit",
+            "status": "supported",
+            "reason": "The single pick directly matches the task (deploy a GitHub app to a Cloud.ru VM and verify it). No redundant picks are offered. However, the advice lists no caveats, while the source states prerequisites and credential needs that bear on the task. See issues.",
+            "evidence": []
+          },
+          {
+            "id": "pipeline",
+            "status": "supported",
+            "reason": "The pipeline lists only the one recommended skill, with no conditional picks and no declared ordering requirement. This is consistent with the advice and the task, and the task does not request an order.",
+            "evidence": []
+          }
+        ],
+        "issues": [
+          "The advice has empty gaps and lists no caveats, but the source requires the user to supply four Cloud.ru credentials (IAM key, project ID, region, image ID) and requires the external `cloudru-vm` Go CLI to be installed before use. These prerequisites are not mentioned, so the user may not know what to prepare.",
+          "The source describes the skill as trust_tier 1 (\"Structured\") and says it should be promoted via /bto-test before being treated as Tier 2. The advice does not mention this maturity level."
+        ]
+      },
+      "result": {
+        "accepted": false,
+        "issues": [
+          "The advice has empty gaps and lists no caveats, but the source requires the user to supply four Cloud.ru credentials (IAM key, project ID, region, image ID) and requires the external `cloudru-vm` Go CLI to be installed before use. These prerequisites are not mentioned, so the user may not know what to prepare.",
+          "The source describes the skill as trust_tier 1 (\"Structured\") and says it should be promoted via /bto-test before being treated as Tier 2. The advice does not mention this maturity level."
+        ]
+      },
+      "error": null,
+      "usage": {
+        "prompt_tokens": 4874,
+        "completion_tokens": 1838,
+        "total_tokens": 6712,
+        "cost": 0.001392336,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0014064,
+          "upstream_inference_prompt_cost": 0.0004874,
+          "upstream_inference_completions_cost": 0.000919
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1074,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "kind": "hand-authored control"
+    },
+    {
+      "trial": "positive-control-with-prerequisites-review",
+      "model": "anthropic/claude-haiku-5.5",
+      "startedAt": "2026-11-09T20:30:16.557Z",
+      "finishedAt": "2026-11-09T20:30:28.201Z",
+      "originalUserTaskIncluded": true,
+      "requestHash": "53c51224ef98bf5b6e53df9dc44b987daae0292c63db58b461f98d7befa4a39e",
+      "sources": [
+        {
+          "id": "deploy-on-cloudru-vm",
+          "coverage": "excerpt",
+          "sha256": "3b734b65872e8b37dc9dfd6184b7cc19aeac786d1efa293a310d703eb88f87d5"
+        }
+      ],
+      "review": {
+        "requestHash": "53c51224ef98bf5b6e53df9dc44b987daae0292c63db58b461f98d7befa4a39e",
+        "checks": [
+          {
+            "id": "why:deploy-on-cloudru-vm",
+            "status": "supported",
+            "reason": "The source says the skill takes a repo URL to a running app on a Cloud.ru VM, clones and analyzes GitHub/GitLab repos, deploys via the cloudru-vm CLI, and verifies health. Step 5 lists `cloudru-vm verify` as an HTTP health check of exposed ports. The rationale's claim is supported.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "deploy via the cloudru-vm CLI, verify health"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "HTTP health-check of exposed ports"
+              }
+            ]
+          },
+          {
+            "id": "gap:0",
+            "status": "supported",
+            "reason": "The source states the CLI requires four values: the IAM service key, project ID, region (availability-zone UUID), and image ID. The Prerequisites section says cloudru-vm is a Go CLI. The gap correctly names the CLI and the credentials.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "The CLI requires four values."
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "`CLOUDRU_PROJECT_ID` | Cloud.ru project UUID"
+              }
+            ]
+          },
+          {
+            "id": "taskFit",
+            "status": "supported",
+            "reason": "The single selected skill directly covers the requested deploy-from-GitHub-to-Cloud.ru-VM and post-deploy availability check, so there are no redundant picks. The skill's own text notes that success must not be declared from the deploy exit code alone, which is a relevant caveat. The external CLI dependency is a real prerequisite and is named in the gap.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "Wraps github.com/djd1m/cloudru-vm-cli"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "Do not declare success on `deploy`'s exit code alone"
+              }
+            ]
+          },
+          {
+            "id": "pipeline",
+            "status": "supported",
+            "reason": "The pipeline contains only the one recommended skill, with no conditional picks or declared ordering that conflict with it. The task does not request an explicit order, so the absence of additional steps is acceptable.",
+            "evidence": []
+          }
+        ],
+        "issues": [
+          "The advice does not mention that the source skill is trust_tier 1 (\"Structured\") and has not been promoted to Tier 2. This is not a rejection ground by itself, but it is relevant context for a deployment task.",
+          "The source says pre-built cloudru-vm binaries are not yet released and the CLI requires a Go toolchain (`go install`). The advice's gap names the CLI but does not mention this installation prerequisite."
+        ]
+      },
+      "result": {
+        "accepted": false,
+        "issues": [
+          "The advice does not mention that the source skill is trust_tier 1 (\"Structured\") and has not been promoted to Tier 2. This is not a rejection ground by itself, but it is relevant context for a deployment task.",
+          "The source says pre-built cloudru-vm binaries are not yet released and the CLI requires a Go toolchain (`go install`). The advice's gap names the CLI but does not mention this installation prerequisite."
+        ]
+      },
+      "error": null,
+      "usage": {
+        "prompt_tokens": 5129,
+        "completion_tokens": 2706,
+        "total_tokens": 7835,
+        "cost": 0.001847241,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0018659,
+          "upstream_inference_prompt_cost": 0.0005129,
+          "upstream_inference_completions_cost": 0.001353
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 1600,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "kind": "hand-authored control"
+    },
+    {
+      "trial": "v13-cloudru-review",
+      "model": "anthropic/claude-haiku-5.5",
+      "startedAt": "2026-11-09T20:25:55.313Z",
+      "finishedAt": "2026-11-09T20:26:19.659Z",
+      "originalUserTaskIncluded": false,
+      "requestHash": "095d4a0525f78fbf109f7861d8d9ef7089b41bb59d2e8009ea7e5985dddcf69a",
+      "sources": [
+        {
+          "id": "deploy-on-cloudru-vm",
+          "coverage": "excerpt",
+          "sha256": "ca5ddafa6592b9568315af84352af6dcbf7bc93f39ee85a6c19d0779b86d6bb0"
+        },
+        {
+          "id": "github-actions",
+          "coverage": "excerpt",
+          "sha256": "0125d672d4f223031c6e3265ce6f97f79cc0c6915b8ef509eb26cf62b7cde6f9"
+        }
+      ],
+      "review": {
+        "requestHash": "095d4a0525f78fbf109f7861d8d9ef7089b41bb59d2e8009ea7e5985dddcf69a",
+        "checks": [
+          {
+            "id": "why:deploy-on-cloudru-vm",
+            "status": "supported",
+            "reason": "Источник deploy-on-cloudru-vm описывает переход от URL репозитория к работающему приложению на ВМ Cloud.ru: анализ репозитория, подготовку docker-compose.yml, сбор четырёх учётных данных, деплой через cloudru-vm, проверку здоровья и выдачу публичного IP, ссылки подключения и ssh-строки. Обоснование не выходит за пределы этого.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "deploy via the cloudru-vm CLI, verify health, and hand"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "Repo URL → running app on a Cloud.ru VM"
+              }
+            ]
+          },
+          {
+            "id": "why:github-actions",
+            "status": "uncertain",
+            "reason": "Источник подтверждает проверки на pull_request (Pattern B), деплой на push в main (Pattern A), закрепление действий по SHA, OIDC и environment protection. Однако утверждение «Не является инструментом деплоя на Cloud.ru» в источнике прямо не сказано: github-actions не упоминает Cloud.ru вообще. Это вывод из отсутствия упоминания, а не из явного ограничения, поэтому клауза не подтверждена.",
+            "evidence": [
+              {
+                "source": "github-actions",
+                "quote": "Pattern A -- Build + Test + Deploy (main branch):"
+              },
+              {
+                "source": "github-actions",
+                "quote": "Pattern B -- PR checks (lint + test + preview):"
+              },
+              {
+                "source": "github-actions",
+                "quote": "Pin actions to full commit SHA:"
+              },
+              {
+                "source": "github-actions",
+                "quote": "OIDC for cloud authentication (no long-lived credentials)"
+              },
+              {
+                "source": "github-actions",
+                "quote": "Use environment protection rules for production deployments"
+              }
+            ]
+          },
+          {
+            "id": "gap:0",
+            "status": "supported",
+            "reason": "Источник прямо указывает, что cloudru-vm — Go-CLI без npm-пакета, и даёт команды установки в Prerequisites. Тезис о необходимости отдельной установки подтверждён. Формулировка «установка вне навыка» верна в том смысле, что навык лишь документирует установку и сам её не выполняет; источник этого прямо не говорит, но и не противоречит.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "cloudru-vm is a Go CLI (no npm package; pre-built binaries not yet released)"
+              }
+            ]
+          },
+          {
+            "id": "gap:1",
+            "status": "supported",
+            "reason": "Источник указывает, что CLI Cloud.ru-специфичен, что навык нацелен на ОДНУ ВМ с docker compose, и что для Kubernetes-нагрузок нужен навык kubernetes.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "Providers other than Cloud.ru (the CLI is Cloud.ru-specific)"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "this targets ONE VM running docker compose"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "Kubernetes-shaped workloads (many services, autoscaling)"
+              }
+            ]
+          },
+          {
+            "id": "gap:2",
+            "status": "uncertain",
+            "reason": "Источник deploy-on-cloudru-vm описывает verify как HTTP-проверку открытых портов, но не говорит, что она разовая. Утверждение «не покрыто ни одним из двух навыков» слишком сильное: github-actions описывает плановые задания, включая health checks по расписанию. Это не канареечные проверки и не алерты, но частичное перекрытие мониторинга есть, поэтому «не покрыто ни одним» не подтверждается.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "HTTP health-check of exposed ports"
+              },
+              {
+                "source": "github-actions",
+                "quote": "User wants scheduled maintenance jobs (stale issues, dependency updates, health checks)"
+              }
+            ]
+          },
+          {
+            "id": "gap:3",
+            "status": "uncertain",
+            "reason": "Источник github-actions показывает, что workflow выполняет произвольные команды, включая скрипт деплоя (run: ./deploy.sh). Тезис «workflow должен вызывать cloudru-vm или ваш скрипт» следует из этого как рекомендация. Однако прямого указания, что github-actions сам по себе не деплоит на Cloud.ru, в источнике нет; это вывод из области применения.",
+            "evidence": [
+              {
+                "source": "github-actions",
+                "quote": "- run: ./deploy.sh dist/"
+              }
+            ]
+          },
+          {
+            "id": "taskFit",
+            "status": "supported",
+            "reason": "Основной навык deploy-on-cloudru-vm покрывает деплой и проверку, github-actions добавляет проверки и CI/CD, которые не дублируют друг друга. Оговорки о CLI, пределах одной ВМ и о том, что github-actions не выполняет деплой сам, релевантны. Однако покрытие «сопровождения» ограничено (см. issues).",
+            "evidence": []
+          },
+          {
+            "id": "pipeline",
+            "status": "supported",
+            "reason": "Порядок deploy-on-cloudru-vm → github-actions согласуется с gap:3: workflow должен вызывать cloudru-vm, значит деплой-навык логически первый. Задача порядок не задаёт, условных рекомендаций нет, поэтому противоречий нет.",
+            "evidence": []
+          }
+        ],
+        "issues": [
+          "Команды установки вида `dz init --target opencode --select ...` в advice не подтверждены ни одним из источников; проверить их не удалось.",
+          "gap:2 может недооценивать покрытие: github-actions описывает плановые health checks (Pattern D), поэтому утверждение о полном отсутствии непрерывного сопровождения требует уточнения, а не категоричной формулировки.",
+          "Тезис «Не является инструментом деплоя на Cloud.ru» в why:github-actions выводится из отсутствия упоминания Cloud.ru в источнике и должен быть сформулирован как вывод, а не как явное ограничение навыка."
+        ]
+      },
+      "result": {
+        "accepted": false,
+        "issues": [
+          "Review failed; answer withheld"
+        ]
+      },
+      "error": "Unverified source quote",
+      "usage": {
+        "prompt_tokens": 16844,
+        "completion_tokens": 5902,
+        "total_tokens": 22746,
+        "cost": 0.004589046,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0046354,
+          "upstream_inference_prompt_cost": 0.0016844,
+          "upstream_inference_completions_cost": 0.002951
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3779,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "kind": "captured native answer"
+    },
+    {
+      "trial": "v13-research-review",
+      "model": "anthropic/claude-haiku-5.5",
+      "startedAt": "2026-11-09T20:25:39.717Z",
+      "finishedAt": "2026-11-09T20:25:59.430Z",
+      "originalUserTaskIncluded": false,
+      "requestHash": "6563515da21b98fd4fc3ca72d4bc093995d1e403e357a794ca23ab63e39b5cc0",
+      "sources": [
+        {
+          "id": "goap-research-ed25519",
+          "coverage": "excerpt",
+          "sha256": "0f2ad34cce362d0f83c4c2c265b8fa2545b28eaa5c17e5c1a5b36f731cfa8268"
+        }
+      ],
+      "review": {
+        "requestHash": "6563515da21b98fd4fc3ca72d4bc093995d1e403e357a794ca23ab63e39b5cc0",
+        "checks": [
+          {
+            "id": "why:goap-research-ed25519",
+            "status": "supported",
+            "reason": "The source requires a source URL for every factual claim and separates trust classes (ISSUER_SIGNED, SELF_ATTESTED, UNVERIFIED) from evidence classes. FETCH_VERIFIED is minted only when fetch_source() actually performs the request. LISTING_ONLY covers listing-only URLs, hand-supplied bodies, and failed fetches. ASSERTED covers model-memory claims with the source never opened. The source also states that Ed25519 does not prove truth. The rationale's 'suitable for preserving verifiable links' is a reasonable reading of these features and is not an overstatement.",
+            "evidence": [
+              {
+                "source": "goap-research-ed25519",
+                "quote": "Every factual claim needs a source URL."
+              },
+              {
+                "source": "goap-research-ed25519",
+                "quote": "`evidence_fetch.fetch_source()` performed the request and got a 2xx body"
+              },
+              {
+                "source": "goap-research-ed25519",
+                "quote": "URL known from a listing, or a body supplied by hand, or the fetch failed"
+              },
+              {
+                "source": "goap-research-ed25519",
+                "quote": "Stated from model memory, source never opened"
+              },
+              {
+                "source": "goap-research-ed25519",
+                "quote": "It does not prove that the claim is true, prevent plagiarism, or replace ordinary source evaluation."
+              }
+            ]
+          },
+          {
+            "id": "gap:0",
+            "status": "unsupported",
+            "reason": "The source supports the general mechanism: strict and paranoid require pinned issuer keys and a source class capable of Ed25519-signed delivery, and the source says to use development or moderate until a genuine signed-source integration exists. However, the source discusses only PubMed, PMC, DOI and WHO as its health sources. It says nothing about GitHub. The clause 'которых у GitHub нет' is a proof of absence inferred from silence, so it is not supported.",
+            "evidence": [
+              {
+                "source": "goap-research-ed25519",
+                "quote": "none of them delivers Ed25519-signed content and no real issuer keys exist"
+              },
+              {
+                "source": "goap-research-ed25519",
+                "quote": "only `development` and `moderate` are fully real for the default sources"
+              }
+            ]
+          },
+          {
+            "id": "gap:1",
+            "status": "supported",
+            "reason": "The source states that Ed25519 does not prove truthfulness and requires ordinary cross-checking of claims through source evaluation as a workflow step. The 'manual check' wording is a reasonable paraphrase of that step.",
+            "evidence": [
+              {
+                "source": "goap-research-ed25519",
+                "quote": "Ed25519 does not prove truthfulness or prevent hallucination."
+              },
+              {
+                "source": "goap-research-ed25519",
+                "quote": "Cross-check claims through ordinary source evaluation."
+              }
+            ]
+          },
+          {
+            "id": "gap:2",
+            "status": "uncertain",
+            "reason": "The first part is supported: the skill's workflow fetches sources through the built-in fetch_source, which uses real HTTP with stdlib only. The source does not mention GitHub pages specifically. The second part, that external download tools and access tokens are not described in the skill, is an absence claim. The coverage field is 'excerpt', so the source cannot establish that the skill lacks such a description, and the claim is only partly checkable.",
+            "evidence": [
+              {
+                "source": "goap-research-ed25519",
+                "quote": "real HTTP, stdlib only"
+              },
+              {
+                "source": "goap-research-ed25519",
+                "quote": "Fetch each source through the tool, not by hand"
+              }
+            ]
+          },
+          {
+            "id": "taskFit",
+            "status": "uncertain",
+            "reason": "The skill is a general provenance and evidence-class system, so the core mechanisms relate to the task of preserving verifiable links. However, its own text is built around health research: the examples, source tiers, and the report gate's population checks all concern medical evidence. Nothing in the source shows it fits GitHub project research. The 'high' fit is therefore not established. The advice also omits that the skill needs Python with the cryptography package for the verifier scripts, and the skill is the only pick, so there is no redundancy to assess.",
+            "evidence": []
+          },
+          {
+            "id": "pipeline",
+            "status": "supported",
+            "reason": "The advice contains a single recommendation and no conditional picks or declared execution order. The gaps are consistent with the one recommendation, and the requested task does not ask for an order, so no inconsistency arises. The install command itself is not verifiable from the source; that concern is recorded in issues.",
+            "evidence": []
+          }
+        ],
+        "issues": [
+          "The install command `dz init --target opencode --select goap-research-ed25519` is not supported by any supplied source. The source mentions `dz` only as an optional dependency for the self-learning feature.",
+          "The fit 'high' is overstated: the source is health-focused and does not establish applicability to GitHub project research.",
+          "The advice does not mention that the Ed25519 verifier scripts require the Python cryptography package, which the source documents as an installation prerequisite.",
+          "The gap about GitHub's lack of signed delivery is a proof of absence inferred from the source's silence about GitHub, and it should be reworded as a statement about what the source covers."
+        ]
+      },
+      "result": {
+        "accepted": false,
+        "issues": [
+          "Review failed; answer withheld"
+        ]
+      },
+      "error": "Unverified source quote",
+      "usage": {
+        "prompt_tokens": 13913,
+        "completion_tokens": 4555,
+        "total_tokens": 18468,
+        "cost": 0.003632112,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0036688,
+          "upstream_inference_prompt_cost": 0.0013913,
+          "upstream_inference_completions_cost": 0.0022775
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2614,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "kind": "captured native answer"
+    },
+    {
+      "trial": "v14-cloudru-review",
+      "model": "anthropic/claude-haiku-5.5",
+      "startedAt": "2026-11-09T20:26:45.945Z",
+      "finishedAt": "2026-11-09T20:27:03.163Z",
+      "originalUserTaskIncluded": false,
+      "requestHash": "f5ffae27bcfcf4b9dea3b777d48a12ea712136e8d4ef2089013d0fa5d2fc53dd",
+      "sources": [
+        {
+          "id": "deploy-on-cloudru-vm",
+          "coverage": "excerpt",
+          "sha256": "3b734b65872e8b37dc9dfd6184b7cc19aeac786d1efa293a310d703eb88f87d5"
+        }
+      ],
+      "review": {
+        "requestHash": "f5ffae27bcfcf4b9dea3b777d48a12ea712136e8d4ef2089013d0fa5d2fc53dd",
+        "checks": [
+          {
+            "id": "why:deploy-on-cloudru-vm",
+            "status": "supported",
+            "reason": "The source supports each part of the rationale: GitHub/GitLab cloning and analysis, compose synthesis when needed, collection of four Cloud.ru credentials, deployment via the cloudru-vm CLI, health verification, and handover of IP, URL and SSH string. Status, logs and destroy are part of the protocol (Step 5 and the handover reminder).",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "ensure/synthesize a docker-compose.yml, collect the four required Cloud.ru credentials"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "deploy via the cloudru-vm CLI, verify health, and hand"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "hand back the public IP / connection URL / ssh string"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "cloudru-vm destroy tears the VM down when done"
+              }
+            ]
+          },
+          {
+            "id": "gap:0",
+            "status": "uncertain",
+            "reason": "The source supports that cloudru-vm is a separate Go CLI with no npm package and that manual installation steps are given in Prerequisites. The clause that installing the skill does not perform this installation describes the host's install behavior, which SKILL.md does not address. That part is therefore not verifiable from the sources.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "cloudru-vm is a Go CLI (no npm package; pre-built binaries not yet released)"
+              }
+            ]
+          },
+          {
+            "id": "gap:1",
+            "status": "uncertain",
+            "reason": "The source says the user must supply the IAM key and project ID, and the skill asks for missing values. However, it also says the skill checks env and .cloudru-vm.yaml first, and that region and image ID can be discovered via list-zones and list-images with user confirmation. The claim that all four must be provided by the user and that the skill never obtains them itself overstates the source.",
+            "evidence": [
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "ASK — cannot be discovered"
+              },
+              {
+                "source": "deploy-on-cloudru-vm",
+                "quote": "run `cloudru-vm list-zones` and let the user pick"
+              }
+            ]
+          },
+          {
+            "id": "gap:2",
+            "status": "unsupported",
+            "reason": "The source confirms that verification and logs rely on cloudru-vm verify and logs. Nothing in the source mentions canary-watch, its trust_tier 0, or a decision to exclude it as redundant. That part of the claim is not supported by the provided sources.",
+            "evidence": []
+          },
+          {
+            "id": "taskFit",
+            "status": "supported",
+            "reason": "The single recommended skill matches the stated task (deploy a GitHub app to Cloud.ru, with checks and ongoing operations). Its description and triggers match the task, and the skill's scope excludes out-of-scope targets such as AWS/GCP and k8s. No redundant picks are present.",
+            "evidence": []
+          },
+          {
+            "id": "pipeline",
+            "status": "supported",
+            "reason": "The pipeline contains only the one recommended skill, with no conditional picks and no declared ordering conflicts. This is consistent with the rationale.",
+            "evidence": []
+          }
+        ],
+        "issues": [
+          "gap:1 overstates the source: region and image ID are discoverable via cloudru-vm list-zones and list-images, and env and .cloudru-vm.yaml are checked before asking the user. The advice lists them as things the user must provide.",
+          "gap:2 introduces canary-watch and trust_tier 0, which appear nowhere in the provided sources. Only the verify/logs reliance is supported.",
+          "gap:0 includes a claim about skill installation behavior (dz init) that SKILL.md does not address. The host-generated install command is not required to be documented, so this clause cannot be confirmed or refuted from the sources.",
+          "The source coverage is marked 'excerpt', so statements about what the skill does not cover are limited to what the excerpt shows."
+        ]
+      },
+      "result": {
+        "accepted": false,
+        "issues": [
+          "Review failed; answer withheld"
+        ]
+      },
+      "error": "Unverified source quote",
+      "usage": {
+        "prompt_tokens": 5493,
+        "completion_tokens": 4105,
+        "total_tokens": 9598,
+        "cost": 0.002575782,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0026018,
+          "upstream_inference_prompt_cost": 0.0005493,
+          "upstream_inference_completions_cost": 0.0020525
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2536,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "kind": "captured native answer"
+    },
+    {
+      "trial": "v14-feature-review-v2",
+      "model": "anthropic/claude-haiku-5.5",
+      "startedAt": "2026-11-09T20:28:20.986Z",
+      "finishedAt": "2026-11-09T20:28:41.029Z",
+      "originalUserTaskIncluded": true,
+      "requestHash": "71a7758089cdacf183040b3fa750287869f772519b7e922cb675f0f2880a2c15",
+      "sources": [
+        {
+          "id": "feature-adr",
+          "coverage": "excerpt",
+          "sha256": "6eb5ab29e0d30115cd2377dc1e800034557228d78f687c4db7c10e7a2c3ce613"
+        },
+        {
+          "id": "architecture-decision-records",
+          "coverage": "excerpt",
+          "sha256": "af70528b261e55b654303244c8aa9f3bf249cd67940b81a067cfb1c9c1b51c45"
+        }
+      ],
+      "review": {
+        "requestHash": "71a7758089cdacf183040b3fa750287869f772519b7e922cb675f0f2880a2c15",
+        "checks": [
+          {
+            "id": "why:feature-adr",
+            "status": "supported",
+            "reason": "Источник подтверждает шаги 1, 3, 5, 6, 7, 8, работу Complexity Router S/M/L/XL и то, что K1/K2-гейты не дают начать Step 7 без проверки плана. K2 описан как обязательный скрипт перед кодом; K1 проверяет новые имена до записи кода.",
+            "evidence": [
+              {
+                "source": "feature-adr",
+                "quote": "Step 7 does not start until the plan passes a SCRIPT — not a reviewer's impression:"
+              },
+              {
+                "source": "feature-adr",
+                "quote": "Before Step 7 writes a line, every NEW name the plan introduces is checked:"
+              }
+            ]
+          },
+          {
+            "id": "why:architecture-decision-records",
+            "status": "supported",
+            "reason": "Источник описывает фиксацию архитектурных решений по ходу сессии с контекстом, альтернативами и обоснованием. Формулировка про «отдельный журнал вне конвейера» является разумным выводом из журнала ADR в docs/adr/, а не прямой цитатой.",
+            "evidence": [
+              {
+                "source": "architecture-decision-records",
+                "quote": "Capture architectural decisions as they happen during coding sessions."
+              }
+            ]
+          },
+          {
+            "id": "gap:0",
+            "status": "unsupported",
+            "reason": "Первая часть верна: Reference-режим не выполняет агентную флотилию. Но утверждение, что полные проверки шагов 8–9 требуют установленного agentic-qe, источником не подтверждается и противоречит ему: в Reference-режиме шаги 8 и 9 уже имеют закреплённые полные протоколы, а установка aqe добавляет runtime и MCP-память.",
+            "evidence": [
+              {
+                "source": "feature-adr",
+                "quote": "The eight vendored core skills already provide pinned full protocols in Reference Mode."
+              },
+              {
+                "source": "feature-adr",
+                "quote": "Plain Reference mode reads the pinned AQE reference methods; it does not execute MCP agents or an agentic fleet merely because those files are present."
+              }
+            ]
+          },
+          {
+            "id": "gap:1",
+            "status": "uncertain",
+            "reason": "Требование создавать артефакты в features/<slug>/ подтверждено. Утверждение, что интеграция с существующим приложением зависит от структуры репозитория, в источниках прямо не описано: это правдоподобный вывод, но не цитируемый факт.",
+            "evidence": [
+              {
+                "source": "feature-adr",
+                "quote": "All artifacts are created in `features/<feature-slug>/`:"
+              }
+            ]
+          },
+          {
+            "id": "taskFit",
+            "status": "uncertain",
+            "reason": "Основной выбор feature-adr релевантен задаче «провести фичу от требований до проверок» и отвечает на вопрос о первом навыке. Однако architecture-decision-records частично дублирует шаг 3 feature-adr (ADR), а сама рекомендация помечена как условная («Полезен, если нужен отдельный журнал»), поэтому его включение без условия избыточно.",
+            "evidence": []
+          },
+          {
+            "id": "pipeline",
+            "status": "unsupported",
+            "reason": "Порядок feature-adr первым согласуется с вопросом пользователя. Но architecture-decision-records включён в pipeline безусловно, хотя его собственное обоснование делает его условным, а feature-adr уже содержит шаг ADR. Конфликт с условной рекомендацией не разрешён.",
+            "evidence": []
+          }
+        ],
+        "issues": [
+          "Утверждение gap:0 про обязательность agentic-qe для полных проверок шагов 8–9 противоречит источнику: Reference-режим содержит закреплённые полные протоколы для этих шагов, а aqe добавляет runtime и MCP-память.",
+          "Навык architecture-decision-records включён в pipeline безусловно, хотя рекомендация описывает его как условный (medium fit, «если нужен отдельный журнал»), и он дублирует шаг 3 feature-adr."
+        ]
+      },
+      "result": {
+        "accepted": false,
+        "issues": [
+          "Утверждение gap:0 про обязательность agentic-qe для полных проверок шагов 8–9 противоречит источнику: Reference-режим содержит закреплённые полные протоколы для этих шагов, а aqe добавляет runtime и MCP-память.",
+          "Навык architecture-decision-records включён в pipeline безусловно, хотя рекомендация описывает его как условный (medium fit, «если нужен отдельный журнал»), и он дублирует шаг 3 feature-adr.",
+          "gap:0: Первая часть верна: Reference-режим не выполняет агентную флотилию. Но утверждение, что полные проверки шагов 8–9 требуют установленного agentic-qe, источником не подтверждается и противоречит ему: в Reference-режиме шаги 8 и 9 уже имеют закреплённые полные протоколы, а установка aqe добавляет runtime и MCP-память.",
+          "gap:1: Требование создавать артефакты в features/<slug>/ подтверждено. Утверждение, что интеграция с существующим приложением зависит от структуры репозитория, в источниках прямо не описано: это правдоподобный вывод, но не цитируемый факт.",
+          "taskFit: Основной выбор feature-adr релевантен задаче «провести фичу от требований до проверок» и отвечает на вопрос о первом навыке. Однако architecture-decision-records частично дублирует шаг 3 feature-adr (ADR), а сама рекомендация помечена как условная («Полезен, если нужен отдельный журнал»), поэтому его включение без условия избыточно.",
+          "pipeline: Порядок feature-adr первым согласуется с вопросом пользователя. Но architecture-decision-records включён в pipeline безусловно, хотя его собственное обоснование делает его условным, а feature-adr уже содержит шаг ADR. Конфликт с условной рекомендацией не разрешён."
+        ]
+      },
+      "error": null,
+      "usage": {
+        "prompt_tokens": 25889,
+        "completion_tokens": 4793,
+        "total_tokens": 30682,
+        "cost": 0.004935546,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0049854,
+          "upstream_inference_prompt_cost": 0.0025889,
+          "upstream_inference_completions_cost": 0.0023965
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3268,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "kind": "captured native answer"
+    },
+    {
+      "trial": "v14-feature-review",
+      "model": "anthropic/claude-haiku-5.5",
+      "startedAt": "2026-11-09T20:26:45.936Z",
+      "finishedAt": "2026-11-09T20:27:07.130Z",
+      "originalUserTaskIncluded": false,
+      "requestHash": "4976f6b2c8c428e424129d1bac5a8e7ce69d5141866cdd07e10041a248dff4ae",
+      "sources": [
+        {
+          "id": "feature-adr",
+          "coverage": "excerpt",
+          "sha256": "6eb5ab29e0d30115cd2377dc1e800034557228d78f687c4db7c10e7a2c3ce613"
+        },
+        {
+          "id": "architecture-decision-records",
+          "coverage": "excerpt",
+          "sha256": "af70528b261e55b654303244c8aa9f3bf249cd67940b81a067cfb1c9c1b51c45"
+        }
+      ],
+      "review": {
+        "requestHash": "4976f6b2c8c428e424129d1bac5a8e7ce69d5141866cdd07e10041a248dff4ae",
+        "checks": [
+          {
+            "id": "why:feature-adr",
+            "status": "supported",
+            "reason": "The source confirms the pipeline stages: requirements (Step 1), ADR with shift-left testability validation (Step 3), architecture (Step 5), SPARC-GOAP plan (Step 6), code (Step 7), and QE with brutal-honesty review (Step 8). The Complexity Router sets S/M/L/XL. The K1 and K2 gates sit between planning and Step 7, so they block code until checks pass. K1 is a name-availability check rather than a plan review, but the claim's wording of K1/K2 gating code is still supported.",
+            "evidence": [
+              {
+                "source": "feature-adr",
+                "quote": "Complexity Router автоматически определяет масштаб (S/M/L/XL) и пропускает ненужные шаги."
+              },
+              {
+                "source": "feature-adr",
+                "quote": "ADR testability validation (Level 4: Risk Analysis in Design)"
+              },
+              {
+                "source": "feature-adr",
+                "quote": "Before Step 7 writes a line, every NEW name the plan introduces is checked:"
+              },
+              {
+                "source": "feature-adr",
+                "quote": "Step 7 does not start until the plan passes a SCRIPT — not a reviewer's impression:"
+              }
+            ]
+          },
+          {
+            "id": "why:architecture-decision-records",
+            "status": "supported",
+            "reason": "The source describes capturing architectural decisions as structured ADRs during sessions, with context, alternatives, and rationale, and maintaining an ADR log. The claim that it is useful as a separate decision journal outside the feature-adr pipeline is a reasonable reading of its standalone scope.",
+            "evidence": [
+              {
+                "source": "architecture-decision-records",
+                "quote": "Capture architectural decisions made during Claude Code sessions as structured ADRs."
+              },
+              {
+                "source": "architecture-decision-records",
+                "quote": "## Alternatives Considered"
+              },
+              {
+                "source": "architecture-decision-records",
+                "quote": "Maintains an ADR log so future developers understand why the codebase is shaped the way it is."
+              }
+            ]
+          },
+          {
+            "id": "gap:0",
+            "status": "uncertain",
+            "reason": "The first part is supported: Reference mode does not execute an agentic fleet, and --full-qe enables the installed aqe runtime. The second part overstates the source. The source says Step 8 and Step 9 have pinned full protocols in Reference mode, and Step 9 runs 4 agents in Reference mode. So the claim that full checks for steps 8–9 require agentic-qe is not what the source states. The source describes Direct mode as adding aqe runtime and memory on top of the bundled protocols.",
+            "evidence": [
+              {
+                "source": "feature-adr",
+                "quote": "Plain Reference mode reads the pinned AQE reference methods; it does not execute MCP agents"
+              },
+              {
+                "source": "feature-adr",
+                "quote": "4 agents with pinned full protocols"
+              }
+            ]
+          },
+          {
+            "id": "gap:1",
+            "status": "uncertain",
+            "reason": "The source supports that artifacts are created in features/<feature-slug>/. It does not discuss how integration with an existing application depends on repository structure, so that clause is an inference rather than a sourced caveat.",
+            "evidence": [
+              {
+                "source": "feature-adr",
+                "quote": "All artifacts are created in `features/<feature-slug>/`:"
+              }
+            ]
+          },
+          {
+            "id": "taskFit",
+            "status": "uncertain",
+            "reason": "feature-adr fits the task of taking a new feature from requirements through architecture to checks. architecture-decision-records largely duplicates the ADR step inside feature-adr (Step 3), so it is a redundant pick for this task. The advice also omits trust-tier caveats: feature-adr is Tier 0 Advisory, and architecture-decision-records is Tier 0 Community imported from ECC.",
+            "evidence": []
+          },
+          {
+            "id": "pipeline",
+            "status": "unsupported",
+            "reason": "The pipeline lists architecture-decision-records as a second sequential step after feature-adr. The advice's own rationale describes that skill as optional and useful only outside the feature-adr pipeline, so the pipeline contradicts its conditional, out-of-pipeline status. feature-adr already covers the ADR stage.",
+            "evidence": []
+          }
+        ],
+        "issues": [
+          "The advice omits trust-tier caveats: feature-adr is Tier 0 Advisory, and architecture-decision-records is Tier 0 Community (imported from ECC).",
+          "architecture-decision-records duplicates the ADR stage already in feature-adr Step 3. It is listed as a sequential pipeline item even though the rationale calls it optional and outside the feature-adr pipeline.",
+          "gap:0 says full checks for steps 8–9 require agentic-qe, but the source states that Reference mode includes pinned full protocols for those steps, including 4 agents in Step 9. The gap should be reworded to limit the dependency to fleet execution and aqe memory."
+        ]
+      },
+      "result": {
+        "accepted": false,
+        "issues": [
+          "The advice omits trust-tier caveats: feature-adr is Tier 0 Advisory, and architecture-decision-records is Tier 0 Community (imported from ECC).",
+          "architecture-decision-records duplicates the ADR stage already in feature-adr Step 3. It is listed as a sequential pipeline item even though the rationale calls it optional and outside the feature-adr pipeline.",
+          "gap:0 says full checks for steps 8–9 require agentic-qe, but the source states that Reference mode includes pinned full protocols for those steps, including 4 agents in Step 9. The gap should be reworded to limit the dependency to fleet execution and aqe memory.",
+          "gap:0: The first part is supported: Reference mode does not execute an agentic fleet, and --full-qe enables the installed aqe runtime. The second part overstates the source. The source says Step 8 and Step 9 have pinned full protocols in Reference mode, and Step 9 runs 4 agents in Reference mode. So the claim that full checks for steps 8–9 require agentic-qe is not what the source states. The source describes Direct mode as adding aqe runtime and memory on top of the bundled protocols.",
+          "gap:1: The source supports that artifacts are created in features/<feature-slug>/. It does not discuss how integration with an existing application depends on repository structure, so that clause is an inference rather than a sourced caveat.",
+          "taskFit: feature-adr fits the task of taking a new feature from requirements through architecture to checks. architecture-decision-records largely duplicates the ADR step inside feature-adr (Step 3), so it is a redundant pick for this task. The advice also omits trust-tier caveats: feature-adr is Tier 0 Advisory, and architecture-decision-records is Tier 0 Community imported from ECC.",
+          "pipeline: The pipeline lists architecture-decision-records as a second sequential step after feature-adr. The advice's own rationale describes that skill as optional and useful only outside the feature-adr pipeline, so the pipeline contradicts its conditional, out-of-pipeline status. feature-adr already covers the ADR stage."
+        ]
+      },
+      "error": null,
+      "usage": {
+        "prompt_tokens": 25769,
+        "completion_tokens": 5264,
+        "total_tokens": 31033,
+        "cost": 0.005156811,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0052089,
+          "upstream_inference_prompt_cost": 0.0025769,
+          "upstream_inference_completions_cost": 0.002632
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 3418,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "kind": "captured native answer"
+    },
+    {
+      "trial": "v14-research-review",
+      "model": "anthropic/claude-haiku-5.5",
+      "startedAt": "2026-11-09T20:26:07.877Z",
+      "finishedAt": "2026-11-09T20:26:25.123Z",
+      "originalUserTaskIncluded": false,
+      "requestHash": "2502c9bfed5bc250d641b33e9cbfe94402b797422995824bd0f7b9efe0ff8c53",
+      "sources": [
+        {
+          "id": "goap-research-ed25519",
+          "coverage": "excerpt",
+          "sha256": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8"
+        }
+      ],
+      "review": {
+        "requestHash": "2502c9bfed5bc250d641b33e9cbfe94402b797422995824bd0f7b9efe0ff8c53",
+        "checks": [
+          {
+            "id": "why:goap-research-ed25519",
+            "status": "supported",
+            "reason": "The source supports each part of the rationale: the rule that every factual claim needs a source URL, fetch-based byte-hash provenance under FETCH_VERIFIED, signed audit trails, and the explicit statement that a signature proves tamper-evidence but not truth. The claim that the skill is a direct fit for the task is a judgment, and it is addressed under taskFit.",
+            "evidence": [
+              {
+                "source": "goap-research-ed25519",
+                "quote": "1. Every factual claim needs a source URL."
+              },
+              {
+                "source": "goap-research-ed25519",
+                "quote": "`evidence_fetch.fetch_source()` performed the request and got a 2xx body"
+              },
+              {
+                "source": "goap-research-ed25519",
+                "quote": "it proves who signed the canonical message and that the signed bytes were not altered. It does not prove that the claim is true, prevent plagiarism, or replace ordinary source evaluation."
+              }
+            ]
+          },
+          {
+            "id": "gap:0",
+            "status": "supported",
+            "reason": "The source states that Ed25519 does not prove truthfulness or prevent hallucination. It also says claims should be cross-checked through ordinary source evaluation, which supports the manual-evaluation part.",
+            "evidence": [
+              {
+                "source": "goap-research-ed25519",
+                "quote": "Ed25519 does not prove truthfulness or prevent hallucination."
+              },
+              {
+                "source": "goap-research-ed25519",
+                "quote": "Cross-check claims through ordinary source evaluation."
+              }
+            ]
+          },
+          {
+            "id": "gap:1",
+            "status": "uncertain",
+            "reason": "The source supports that strict and paranoid modes require two deployment capability flags that default to False, and that only development and moderate are fully real for the default sources. The source does not mention GitHub at all. It names PubMed, PMC, DOI, and WHO as the sources where these modes are unreachable. The GitHub-specific conclusion is an extrapolation that the source does not support directly.",
+            "evidence": [
+              {
+                "source": "goap-research-ed25519",
+                "quote": "Both are constructor arguments on `GOAPResearchPlanner`, **default `False`**:"
+              },
+              {
+                "source": "goap-research-ed25519",
+                "quote": "only `development` and `moderate` are fully real for the default sources"
+              }
+            ]
+          },
+          {
+            "id": "gap:2",
+            "status": "uncertain",
+            "reason": "The source describes fetch_source as stdlib HTTP for a given URL, and it says sources should be fetched through the tool. It does not say whether the skill can or cannot traverse GitHub repositories, so the claim that it does not perform traversal is not established. The mention of git-mcp or gitlab does not come from the sources and was not verified there, which the gap itself acknowledges.",
+            "evidence": [
+              {
+                "source": "goap-research-ed25519",
+                "quote": "Fetch each source through the tool, not by hand"
+              },
+              {
+                "source": "goap-research-ed25519",
+                "quote": "real HTTP, stdlib only"
+              }
+            ]
+          },
+          {
+            "id": "taskFit",
+            "status": "uncertain",
+            "reason": "The skill is relevant to citing and verifying sources, but the recommendation is labelled fit 'high' without caveats for the medical focus of its machinery (population applicability, medical learning store). The source also classifies unknown domains, which would include GitHub, at the lowest tier ceiling of 0.40. Neither caveat appears in the advice. The single pick is not redundant.",
+            "evidence": [
+              {
+                "source": "goap-research-ed25519",
+                "quote": "D `0.40` (everything else, including unknown domains)"
+              }
+            ]
+          },
+          {
+            "id": "pipeline",
+            "status": "supported",
+            "reason": "The advice contains one recommendation, no conditional picks, and no declared execution order, so the pipeline is internally consistent. The install command is not verified by the source, which is noted in issues.",
+            "evidence": []
+          }
+        ],
+        "issues": [
+          "The install command 'dz init --target opencode --select goap-research-ed25519' does not appear in the supplied source. The skill text mentions dz only for the optional learning loop, so the command is unverified.",
+          "The gap about git-mcp or gitlab is not sourced. The source does not mention these tools, so they should not be presented as the collection route without a separate check.",
+          "The rationale's fit 'high' is not qualified by the source's medical-oriented framing or by the 0.40 tier ceiling for unknown domains such as GitHub.",
+          "The GitHub-specific statement in gap:1 extends the source's explicit list of PubMed, PMC, DOI, and WHO sources to GitHub without support."
+        ]
+      },
+      "result": {
+        "accepted": false,
+        "issues": [
+          "Review failed; answer withheld"
+        ]
+      },
+      "error": "Unverified source quote",
+      "usage": {
+        "prompt_tokens": 13917,
+        "completion_tokens": 4084,
+        "total_tokens": 18001,
+        "cost": 0.003399363,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0034337,
+          "upstream_inference_prompt_cost": 0.0013917,
+          "upstream_inference_completions_cost": 0.002042
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 2344,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "kind": "captured native answer"
+    }
+  ],
+  "assessment": "All paid review trials withheld output. Several failed exact quote checks; other failures included valid findings and false positives. Hand-authored controls were also withheld; no positive live semantic acceptance claim. Unit tests cover the successful release contract. Final source/task-binding and whitespace changes postdate V14 native run; local final regressions cover them."
+}

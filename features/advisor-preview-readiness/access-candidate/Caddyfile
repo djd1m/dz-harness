@@ -1,0 +1,17 @@
+{$ADVISOR_PREVIEW_HOST} {
+    route {
+        basic_auth {
+            {$ADVISOR_PREVIEW_USER} {$ADVISOR_PREVIEW_PASSWORD_HASH}
+        }
+        @invalid_post {
+            method POST
+            not header Origin https://{$ADVISOR_PREVIEW_HOST}
+        }
+        respond @invalid_post 403
+        reverse_proxy 127.0.0.1:8893 {
+            header_up -Authorization
+            header_up Host 127.0.0.1:8893
+            header_up Origin http://127.0.0.1:8893
+        }
+    }
+}

@@ -1,0 +1,5 @@
+# Iteration 3: useful partial fit and short answers
+
+Keep legacy selector/evaluations unchanged. Add optional answer contract using the same provider adapter: recommend/partial/clarify/no-match, <=3 scenario IDs, requested outcome role. Host validates IDs and renders only independently reviewed short summaries/boundaries/next actions; courses from exact package mapping. Explicit execution intent with only planning cards becomes partial deterministically. This relies on model intent classification and cannot prove semantic completeness. Partial output says useful starting point, not a solved task. Clarify uses a single fixed human question; no-match scoped to found scenarios.
+
+Presentation overlays bind both canonical record hash and independent review hash. No canonical source changes, website or npm release. Preserve old tests and reports. Freeze new12 questions before reading presentation metadata; source-review32 overlays; independent code review; live cheap-model run and regression examples. Never replace a failed provider call with no-match. Existing instructions authorize draft PR and related issues, not live website rollout.

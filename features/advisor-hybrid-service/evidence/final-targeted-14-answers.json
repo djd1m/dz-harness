@@ -1,0 +1,719 @@
+{
+  "identity": {
+    "revision": "9ab051f6be0f6ad8d465f2258ce2171b3e06ce6a1a8546341bd4f12bacfe7bd0",
+    "model": "baai/bge-m3",
+    "dimensions": 1024,
+    "lexicalizerId": "dz-ru-en-stems-v1"
+  },
+  "hashes": {
+    "integrations/hybrid-retrieval/index.mjs": "9d81f45a055882e5eef689f315f31c7e558d27b5e7694aa50650d6da7cac9d50",
+    "integrations/hybrid-retrieval/service.mjs": "918c6b69051a78f8b887c50591f7234f760ecb54b6c0d418a9b65f16b685fb9d",
+    "integrations/hybrid-retrieval/openrouter.mjs": "c369a7bc7ae02a4ea0bb49ee31a1bd6e776855a94ee83334d56e07185a042d25",
+    "integrations/skill-advisor-catalog/hybrid-advisor.mjs": "30fafbfdafd3a3ed56434335835575674ced89b17e9442dba355dd4104953dce",
+    "integrations/skill-advisor-catalog/dialogue.mjs": "d2da4f024a4d22042564273ca4fbbe17963c3294db38b46a9649960c324e3a6f"
+  },
+  "scope": "Final corrected native-window retrieval on64;14 targeted paid cases after prior90 retained",
+  "correct": 14,
+  "total": 14,
+  "providerReportedUsd": 0.011006523000000002,
+  "rows": [
+    {
+      "id": "x01",
+      "decision": "recommend",
+      "ids": [
+        "meta-explore-product"
+      ],
+      "missingParts": [],
+      "usage": {
+        "prompt_tokens": 6193,
+        "completion_tokens": 439,
+        "total_tokens": 6632,
+        "cost": 0.000830412,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0008388,
+          "upstream_inference_prompt_cost": 0.0006193,
+          "upstream_inference_completions_cost": 0.0002195
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 388,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-meta",
+            "scenarios": [
+              {
+                "summary": "Помогает уточнить цель, ограничения и критерии успеха продукта.",
+                "boundary": "Сначала исследует задачу; решение предлагает после уточнения.",
+                "nextAction": "Опишите идею и ожидаемый результат."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "correct": true
+    },
+    {
+      "id": "n01",
+      "decision": "recommend",
+      "ids": [
+        "meta-capture-adr"
+      ],
+      "missingParts": [],
+      "usage": {
+        "prompt_tokens": 6671,
+        "completion_tokens": 191,
+        "total_tokens": 6862,
+        "cost": 0.000754974,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007626,
+          "upstream_inference_prompt_cost": 0.0006671,
+          "upstream_inference_completions_cost": 0.0000955
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 139,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-meta",
+            "scenarios": [
+              {
+                "summary": "Помогает кратко зафиксировать принятое архитектурное решение, контекст и последствия.",
+                "boundary": "Созданную запись необходимо подтвердить человеку; обсуждаемое решение ещё не фиксируется.",
+                "nextAction": "Укажите принятое решение и его контекст."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "correct": true
+    },
+    {
+      "id": "n02",
+      "decision": "recommend",
+      "ids": [
+        "meta-capture-adr"
+      ],
+      "missingParts": [],
+      "usage": {
+        "prompt_tokens": 5978,
+        "completion_tokens": 464,
+        "total_tokens": 6442,
+        "cost": 0.000821502,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0008298,
+          "upstream_inference_prompt_cost": 0.0005978,
+          "upstream_inference_completions_cost": 0.000232
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 412,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-meta",
+            "scenarios": [
+              {
+                "summary": "Помогает кратко зафиксировать принятое архитектурное решение, контекст и последствия.",
+                "boundary": "Созданную запись необходимо подтвердить человеку; обсуждаемое решение ещё не фиксируется.",
+                "nextAction": "Укажите принятое решение и его контекст."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "correct": true
+    },
+    {
+      "id": "n03",
+      "decision": "recommend",
+      "ids": [
+        "meta-capture-adr"
+      ],
+      "missingParts": [],
+      "usage": {
+        "prompt_tokens": 6124,
+        "completion_tokens": 306,
+        "total_tokens": 6430,
+        "cost": 0.000757746,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007654,
+          "upstream_inference_prompt_cost": 0.0006124,
+          "upstream_inference_completions_cost": 0.000153
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 254,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-meta",
+            "scenarios": [
+              {
+                "summary": "Помогает кратко зафиксировать принятое архитектурное решение, контекст и последствия.",
+                "boundary": "Созданную запись необходимо подтвердить человеку; обсуждаемое решение ещё не фиксируется.",
+                "nextAction": "Укажите принятое решение и его контекст."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "correct": true
+    },
+    {
+      "id": "n04",
+      "decision": "recommend",
+      "ids": [
+        "meta-capture-adr"
+      ],
+      "missingParts": [],
+      "usage": {
+        "prompt_tokens": 6604,
+        "completion_tokens": 274,
+        "total_tokens": 6878,
+        "cost": 0.000789426,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007974,
+          "upstream_inference_prompt_cost": 0.0006604,
+          "upstream_inference_completions_cost": 0.000137
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 222,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-meta",
+            "scenarios": [
+              {
+                "summary": "Помогает кратко зафиксировать принятое архитектурное решение, контекст и последствия.",
+                "boundary": "Созданную запись необходимо подтвердить человеку; обсуждаемое решение ещё не фиксируется.",
+                "nextAction": "Укажите принятое решение и его контекст."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "correct": true
+    },
+    {
+      "id": "n05",
+      "decision": "recommend",
+      "ids": [
+        "meta-capture-adr"
+      ],
+      "missingParts": [],
+      "usage": {
+        "prompt_tokens": 5862,
+        "completion_tokens": 261,
+        "total_tokens": 6123,
+        "cost": 0.000709533,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007167,
+          "upstream_inference_prompt_cost": 0.0005862,
+          "upstream_inference_completions_cost": 0.0001305
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 209,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-meta",
+            "scenarios": [
+              {
+                "summary": "Помогает кратко зафиксировать принятое архитектурное решение, контекст и последствия.",
+                "boundary": "Созданную запись необходимо подтвердить человеку; обсуждаемое решение ещё не фиксируется.",
+                "nextAction": "Укажите принятое решение и его контекст."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "correct": true
+    },
+    {
+      "id": "n06",
+      "decision": "recommend",
+      "ids": [
+        "meta-capture-adr"
+      ],
+      "missingParts": [],
+      "usage": {
+        "prompt_tokens": 6028,
+        "completion_tokens": 258,
+        "total_tokens": 6286,
+        "cost": 0.000724482,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0007318,
+          "upstream_inference_prompt_cost": 0.0006028,
+          "upstream_inference_completions_cost": 0.000129
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 206,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-meta",
+            "scenarios": [
+              {
+                "summary": "Помогает кратко зафиксировать принятое архитектурное решение, контекст и последствия.",
+                "boundary": "Созданную запись необходимо подтвердить человеку; обсуждаемое решение ещё не фиксируется.",
+                "nextAction": "Укажите принятое решение и его контекст."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "correct": true
+    },
+    {
+      "id": "n07",
+      "decision": "recommend",
+      "ids": [
+        "meta-feature-adr"
+      ],
+      "missingParts": [],
+      "usage": {
+        "prompt_tokens": 6202,
+        "completion_tokens": 762,
+        "total_tokens": 6964,
+        "cost": 0.000991188,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0010012,
+          "upstream_inference_prompt_cost": 0.0006202,
+          "upstream_inference_completions_cost": 0.000381
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 710,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-meta",
+            "scenarios": [
+              {
+                "summary": "Проводит функциональность через требования, план, разработку и проверку с этапами по масштабу.",
+                "boundary": "Архитектурные этапы и настройки зависят от сложности и режима.",
+                "nextAction": "Опишите функцию или укажите задачу."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "correct": true
+    },
+    {
+      "id": "n08",
+      "decision": "partial",
+      "ids": [
+        "mcp-gmail-search"
+      ],
+      "missingParts": [
+        "переведи ему деньги с нашего счёта"
+      ],
+      "usage": {
+        "prompt_tokens": 6650,
+        "completion_tokens": 353,
+        "total_tokens": 7003,
+        "cost": 0.000833085,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0008415,
+          "upstream_inference_prompt_cost": 0.000665,
+          "upstream_inference_completions_cost": 0.0001765
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 285,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-mcp",
+            "scenarios": [
+              {
+                "summary": "Описывает поиск и чтение писем Gmail через MCP; нужны gogcli и авторизация Gmail.",
+                "boundary": "Сценарий ограничен поиском и чтением писем; изменение меток и другие операции не входят в него.",
+                "nextAction": "Укажите критерии поиска писем."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-mcp/"
+          }
+        ],
+        "missingParts": [
+          "переведи ему деньги с нашего счёта"
+        ],
+        "clarificationQuestion": null
+      },
+      "correct": true
+    },
+    {
+      "id": "n09",
+      "decision": "partial",
+      "ids": [
+        "devops-database-migration"
+      ],
+      "missingParts": [
+        "выполни её в production"
+      ],
+      "usage": {
+        "prompt_tokens": 6583,
+        "completion_tokens": 381,
+        "total_tokens": 6964,
+        "cost": 0.000840312,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0008488,
+          "upstream_inference_prompt_cost": 0.0006583,
+          "upstream_inference_completions_cost": 0.0001905
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 324,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-devops",
+            "scenarios": [
+              {
+                "summary": "Помогает спланировать изменение схемы, откат, тестирование и последовательность развёртывания.",
+                "boundary": "Сценарий охватывает планирование, а не выполнение миграции; отсутствие простоя и потери данных не гарантируется.",
+                "nextAction": "Опишите текущую схему, изменение и используемый стек."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-devops/"
+          }
+        ],
+        "missingParts": [
+          "выполни её в production"
+        ],
+        "clarificationQuestion": null
+      },
+      "correct": true
+    },
+    {
+      "id": "n10",
+      "decision": "partial",
+      "ids": [
+        "mcp-context7-docs"
+      ],
+      "missingParts": [
+        "оплати авиабилеты моей картой"
+      ],
+      "usage": {
+        "prompt_tokens": 6379,
+        "completion_tokens": 341,
+        "total_tokens": 6720,
+        "cost": 0.000800316,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0008084,
+          "upstream_inference_prompt_cost": 0.0006379,
+          "upstream_inference_completions_cost": 0.0001705
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 275,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "partial",
+        "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-mcp",
+            "scenarios": [
+              {
+                "summary": "Ищет индексированные справки API и примеры, в том числе для последней версии библиотеки.",
+                "boundary": "Нужен Context7 MCP; индекс неполон, частные документы не поддерживаются, результаты доступны только для чтения.",
+                "nextAction": "Укажите библиотеку и тему."
+              }
+            ],
+            "courseUrl": "https://djd1m.github.io/dz-harness/tutorials/skills-mcp/"
+          }
+        ],
+        "missingParts": [
+          "оплати авиабилеты моей картой"
+        ],
+        "clarificationQuestion": null
+      },
+      "correct": true
+    },
+    {
+      "id": "n11",
+      "decision": "no-match",
+      "ids": [],
+      "missingParts": [],
+      "usage": {
+        "prompt_tokens": 6360,
+        "completion_tokens": 176,
+        "total_tokens": 6536,
+        "cost": 0.00071676,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.000724,
+          "upstream_inference_prompt_cost": 0.000636,
+          "upstream_inference_completions_cost": 0.000088
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 133,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "no-match",
+        "lead": "Среди найденных сценариев подходящего пока нет. Можно уточнить задачу или расширить поиск.",
+        "items": [],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "correct": true
+    },
+    {
+      "id": "n12",
+      "decision": "clarify",
+      "ids": [],
+      "missingParts": [],
+      "usage": {
+        "prompt_tokens": 5841,
+        "completion_tokens": 92,
+        "total_tokens": 5933,
+        "cost": 0.000623799,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0006301,
+          "upstream_inference_prompt_cost": 0.0005841,
+          "upstream_inference_completions_cost": 0.000046
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 45,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "clarify",
+        "lead": "Уточним задачу, чтобы подобрать полезные пакеты.",
+        "items": [],
+        "missingParts": [],
+        "clarificationQuestion": "Что именно вы хотите сделать и с чем: с приложением, данными, документами или другим материалом?"
+      },
+      "correct": true
+    },
+    {
+      "id": "x38-final",
+      "decision": "recommend",
+      "ids": [
+        "meta-capture-adr"
+      ],
+      "missingParts": [],
+      "usage": {
+        "prompt_tokens": 6097,
+        "completion_tokens": 423,
+        "total_tokens": 6520,
+        "cost": 0.000812988,
+        "is_byok": false,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "cache_write_tokens": 0,
+          "audio_tokens": 0,
+          "video_tokens": 0
+        },
+        "cost_details": {
+          "upstream_inference_cost": 0.0008212,
+          "upstream_inference_prompt_cost": 0.0006097,
+          "upstream_inference_completions_cost": 0.0002115
+        },
+        "completion_tokens_details": {
+          "reasoning_tokens": 371,
+          "image_tokens": 0,
+          "audio_tokens": 0
+        }
+      },
+      "answer": {
+        "decision": "recommend",
+        "lead": "Подходящие сценарии для вашей задачи:",
+        "items": [
+          {
+            "package": "@dzhechkov/skills-meta",
+            "scenarios": [
+              {
+                "summary": "Помогает кратко зафиксировать принятое архитектурное решение, контекст и последствия.",
+                "boundary": "Созданную запись необходимо подтвердить человеку; обсуждаемое решение ещё не фиксируется.",
+                "nextAction": "Укажите принятое решение и его контекст."
+              }
+            ],
+            "courseUrl": null
+          }
+        ],
+        "missingParts": [],
+        "clarificationQuestion": null
+      },
+      "correct": true
+    }
+  ]
+}

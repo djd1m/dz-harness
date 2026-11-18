@@ -1,0 +1,123 @@
+{
+  "schema": "dz-scenario-answer-questions/1",
+  "frozenAt": "2026-11-09T22:09:12.383388+00:00",
+  "authoredBeforePresentationMetadata": true,
+  "scope": "12 новых разработческих вопросов, сформулированных до чтения новых presentation metadata и реализации iteration3. Автор знает предыдущие пилоты; статистическая независимость не заявляется. acceptableScenarioSets перечисляет полные допустимые наборы выбранных карточек для указанного решения, включая подтверждённую полезную часть при partial. Для clarify/no-match список наборов пуст.",
+  "cases": [
+    {
+      "id": "a01",
+      "query": "Набросай только план перевода идентификаторов таблицы с числа на UUID: этапы, совместимость потребителей и откат. Базу сейчас не трогай.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "devops-database-migration"
+        ]
+      ]
+    },
+    {
+      "id": "a02",
+      "query": "Подготовь проект наблюдаемости для нового сервиса: какие метрики собирать, какие панели нужны и как задать цели надёжности. Внедрение будет позже.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "devops-observability"
+        ]
+      ]
+    },
+    {
+      "id": "a03",
+      "query": "Измени тип поля времени в действующей базе, перенеси существующие значения и выполни миграцию с проверкой отката.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "devops-database-migration"
+        ]
+      ]
+    },
+    {
+      "id": "a04",
+      "query": "Подключи сквозную трассировку между нашими сервисами и создай рабочие панели с алертами в Grafana.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "devops-observability"
+        ]
+      ]
+    },
+    {
+      "id": "a05",
+      "query": "Подготовь текст презентации для инвесторов со ссылками и речью к каждому слайду, затем сгенерируй аудиодорожку выступления.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "presentation-sales"
+        ],
+        [
+          "presentation-speaker"
+        ],
+        [
+          "presentation-sales",
+          "presentation-speaker"
+        ]
+      ]
+    },
+    {
+      "id": "a06",
+      "query": "Сделай по нашему пакету интерактивный курс и настрой вход учеников через корпоративный SSO.",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "tutorial-create"
+        ]
+      ]
+    },
+    {
+      "id": "a07",
+      "query": "Найди письма от транспортной компании за последние две недели и покажи отправителей, даты и темы. Почта Google подключена.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "mcp-gmail-search"
+        ]
+      ]
+    },
+    {
+      "id": "a08",
+      "query": "Найди письма со счетами, затем поставь на все найденные письма новый ярлык «К оплате».",
+      "expectedDecision": "partial",
+      "acceptableScenarioSets": [
+        [
+          "mcp-gmail-search"
+        ]
+      ]
+    },
+    {
+      "id": "a09",
+      "query": "Составь реалистичный план следующей итерации: есть приоритетный бэклог, доступность инженеров и скорость предыдущих трёх итераций.",
+      "expectedDecision": "recommend",
+      "acceptableScenarioSets": [
+        [
+          "pm-sprint-plan"
+        ]
+      ]
+    },
+    {
+      "id": "a10",
+      "query": "Мне нужно что-нибудь для анализа.",
+      "expectedDecision": "clarify",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "a11",
+      "query": "Помоги организовать проверку перед сдачей.",
+      "expectedDecision": "clarify",
+      "acceptableScenarioSets": []
+    },
+    {
+      "id": "a12",
+      "query": "Нарисуй чертёж ювелирной оправы для огранённого сапфира по размерам камня.",
+      "expectedDecision": "no-match",
+      "acceptableScenarioSets": []
+    }
+  ]
+}

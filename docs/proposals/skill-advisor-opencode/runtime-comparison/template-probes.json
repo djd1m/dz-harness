@@ -1,0 +1,17 @@
+{
+  "piAlias": {
+    "template": "pi",
+    "error": "404: template 'pi' not found"
+  },
+  "piById": {
+    "templateId": "ipwazbgpjpapvv8s2nyf",
+    "version": "1.3.0\n",
+    "killed": true,
+    "absent": true
+  },
+  "claude": {
+    "version": "2.1.312 (Claude Code)\n",
+    "killed": true,
+    "absent": true
+  }
+}

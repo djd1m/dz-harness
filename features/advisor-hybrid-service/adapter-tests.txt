@@ -1,0 +1,17 @@
+✔ remote hits receive host-owned records; arbitrary remote prose ignored (7.22421ms)
+✔ unknown IDs, duplicates and stale identity reject instead of availability fallback (3.464735ms)
+✔ availability failures explicitly fall back to current lexical revision without logging query (25.519057ms)
+✔ provider rejection and malformed vectors do not masquerade as availability (1.008411ms)
+✔ search body deadline also covers stalled response stream (60.812887ms)
+✔ embedding client reorders indexed vectors and checks actual model/dimensions (4.676656ms)
+✔ embedding transport timeout and HTTP errors stay nonsecret typed errors (36.459512ms)
+✔ response model aliases are explicit and unknown models remain rejected with usage (1.695392ms)
+✔ detected snapshot corruption cannot be hidden by a 503 proxy status (0.924132ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 335.377599

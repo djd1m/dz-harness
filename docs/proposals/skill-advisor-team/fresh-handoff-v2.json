@@ -1,0 +1,468 @@
+{
+  "scope": "Fresh Haiku selection, Sonnet review and conditional edit on historical candidate/source sets. Updated role instructions. Not a paired model-only comparison or native runtime test.",
+  "reports": [
+    {
+      "id": "feature",
+      "elapsedMs": 18558,
+      "result": {
+        "ok": true,
+        "advice": {
+          "task": "Провести новую возможность в действующем приложении от требований через архитектурное решение до проверок и выбрать первый навык.",
+          "recommendations": [
+            {
+              "name": "feature-adr",
+              "type": "skill",
+              "fit": "high",
+              "why": "Источник описывает конвейер, который покрывает весь путь: Step 1 собирает требования, Step 3 готовит ADR с shift-left-проверкой тестируемости, Step 5 описывает архитектуру, Step 8 выполняет QE и review. Complexity Router (S/M/L/XL) подстраивает объём под фичу. Начинать стоит с него.",
+              "install": "dz init --target opencode --select feature-adr"
+            },
+            {
+              "name": "explore",
+              "type": "skill",
+              "fit": "medium",
+              "why": "Источник: навык уточняет расплывчатые задачи и не предлагает решений до завершения уточнения. Использовать его перед feature-adr стоит только если требования ещё не сформулированы; при готовых требованиях он не нужен.",
+              "install": "dz init --target opencode --select explore"
+            }
+          ],
+          "gaps": [
+            "Источник feature-adr получен как выдержка: проверки K1/K2 и детали модулей подтверждены только в тексте выдержки.",
+            "Режимы Direct (--full-qe) требуют установленного agentic-qe; без него работает Reference-режим, и это не проверено как полный объём QE."
+          ],
+          "pipeline": [
+            "feature-adr"
+          ]
+        }
+      },
+      "trace": [
+        {
+          "role": "selector",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 9982,
+          "usage": {
+            "prompt_tokens": 30337,
+            "completion_tokens": 1790,
+            "total_tokens": 32127,
+            "cost": 0.003889413,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0039287,
+              "upstream_inference_prompt_cost": 0.0030337,
+              "upstream_inference_completions_cost": 0.000895
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1358,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Провести новую возможность в действующем приложении от требований через архитектурное решение до проверок и выбрать первый навык.",
+            "recommendations": [
+              {
+                "name": "feature-adr",
+                "type": "skill",
+                "fit": "high",
+                "why": "Источник описывает конвейер, который покрывает весь путь: Step 1 собирает требования, Step 3 готовит ADR с shift-left-проверкой тестируемости, Step 5 описывает архитектуру, Step 8 выполняет QE и review. Complexity Router (S/M/L/XL) подстраивает объём под фичу. Начинать стоит с него."
+              },
+              {
+                "name": "explore",
+                "type": "skill",
+                "fit": "medium",
+                "why": "Источник: навык уточняет расплывчатые задачи и не предлагает решений до завершения уточнения. Использовать его перед feature-adr стоит только если требования ещё не сформулированы; при готовых требованиях он не нужен."
+              }
+            ],
+            "pipeline": [
+              "feature-adr"
+            ],
+            "gaps": [
+              "Источник feature-adr получен как выдержка: проверки K1/K2 и детали модулей подтверждены только в тексте выдержки.",
+              "Режимы Direct (--full-qe) требуют установленного agentic-qe; без него работает Reference-режим, и это не проверено как полный объём QE."
+            ]
+          }
+        },
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 8561,
+          "usage": {
+            "prompt_tokens": 26653,
+            "completion_tokens": 1234,
+            "total_tokens": 27887,
+            "cost": 0.06498954,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.065646,
+              "upstream_inference_prompt_cost": 0.053306,
+              "upstream_inference_completions_cost": 0.01234
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "0a06191fa67d43b5a9c2c45ccb09955815f6c93778d600fa0df53b3422d4d2fd",
+            "checks": [
+              {
+                "id": "why:feature-adr",
+                "status": "supported",
+                "reason": "Источник подтверждает все элементы утверждения: шаги 1, 3 (ADR + shift-left, тестируемость), 5, 8 (QE + brutal review) и Complexity Router S/M/L/XL, который пропускает ненужные шаги.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "Complexity Router автоматически определяет масштаб (S/M/L/XL) и пропускает ненужные шаги."
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "3  ADR + Shift-Left          | - | ✓ Nygard/ITD | ✓ MADR+Confirmation"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "8  QE + Brutal Honesty       | ✓ | ✓ | ✓ | ✓  | sonnet | brutal-honesty-review"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "ADR testability validation (Level 4: Risk Analysis in Design)"
+                  }
+                ]
+              },
+              {
+                "id": "why:explore",
+                "status": "supported",
+                "reason": "Источник говорит, что explore уточняет расплывчатые запросы и не даёт решений до завершения исследования. feature-adr в Step 1 использует explore для уточнения требований. Условие применения (только при несформулированных требованиях) — разумный вывод из этих описаний.",
+                "evidence": [
+                  {
+                    "source": "explore",
+                    "quote": "Does NOT\n  provide solutions until task is fully explored."
+                  },
+                  {
+                    "source": "explore",
+                    "quote": "transforming vague \n  requests into actionable specifications"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "| explore | Step 1 | Requirements clarification |"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "supported",
+                "reason": "Метаданные источника feature-adr указывают coverage=excerpt, а K1/K2 и модули описаны в тексте выдержки. Утверждение о том, что подтверждение ограничено выдержкой, корректно.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "K2 plan-completeness gate (Step-6/7 boundary, MANDATORY, all tiers)"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "K1 name-availability gate (Step-6/7 boundary, MANDATORY, every new name)"
+                  }
+                ]
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "Источник говорит, что flag без установки даёт WARN и откат в reference; Reference использует закреплённые локальные протоколы без исполнения MCP/fleet, т.е. полный объём QE Direct-режима не подразумевается.",
+                "evidence": [
+                  {
+                    "source": "feature-adr",
+                    "quote": "If flag present but not installed → WARN and fall back to reference mode"
+                  },
+                  {
+                    "source": "feature-adr",
+                    "quote": "Pinned local protocol text for the core QE methods; no upstream MCP/fleet execution is implied"
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "Задача — провести фичу от требований через архитектуру до проверок и выбрать первый навык. feature-adr покрывает весь путь и назван первым. explore — условный, не избыточный, с чёткой оговоркой. Совет не выдумывает обязательных возможностей.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Pipeline из одного feature-adr согласуется с рекомендацией начинать с него; explore условный и не включён в обязательный порядок, что соответствует оговорке в rationale.",
+                "evidence": []
+              }
+            ],
+            "issues": []
+          }
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "elapsedMs": 10770,
+      "result": {
+        "ok": false,
+        "error": "advice_team_failed",
+        "stage": "selection_validation"
+      },
+      "trace": [
+        {
+          "role": "selector",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 10703,
+          "usage": {
+            "prompt_tokens": 24708,
+            "completion_tokens": 1992,
+            "total_tokens": 26700,
+            "cost": 0.003432132,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0034668,
+              "upstream_inference_prompt_cost": 0.0024708,
+              "upstream_inference_completions_cost": 0.000996
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1710,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Исследовать GitHub-проекты и сохранять проверяемые ссылки на источники; подобрать первый набор навыков и объяснить ограничения.",
+            "recommendations": [],
+            "gaps": [
+              "В снимке реестра у goap-research-ed25519 и git-mcp есть только id, без поля type, поэтому маршрут навыка для OpenCode не подтверждён. git-mcp описан как MCP-сервер для работы с git, а не для поиска и сохранения ссылок на GitHub-проекты.",
+              "goap-research-ed25519 может сохранять ссылки с подтверждением загрузки через fetch_source, но для него нужны Python и cryptography, а режимы strict и paranoid по умолчанию недостижимы. Подтверждённого подходящего набора нет; рекомендую запустить dz scout."
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "cloudru",
+      "elapsedMs": 16130,
+      "result": {
+        "ok": true,
+        "advice": {
+          "task": "Развернуть приложение из GitHub на Cloud.ru VM и настроить проверки и сопровождение после деплоя.",
+          "recommendations": [
+            {
+              "name": "deploy-on-cloudru-vm",
+              "type": "skill",
+              "fit": "high",
+              "why": "Источник описывает полный протокол: анализ репозитория, создание или проверку docker-compose.yml, запрос недостающих учётных данных Cloud.ru, деплой через cloudru-vm, verify и выдачу ссылки и SSH-строки. Это основная часть задачи.",
+              "install": "dz init --target opencode --select deploy-on-cloudru-vm"
+            },
+            {
+              "name": "canary-watch",
+              "type": "skill",
+              "fit": "high",
+              "why": "Источник описывает пост-деплойную проверку: HTTP-статус, ошибки консоли, 5xx, LCP/CLS, статические ресурсы, SSE и режимы быстрой и длительной проверки. Это дополняет развёртывание сопровождением. Trust tier 0 (community).",
+              "install": "dz init --target opencode --select canary-watch"
+            }
+          ],
+          "gaps": [
+            "Навык не устанавливает CLI cloudru-vm (Go-бинарник) и не предоставляет четыре учётных данных Cloud.ru: IAM-ключ, project ID, region и image ID. Их нужно подготовить заранее.",
+            "Источник canary-watch дан фрагментом. Длительный режим, уведомления и лог в ~/.claude не подтверждены для вашей настройки, поэтому проверьте реализацию перед опорой на непрерывный мониторинг."
+          ],
+          "pipeline": [
+            "deploy-on-cloudru-vm",
+            "canary-watch"
+          ]
+        }
+      },
+      "trace": [
+        {
+          "role": "selector",
+          "model": "anthropic/claude-haiku-5.5",
+          "elapsedMs": 8495,
+          "usage": {
+            "prompt_tokens": 11126,
+            "completion_tokens": 1771,
+            "total_tokens": 12897,
+            "cost": 0.001978119,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.0019981,
+              "upstream_inference_prompt_cost": 0.0011126,
+              "upstream_inference_completions_cost": 0.0008855
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 1255,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "task": "Развернуть приложение из GitHub на Cloud.ru VM и настроить проверки и сопровождение после деплоя.",
+            "recommendations": [
+              {
+                "name": "deploy-on-cloudru-vm",
+                "type": "skill",
+                "fit": "high",
+                "why": "Источник описывает полный протокол: анализ репозитория, создание или проверку docker-compose.yml, запрос недостающих учётных данных Cloud.ru, деплой через cloudru-vm, verify и выдачу ссылки и SSH-строки. Это основная часть задачи."
+              },
+              {
+                "name": "canary-watch",
+                "type": "skill",
+                "fit": "high",
+                "why": "Источник описывает пост-деплойную проверку: HTTP-статус, ошибки консоли, 5xx, LCP/CLS, статические ресурсы, SSE и режимы быстрой и длительной проверки. Это дополняет развёртывание сопровождением. Trust tier 0 (community)."
+              }
+            ],
+            "pipeline": [
+              "deploy-on-cloudru-vm",
+              "canary-watch"
+            ],
+            "gaps": [
+              "Навык не устанавливает CLI cloudru-vm (Go-бинарник) и не предоставляет четыре учётных данных Cloud.ru: IAM-ключ, project ID, region и image ID. Их нужно подготовить заранее.",
+              "Источник canary-watch дан фрагментом. Длительный режим, уведомления и лог в ~/.claude не подтверждены для вашей настройки, поэтому проверьте реализацию перед опорой на непрерывный мониторинг."
+            ]
+          }
+        },
+        {
+          "role": "reviewer",
+          "model": "anthropic/claude-sonnet-5.5",
+          "elapsedMs": 7560,
+          "usage": {
+            "prompt_tokens": 7632,
+            "completion_tokens": 1229,
+            "total_tokens": 8861,
+            "cost": 0.02727846,
+            "is_byok": false,
+            "prompt_tokens_details": {
+              "cached_tokens": 0,
+              "cache_write_tokens": 0,
+              "audio_tokens": 0,
+              "video_tokens": 0
+            },
+            "cost_details": {
+              "upstream_inference_cost": 0.027554,
+              "upstream_inference_prompt_cost": 0.015264,
+              "upstream_inference_completions_cost": 0.01229
+            },
+            "completion_tokens_details": {
+              "reasoning_tokens": 0,
+              "image_tokens": 0,
+              "audio_tokens": 0
+            }
+          },
+          "answer": {
+            "requestHash": "f9a963fe2dc852ccfd672afdc9c6f6ab794a9193a22cf24d7dd6e0c531ca9ef8",
+            "checks": [
+              {
+                "id": "why:deploy-on-cloudru-vm",
+                "status": "supported",
+                "reason": "Источник описывает именно эти шаги: анализ репозитория, обеспечение docker-compose, запрос недостающих учётных данных, деплой через cloudru-vm, verify и передачу URL/SSH.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "clone & analyze any GitHub/GitLab\n  repo, ensure/synthesize a docker-compose.yml, collect the four required Cloud.ru credentials"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "cloudru-vm verify          # HTTP health-check of exposed ports"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "SSH:  ssh -i .cloudru-vm/id_ed25519 user1@<public-ip>"
+                  }
+                ]
+              },
+              {
+                "id": "why:canary-watch",
+                "status": "supported",
+                "reason": "Перечисленные проверки и режимы присутствуют в источнике; trust tier 0 (community) подтверждён. Сопровождение после деплоя соответствует назначению навыка.",
+                "evidence": [
+                  {
+                    "source": "canary-watch",
+                    "quote": "HTTP Status — is the page returning 200?"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "Performance — LCP/CLS/INP regression vs baseline?"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "**Sustained watch**: check every N minutes for M hours"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "trust_tier: 0"
+                  }
+                ]
+              },
+              {
+                "id": "gap:0",
+                "status": "supported",
+                "reason": "Источник указывает, что CLI ставится отдельно как Go-бинарник (предусловие), а четыре учётных данных нужно получить у пользователя. Навык их не создаёт.",
+                "evidence": [
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "cloudru-vm is a Go CLI (no npm package; pre-built binaries not yet released)"
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "The CLI requires four values."
+                  },
+                  {
+                    "source": "deploy-on-cloudru-vm",
+                    "quote": "ASK — cannot be discovered"
+                  }
+                ]
+              },
+              {
+                "id": "gap:1",
+                "status": "supported",
+                "reason": "Покрытие canary-watch помечено как excerpt, а длительный режим, уведомления и лог в ~/.claude описаны в источнике; их работа в конкретной среде не подтверждена. Предупреждение корректно.",
+                "evidence": [
+                  {
+                    "source": "canary-watch",
+                    "quote": "Log to `~/.claude/canary-watch.log`"
+                  },
+                  {
+                    "source": "canary-watch",
+                    "quote": "Desktop notification (macOS/Linux)"
+                  }
+                ]
+              },
+              {
+                "id": "taskFit",
+                "status": "supported",
+                "reason": "Задача (деплой из GitHub на Cloud.ru, проверки и сопровождение) покрыта двумя неизбыточными навыками: деплой и пост-деплойный мониторинг. Ограничения и порядок объяснены. Небольшой нюанс: у deploy есть собственные verify/status/logs, но canary-watch добавляет метрики браузера и длительный мониторинг, так что дублирования нет.",
+                "evidence": []
+              },
+              {
+                "id": "pipeline",
+                "status": "supported",
+                "reason": "Порядок deploy, затем canary-watch логичен: мониторинг применяется к уже развёрнутому URL. Условных рекомендаций нет.",
+                "evidence": []
+              }
+            ],
+            "issues": []
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,235 @@
+{
+  "startedAt": "2026-11-09T20:07:18.046Z",
+  "model": "openrouter/anthropic/claude-haiku-5.5",
+  "cli": "0.8.61",
+  "meta": "0.9.75",
+  "turns": [
+    {
+      "id": "feature",
+      "prompt": "В действующем приложении надо провести новую возможность от требований через архитектурное решение до проверок. Какой навык взять первым?",
+      "ms": 16450,
+      "texts": [
+        "I'll start by loading the skill-advisor skill as instructed.",
+        "Next I need the source-path index, the registry projection, and the host's recommend output is already in the prompt.",
+        "The task spans requirements → architecture → verification. The best primary fit is `feature-adr`, which covers an 11-step feature pipeline with ADR, DDD, and QE. Following the index, I'll read its real source before making claims.",
+        "The source confirms feature-adr covers requirements, ADR, DDD, architecture, planning, code, and QE. It is a strong fit, but its own text says trust_tier 0 \"Advisory\" and the full QE runtime is optional. Now I'll draft the JSON for the host gate. Since the task asks for an ordering, I'll also include a second complementary pick only if it adds a distinct capability; the requirements-to-verification path is largely covered by feature-adr alone, so I'll keep a single recommendation.\n\n{\"task\":\"В действующем приложении провести новую возможность от требований через архитектурное решение до проверок; определить, какой навык взять первым.\",\"recommendations\":[{\"name\":\"feature-adr\",\"type\":\"skill\",\"fit\":\"high\",\"why\":\"Исходник SKILL.md покрывает весь путь: требования (шаг 1), ADR и архитектура (шаги 3 и 5), план (шаг 6), код (шаг 7) и QE-проверки (шаги 8–9). Это единственный навык в реестре, который закрывает полный сквозной цикл фичи. Оговорка из текста навыка: trust_tier 0 (Advisory), а полный режим --full-qe требует установленного agentic-qe, иначе работает Reference-режим.\"}],\"pipeline\":[\"feature-adr\"],\"gaps\":[\"feature-adr имеет trust_tier 0 (Advisory) и не является проверенным на Tier 1 согласно его собственному описанию.\",\"Режим --full-qe требует установки agentic-qe; без него работает Reference-режим с закреплёнными протоколами, без MCP-памяти и выполнения флота.\",\"Навык не устанавливает инструменты сборки и сам по себе не выполняет развертывание или работу над пользовательской задачей.\",\"Нативная установка навыка через dz init не подтверждает наличие отдельных команд, хуков и ассетов npx-пакета @dzhechkov/skills-feature-adr; установщик для OpenCode не верифицирован.\"]}"
+      ],
+      "tools": [
+        {
+          "tool": "skill",
+          "status": "completed",
+          "input": {
+            "name": "skill-advisor"
+          }
+        },
+        {
+          "tool": "read",
+          "status": "completed",
+          "input": {
+            "filePath": "/home/user/advisor/source-paths.json"
+          }
+        },
+        {
+          "tool": "read",
+          "status": "completed",
+          "input": {
+            "filePath": "/home/user/advisor/registry.json"
+          }
+        },
+        {
+          "tool": "read",
+          "status": "completed",
+          "input": {
+            "filePath": "/home/user/advisor/node_modules/@dzhechkov/skills-meta/feature-adr/SKILL.md"
+          }
+        }
+      ],
+      "expected": "feature-adr",
+      "checked": {
+        "task": "В действующем приложении провести новую возможность от требований через архитектурное решение до проверок; определить, какой навык взять первым.",
+        "recommendations": [
+          {
+            "name": "feature-adr",
+            "type": "skill",
+            "fit": "high",
+            "why": "Исходник SKILL.md покрывает весь путь: требования (шаг 1), ADR и архитектура (шаги 3 и 5), план (шаг 6), код (шаг 7) и QE-проверки (шаги 8–9). Это единственный навык в реестре, который закрывает полный сквозной цикл фичи. Оговорка из текста навыка: trust_tier 0 (Advisory), а полный режим --full-qe требует установленного agentic-qe, иначе работает Reference-режим.",
+            "install": "dz init --target opencode --select feature-adr"
+          }
+        ],
+        "gaps": [
+          "feature-adr имеет trust_tier 0 (Advisory) и не является проверенным на Tier 1 согласно его собственному описанию.",
+          "Режим --full-qe требует установки agentic-qe; без него работает Reference-режим с закреплёнными протоколами, без MCP-памяти и выполнения флота.",
+          "Навык не устанавливает инструменты сборки и сам по себе не выполняет развертывание или работу над пользовательской задачей.",
+          "Нативная установка навыка через dz init не подтверждает наличие отдельных команд, хуков и ассетов npx-пакета @dzhechkov/skills-feature-adr; установщик для OpenCode не верифицирован."
+        ],
+        "pipeline": [
+          "feature-adr"
+        ]
+      },
+      "gateAccepted": true,
+      "expectedPresent": true,
+      "requestedOrderPresent": true,
+      "nativeSkillLoaded": true
+    },
+    {
+      "id": "research",
+      "prompt": "Нужно исследовать GitHub-проекты и сохранить проверяемые ссылки на источники. Подбери первый набор навыков и объясни ограничения.",
+      "ms": 11215,
+      "texts": [
+        "Next I'll read the source index, the registry projection and the primary skill source.",
+        "The primary candidate is `git-workflow` (repo-scoped git practice) and `github-actions`, but the request is to *investigate GitHub projects and save verifiable source links*. The closest fit is `goap-research-ed25519` (cited sources, provenance) and `deploy-on-cloudru-vm` is irrelevant. I'll read the primary skill source before making claims.",
+        "The source confirms `goap-research-ed25519` fits the \"verifiable source links\" requirement. For a second pick, `git-mcp`/`github-actions` don't address research; the GitHub-project exploration is partly `explore`-like, but the user asked for one set, so one primary suffices. Draft:\n\n```json\n{\"task\":\"Исследовать GitHub-проекты и сохранить проверяемые ссылки на источники\",\"recommendations\":[{\"name\":\"goap-research-ed25519\",\"type\":\"skill\",\"fit\":\"high\",\"why\":\"Навык для исследований с обязательными URL источников, явной уверенностью и подписанным журналом происхождения (Ed25519). По тексту навыка каждый фактический вывод требует source URL; факт получает FETCH_VERIFIED только при реальном HTTP-запросе через инструмент fetch_source. Подписи подтверждают неизменность записи, но не истинность утверждения.\"}],\"gaps\":[\"Ed25519 доказывает, кто подписал запись и что она не менялась, но не доказывает истинность факта и не предотвращает галлюцинации; проверка по содержанию остаётся за пользователем.\",\"Для strict/paranoid режимов нужны реальные ключи издателей (issuer keys) и подписанные источники; по умолчанию для GitHub-источников они недоступны, поэтому высокие режимы планирования могут вернуть GOAL_UNREACHABLE.\",\"Навык не выполняет сам поиск GitHub-проектов через API и не управляет GitHub-аккаунтом; для интеграции с GitHub нужны отдельные инструменты (например, git-mcp или gitlab для GitLab), которые в этом ответе не рекомендованы, так как не покрывают цель сохранения источников.\",\"Нативная установка навыка в OpenCode не устанавливает сопутствующие скрипты, зависимости Python (cryptography) и хуки; их нужно настроить вручную.\"]}\n```"
+      ],
+      "tools": [
+        {
+          "tool": "skill",
+          "status": "completed",
+          "input": {
+            "name": "skill-advisor"
+          }
+        },
+        {
+          "tool": "read",
+          "status": "completed",
+          "input": {
+            "filePath": "/home/user/advisor/source-paths.json"
+          }
+        },
+        {
+          "tool": "read",
+          "status": "completed",
+          "input": {
+            "filePath": "/home/user/advisor/registry.json"
+          }
+        },
+        {
+          "tool": "read",
+          "status": "completed",
+          "input": {
+            "filePath": "/home/user/advisor/node_modules/@dzhechkov/skills-idea2prd/templates/.claude/skills/goap-research-ed25519/SKILL.md"
+          }
+        }
+      ],
+      "expected": "goap-research-ed25519",
+      "checked": {
+        "task": "Исследовать GitHub-проекты и сохранить проверяемые ссылки на источники",
+        "recommendations": [
+          {
+            "name": "goap-research-ed25519",
+            "type": "skill",
+            "fit": "high",
+            "why": "Навык для исследований с обязательными URL источников, явной уверенностью и подписанным журналом происхождения (Ed25519). По тексту навыка каждый фактический вывод требует source URL; факт получает FETCH_VERIFIED только при реальном HTTP-запросе через инструмент fetch_source. Подписи подтверждают неизменность записи, но не истинность утверждения.",
+            "install": "dz init --target opencode --select goap-research-ed25519"
+          }
+        ],
+        "gaps": [
+          "Ed25519 доказывает, кто подписал запись и что она не менялась, но не доказывает истинность факта и не предотвращает галлюцинации; проверка по содержанию остаётся за пользователем.",
+          "Для strict/paranoid режимов нужны реальные ключи издателей (issuer keys) и подписанные источники; по умолчанию для GitHub-источников они недоступны, поэтому высокие режимы планирования могут вернуть GOAL_UNREACHABLE.",
+          "Навык не выполняет сам поиск GitHub-проектов через API и не управляет GitHub-аккаунтом; для интеграции с GitHub нужны отдельные инструменты (например, git-mcp или gitlab для GitLab), которые в этом ответе не рекомендованы, так как не покрывают цель сохранения источников.",
+          "Нативная установка навыка в OpenCode не устанавливает сопутствующие скрипты, зависимости Python (cryptography) и хуки; их нужно настроить вручную."
+        ]
+      },
+      "gateAccepted": true,
+      "expectedPresent": true,
+      "requestedOrderPresent": true,
+      "nativeSkillLoaded": true
+    },
+    {
+      "id": "cloudru",
+      "prompt": "Развернуть приложение из GitHub на Cloud.ru, настроить проверки и сопровождение. Объясни выбор навыков, порядок применения и ограничения.",
+      "ms": 13681,
+      "texts": [
+        "Next I'll read the source-path index, the registry projection, and the chosen skill's source.",
+        "Now I'll read the primary skill's source via the index.",
+        "I have what I need. The primary pick is `deploy-on-cloudru-vm` (high). `canary-watch` is a real, distinct post-deploy verification capability and is a complement; `github-actions` only matches the word \"GitHub\" and is not a fit for the requested outcome, so I'm leaving it out. The deploy skill's doc notes the CLI is installed by `go install` and is not an npm package, so there is no verified OpenCode installer route for it. Its own text also states there is no npm install, which goes into gaps.\n\n```json\n{\n  \"task\": \"Развернуть приложение из GitHub на Cloud.ru, настроить проверки и сопровождение.\",\n  \"recommendations\": [\n    {\n      \"name\": \"deploy-on-cloudru-vm\",\n      \"type\": \"skill\",\n      \"fit\": \"high\",\n      \"why\": \"Покрывает основной сценарий: клонирование и анализ репозитория, подготовка docker-compose.yml, сбор недостающих учётных данных Cloud.ru, деплой через CLI cloudru-vm, проверку здоровья (verify) и выдачу IP/URL/ssh. Сам навык прямо требует спрашивать у пользователя недостающие credentials и не выдавать успех по коду выхода deploy без verify.\"\n    },\n    {\n      \"name\": \"canary-watch\",\n      \"type\": \"skill\",\n      \"fit\": \"medium\",\n      \"why\": \"Дополняет этап сопровождения: после релиза проверяет HTTP-статус, консольные ошибки, сетевые сбои, LCP/CLS и доступность статических ресурсов с порогами critical/warning. Не заменяет deploy-on-cloudru-vm и не выполняет деплой на Cloud.ru.\"\n    }\n  ],\n  \"pipeline\": [\"deploy-on-cloudru-vm\", \"canary-watch\"],\n  \"gaps\": [\n    \"Навык deploy-on-cloudru-vm предполагает CLI cloudru-vm, который ставится через go install или сборку из исходников Go; npm-пакета нет, а проверенного установщика для OpenCode не найдено, поэтому установка через native-skill маршрут не подтверждена.\",\n    \"deploy-on-cloudru-vm работает с одной ВМ и docker compose; для нескольких сервисов с автомасштабированием нужен навык kubernetes (в каталоге есть, но не выбран в этот ответ).\",\n    \"canary-watch проверяет развёрнутый URL по HTTP/браузерным метрикам, но не настраивает мониторинг инфраструктуры, алерты в внешних системах и не управляет секретами; для CI-проверок и пайплайна деплоя нужен отдельный навык, например github-actions, если он нужен явно.\",\n    \"Навыки не содержат проверенной интеграции с Cloud.ru за пределами CLI cloudru-vm; учётные данные (ключи IAM, project ID, zone/image UUID) пользователь должен предоставить сам.\"\n  ]\n}\n```"
+      ],
+      "tools": [
+        {
+          "tool": "skill",
+          "status": "completed",
+          "input": {
+            "name": "skill-advisor"
+          }
+        },
+        {
+          "tool": "read",
+          "status": "completed",
+          "input": {
+            "filePath": "/home/user/advisor/source-paths.json"
+          }
+        },
+        {
+          "tool": "read",
+          "status": "completed",
+          "input": {
+            "filePath": "/home/user/advisor/registry.json"
+          }
+        },
+        {
+          "tool": "read",
+          "status": "completed",
+          "input": {
+            "filePath": "/home/user/advisor/node_modules/@dzhechkov/skills-devops/deploy-on-cloudru-vm/SKILL.md"
+          }
+        },
+        {
+          "tool": "read",
+          "status": "completed",
+          "input": {
+            "filePath": "/home/user/advisor/node_modules/@dzhechkov/skills-ecc/canary-watch/SKILL.md"
+          }
+        }
+      ],
+      "expected": "deploy-on-cloudru-vm",
+      "checked": {
+        "task": "Развернуть приложение из GitHub на Cloud.ru, настроить проверки и сопровождение.",
+        "recommendations": [
+          {
+            "name": "deploy-on-cloudru-vm",
+            "type": "skill",
+            "fit": "high",
+            "why": "Покрывает основной сценарий: клонирование и анализ репозитория, подготовка docker-compose.yml, сбор недостающих учётных данных Cloud.ru, деплой через CLI cloudru-vm, проверку здоровья (verify) и выдачу IP/URL/ssh. Сам навык прямо требует спрашивать у пользователя недостающие credentials и не выдавать успех по коду выхода deploy без verify.",
+            "install": "dz init --target opencode --select deploy-on-cloudru-vm"
+          },
+          {
+            "name": "canary-watch",
+            "type": "skill",
+            "fit": "medium",
+            "why": "Дополняет этап сопровождения: после релиза проверяет HTTP-статус, консольные ошибки, сетевые сбои, LCP/CLS и доступность статических ресурсов с порогами critical/warning. Не заменяет deploy-on-cloudru-vm и не выполняет деплой на Cloud.ru.",
+            "install": "dz init --target opencode --select canary-watch"
+          }
+        ],
+        "gaps": [
+          "Навык deploy-on-cloudru-vm предполагает CLI cloudru-vm, который ставится через go install или сборку из исходников Go; npm-пакета нет, а проверенного установщика для OpenCode не найдено, поэтому установка через native-skill маршрут не подтверждена.",
+          "deploy-on-cloudru-vm работает с одной ВМ и docker compose; для нескольких сервисов с автомасштабированием нужен навык kubernetes (в каталоге есть, но не выбран в этот ответ).",
+          "canary-watch проверяет развёрнутый URL по HTTP/браузерным метрикам, но не настраивает мониторинг инфраструктуры, алерты в внешних системах и не управляет секретами; для CI-проверок и пайплайна деплоя нужен отдельный навык, например github-actions, если он нужен явно.",
+          "Навыки не содержат проверенной интеграции с Cloud.ru за пределами CLI cloudru-vm; учётные данные (ключи IAM, project ID, zone/image UUID) пользователь должен предоставить сам."
+        ],
+        "pipeline": [
+          "deploy-on-cloudru-vm",
+          "canary-watch"
+        ]
+      },
+      "gateAccepted": true,
+      "expectedPresent": true,
+      "requestedOrderPresent": true,
+      "nativeSkillLoaded": true
+    }
+  ],
+  "sourceSha256": {
+    "SKILL.md": "f7b272f40e10d2cc46a6d94f57a9c824dfc5e92aba2a54bdc4357c8937aacd86",
+    "scripts/check-opencode-advice.mjs": "f91f30112638aeca0fbbc369a1a54ebebd24254f9b2bb656e0b9a22bc867d509",
+    "evals/opencode.test.mjs": "c5cb486d53167ed5c920a01dbb5e38ceffa03fca421f91b067129dc13b09b1b1"
+  },
+  "runtimeVersion": "1.19.4",
+  "initStdout": "dz init --target opencode: 1 skill(s), 6 file(s) written, 0 skipped\n  (searched 14 skill directories)\nMCP: NOT-REQUESTED (explicitly not requested)\nHooks: NOT-REQUESTED (explicitly not requested)\n",
+  "adapterCopiedAllChangedFiles": true,
+  "sandboxUnitTests": "TAP version 13\n# Subtest: accepts documented JSON frames while discarding surrounding model prose\nok 1 - accepts documented JSON frames while discarding surrounding model prose\n  ---\n  duration_ms: 6.210382\n  ...\n# Subtest: rejects ambiguous blocks, malformed JSON, trailing prose and incidental braces\nok 2 - rejects ambiguous blocks, malformed JSON, trailing prose and incidental braces\n  ---\n  duration_ms: 0.598912\n  ...\n# Subtest: rejects a fenced draft followed by a corrected JSON answer\nok 3 - rejects a fenced draft followed by a corrected JSON answer\n  ---\n  duration_ms: 0.705513\n  ...\n# Subtest: generates the native target from live skill identities without mutating input\nok 4 - generates the native target from live skill identities without mutating input\n  ---\n  duration_ms: 0.410433\n  ...\n# Subtest: rejects incompatible supplied command: dz init --target claude-code --select feature-adr\nok 5 - rejects incompatible supplied command: dz init --target claude-code --select feature-adr\n  ---\n  duration_ms: 0.300061\n  ...\n# Subtest: rejects incompatible supplied command: dz init --target codex --select feature-adr\nok 6 - rejects incompatible supplied command: dz init --target codex --select feature-adr\n  ---\n  duration_ms: 0.335493\n  ...\n# Subtest: rejects incompatible supplied command: npx @dzhechkov/skills-feature-adr init\nok 7 - rejects incompatible supplied command: npx @dzhechkov/skills-feature-adr init\n  ---\n  duration_ms: 0.17685\n  ...\n# Subtest: rejects incompatible supplied command: dz init --target opencode --select feature-adr; touch /tmp/unsafe\nok 8 - rejects incompatible supplied command: dz init --target opencode --select feature-adr; touch /tmp/unsafe\n  ---\n  duration_ms: 0.210895\n  ...\n# Subtest: preserves a matching command\nok 9 - preserves a matching command\n  ---\n  duration_ms: 0.360176\n  ...\n# Subtest: ranks higher stated fit first without changing the execution pipeline\nok 10 - ranks higher stated fit first without changing the execution pipeline\n  ---\n  duration_ms: 0.402264\n  ...\n# Subtest: rejects unlisted skills, npm toolkits and unchecked preset routes\nok 11 - rejects unlisted skills, npm toolkits and unchecked preset routes\n  ---\n  duration_ms: 0.350775\n  ...\n# Subtest: rejects failed, empty, malformed or shell-unsafe registry data\nok 12 - rejects failed, empty, malformed or shell-unsafe registry data\n  ---\n  duration_ms: 0.309678\n  ...\n# Subtest: rejects malformed advice and fabricated pipeline steps\nok 13 - rejects malformed advice and fabricated pipeline steps\n  ---\n  duration_ms: 0.318426\n  ...\n# Subtest: rejects a known but unrecommended pipeline skill\nok 14 - rejects a known but unrecommended pipeline skill\n  ---\n  duration_ms: 0.330982\n  ...\n# Subtest: rejects duplicate picks and does not forward arbitrary output fields\nok 15 - rejects duplicate picks and does not forward arbitrary output fields\n  ---\n  duration_ms: 0.61376\n  ...\n# Subtest: CLI emits data on success and nonzero with no stdout for invalid inputs\nok 16 - CLI emits data on success and nonzero with no stdout for invalid inputs\n  ---\n  duration_ms: 178.372221\n  ...\n1..16\n# tests 16\n# suites 0\n# pass 16\n# fail 0\n# cancelled 0\n# skipped 0\n# todo 0\n# duration_ms 305.441576\n",
+  "registryCount": 151,
+  "lockSha256": "7317b9520941d8eff5765c6604e03eebce5c22c8159525e3d36113c7d59fe460",
+  "deleted": true,
+  "independentlyAbsent": true,
+  "absenceError": "Sandbox ijefkdn6vpsqd662u91hr not found",
+  "finishedAt": "2026-11-09T20:08:20.777Z",
+  "passed": true
+}

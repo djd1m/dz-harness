@@ -1,0 +1,27 @@
+{
+  "sourceHashesMatchFinalCandidate": true,
+  "checksReplayedFromUnmodifiedV11Trace": [
+    {
+      "case": "feature",
+      "expectedPrimary": true,
+      "nativeSkillLoaded": true,
+      "primarySourceRead": true,
+      "requestedOrderPresent": true
+    },
+    {
+      "case": "research",
+      "expectedPrimary": true,
+      "nativeSkillLoaded": true,
+      "primarySourceRead": true,
+      "requestedOrderPresent": true
+    },
+    {
+      "case": "cloudru",
+      "expectedPrimary": true,
+      "nativeSkillLoaded": true,
+      "primarySourceRead": true,
+      "requestedOrderPresent": true
+    }
+  ],
+  "note": "Additional primary/source-read assertions evaluated on captured V11 trace without new model calls. Final reproducible runner includes these assertions."
+}
