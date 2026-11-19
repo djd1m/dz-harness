@@ -1,0 +1,20 @@
+[
+  {
+    "id": "D02",
+    "ok": false,
+    "reason": "Actual feature-adr Step7 Code generation and CODE_CHANGES passages reach the selector, but the backend requirement r4 is bound solely to c9p6 from 12factor-port-binding. Opening an own listening socket documents service exposure, not implementation of the requested backend. Absence of a backend missingPart therefore does not establish correct backend coverage.",
+    "issues": [
+      "Backend implementation is incorrectly covered by port-binding guidance instead of the available development workflow/code-generation evidence.",
+      "Answer remains partial for notifications; no claim of full task completion is supported."
+    ]
+  },
+  {
+    "id": "D03",
+    "ok": true,
+    "reason": "Focused backend-followup criterion passes: feature-adr receives explicit Code generation and CODE_CHANGES passages and the answer selects its documented development workflow for the backend requirement, with no backend missingPart or generic clarification. This is selection guidance, not proof code ran.",
+    "issues": [
+      "Answer remains partial for notifications; full task coverage is not established.",
+      "Visible backend supporting quote is the general pipeline introduction rather than the stronger available code-generation passage."
+    ]
+  }
+]

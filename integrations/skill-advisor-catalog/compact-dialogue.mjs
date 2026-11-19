@@ -15,6 +15,7 @@ const advisorQuestion=/^(?:с чего начать|where to start|how do I get 
 const advisorFollowup=/^(?:какой\s+(?:навык|скилл|пакет)\s+(?:мне\s+)?(?:использовать|выбрать)(?:\s*,?\s*чтобы\s+(?:это\s+(?:вс[её]\s+)?|вс[её]\s+(?:это\s+)?)(?:закодить|реализовать|написать))?|which\s+(?:skill|package)\s+(?:should\s+I\s+use|to\s+use)(?:\s+to\s+(?:code|implement)\s+(?:all\s+)?(?:this|that|it))?)\s*[?!.]*$/iu;
 const narrowScope=/^(?:только|лишь|only|just)(?![\p{L}-])/iu;
 const concepts=[
+ [/(?:б[эе]кенд\p{L}*|серверн\p{L}*\s+(?:част\p{L}*|логик\p{L}*)|back[ -]?end|full[ -]?stack|server[ -]?side)/iu,'Code generation Step 7 CODE_CHANGES'],
  [/(?:именованн\p{L}*\s+том\p{L}*|named volumes?)/iu,'named volume persistent data volumes'],
  [/(?:health[ _-]?check|readiness|готовност\p{L}*|service_healthy)/iu,'condition service_healthy depends_on readiness healthcheck'],
  [/(?:таймкод\p{L}*|timestamps?)/iu,'timestamp timecode transcript sections'],

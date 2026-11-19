@@ -16,6 +16,6 @@ export function implementationQuery(query) {
  const intent=query.includes(marker) && create.test(latest) ? latest : query;
  if (negatedCreate.test(intent)) return null;
  if (auxiliaryOutput.test(intent)) return null;
- if (backend.test(scope) && !onlyFrontend) return 'создать backend API fullstack приложение требования архитектура реализация тестирование feature development pipeline requirements implementation testing';
+ if (backend.test(scope) && !onlyFrontend) return 'создать backend API fullstack приложение требования архитектура реализация тестирование feature development pipeline requirements implementation testing code generation Step 7 CODE_CHANGES independent module file';
  return 'создать функциональный веб интерфейс сайт страница frontend design functional interactive web applications components';
 }

@@ -1,0 +1,231 @@
+[
+  {
+    "receipt": "generation-verified.live.json",
+    "model": "anthropic/claude-haiku-5.5",
+    "status": "completed",
+    "cost": 0.0037561590000000002,
+    "sourceHashes": {
+      "compact-dialogue.mjs": "745555d3b5e1fe2883147832da7e96335a589db33267e6b99d88d3186a3a10fa",
+      "implementation-query.mjs": "b575a158ff3cc61ae8fd33f2a45e05466dff0d2f806c6e6e51a8212cd6ef08cf"
+    },
+    "cases": [
+      {
+        "id": "D02",
+        "query": "Хочу сделать сайт для службы доставки цветов: каталог, оформление заказа и уведомления. Сами цветы доставляют курьеры.\nПоследнее уточнение (при противоречии считать актуальным): а если мне нужен бэкенд, а не только фронтенд?",
+        "answer": {
+          "decision": "partial",
+          "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-feature-adr",
+              "scenarios": [
+                {
+                  "summary": "Навык feature-adr. Организует адаптивный процесс требований, ADR, планирования, реализации и проверки качества.",
+                  "boundary": "Для полного QE нужны соответствующие агенты и инструменты; описание процесса не доказывает готовность кода.",
+                  "nextAction": "Передайте описание функции или issue и контекст репозитория.",
+                  "details": [
+                    {
+                      "action": "Хочу сделать сайт для службы доставки цветов",
+                      "quote": "> 11-шаговый pipeline для разработки фич любой сложности."
+                    },
+                    {
+                      "action": "каталог, оформление заказа и",
+                      "quote": "11-step feature development pipeline with Complexity Router (S/M/L/XL),"
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": null
+            },
+            {
+              "package": "@dzhechkov/skills-12factor",
+              "scenarios": [
+                {
+                  "summary": "Навык 12factor-port-binding. Описывает самодостаточный процесс с серверной зависимостью и собственным listening socket, доступным через внешний роутинг.",
+                  "boundary": "Экспорт сервиса отличается от потребления внешних ресурсов и хранения PORT-конфигурации.",
+                  "nextAction": "Определите сетевой протокол, библиотеку сервера и команду запуска, которая открывает порт в user space.",
+                  "details": [
+                    {
+                      "action": "а если мне нужен бэкенд, а не только фронтенд?",
+                      "quote": "Decide HOW a service becomes reachable: make the app self-contained and let it open its OWN"
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": null
+            }
+          ],
+          "missingParts": [
+            "уведомления"
+          ],
+          "clarificationQuestion": null
+        },
+        "rawChoice": "{\"i\":\"execute\",\"m\":[{\"r\":\"r1\",\"p\":[\"c2p1\"]},{\"r\":\"r2\",\"p\":[\"c2p6\"]},{\"r\":\"r3\",\"p\":[\"ctx\"]},{\"r\":\"r4\",\"p\":[\"c9p6\"]}],\"x\":[\"уведомления\"],\"ask\":null}",
+        "error": null
+      },
+      {
+        "id": "D03",
+        "query": "Хочу сделать сайт для службы доставки цветов: каталог, оформление заказа и уведомления. Сами цветы доставляют курьеры.\nПредыдущее уточнение 1: а если мне нужен бэкенд, а не только фронтенд?\nПоследнее уточнение (при противоречии считать актуальным): какой скилл мне использовать чтобы это все закодить?",
+        "answer": {
+          "decision": "partial",
+          "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-feature-adr",
+              "scenarios": [
+                {
+                  "summary": "Навык feature-adr. Организует адаптивный процесс требований, ADR, планирования, реализации и проверки качества.",
+                  "boundary": "Для полного QE нужны соответствующие агенты и инструменты; описание процесса не доказывает готовность кода.",
+                  "nextAction": "Передайте описание функции или issue и контекст репозитория.",
+                  "details": [
+                    {
+                      "action": "каталог, оформление заказа",
+                      "quote": "> 11-шаговый pipeline для разработки фич любой сложности.",
+                      "joint": true
+                    },
+                    {
+                      "action": "а если мне нужен бэкенд, а не только фронтенд?",
+                      "quote": "11-step feature development pipeline with Complexity Router (S/M/L/XL),"
+                    }
+                  ]
+                },
+                {
+                  "summary": "Навык frontend-design. Поможет выбрать визуальное направление и реализовать интерфейс в коде с вниманием к типографике и композиции.",
+                  "boundary": "Создание frontend не означает готовый backend, публикацию или подключённые внешние сервисы.",
+                  "nextAction": "Опишите аудиторию, назначение страницы и технический стек.",
+                  "details": [
+                    {
+                      "action": "каталог, оформление заказа",
+                      "quote": "Use this skill when the user asks to build web components, pages, artifacts, posters, or applications (examples include websites, landing pages, dashboards, React components, HTML/CSS layouts, or when styling/beautifying any web UI).",
+                      "joint": true
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": null
+            }
+          ],
+          "missingParts": [
+            "уведомления"
+          ],
+          "clarificationQuestion": null
+        },
+        "rawChoice": "{\"i\":\"plan\",\"m\":[{\"r\":\"r1\",\"p\":[\"ctx\"]},{\"r\":\"r2\",\"p\":[\"c2p1\",\"c3p4\"]},{\"r\":\"r3\",\"p\":[\"ctx\"]},{\"r\":\"r4\",\"p\":[\"c2p7\"]}],\"x\":[\"уведомления\"],\"ask\":null}",
+        "error": null
+      }
+    ]
+  },
+  {
+    "receipt": "gemini-comparison.live.json",
+    "model": "google/gemini-3.5-flash-lite",
+    "status": "completed",
+    "cost": 0.004218093,
+    "sourceHashes": {
+      "compact-dialogue.mjs": "745555d3b5e1fe2883147832da7e96335a589db33267e6b99d88d3186a3a10fa",
+      "implementation-query.mjs": "b575a158ff3cc61ae8fd33f2a45e05466dff0d2f806c6e6e51a8212cd6ef08cf"
+    },
+    "cases": [
+      {
+        "id": "D02",
+        "query": "Хочу сделать сайт для службы доставки цветов: каталог, оформление заказа и уведомления. Сами цветы доставляют курьеры.\nПоследнее уточнение (при противоречии считать актуальным): а если мне нужен бэкенд, а не только фронтенд?",
+        "answer": {
+          "decision": "partial",
+          "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-12factor",
+              "scenarios": [
+                {
+                  "summary": "Помогает выбрать связанные решения по кодовой базе, зависимостям, конфигурации, ресурсам, релизам, процессам и окружениям через набор навыков по факторам.",
+                  "boundary": "Материал машинно извлечён из The Twelve-Factor App, trust_tier 0; требуется человеческая проверка, а не предположение о сертифицированном соответствии.",
+                  "nextAction": "Опишите сервис и цель изменения; определите затронутые факторы и последовательно проверьте их решения и связи.",
+                  "details": [
+                    {
+                      "action": "Хочу сделать сайт для службы доставки цветов",
+                      "quote": "> «Используй скиллы 12factor: спроектируй скелет нового сервиса заказов — как разложить репозиторий, зависимости, конфиг и стадии сборки/релиза/запуска.»"
+                    }
+                  ]
+                },
+                {
+                  "summary": "Навык 12factor-port-binding. Описывает самодостаточный процесс с серверной зависимостью и собственным listening socket, доступным через внешний роутинг.",
+                  "boundary": "Экспорт сервиса отличается от потребления внешних ресурсов и хранения PORT-конфигурации.",
+                  "nextAction": "Определите сетевой протокол, библиотеку сервера и команду запуска, которая открывает порт в user space.",
+                  "details": [
+                    {
+                      "action": "а если мне нужен бэкенд, а не только фронтенд?",
+                      "quote": "- «нужен ли внешний Apache/Tomcat, или приложение само должно слушать порт?» → embed the webserver as"
+                    },
+                    {
+                      "action": "а если мне нужен бэкенд, а не только фронтенд?",
+                      "quote": "Decide HOW a service becomes reachable: make the app self-contained and let it open its OWN"
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": null
+            }
+          ],
+          "missingParts": [
+            "каталог, оформление заказа и уведомления.",
+            "Сами цветы доставляют курьеры."
+          ],
+          "clarificationQuestion": null
+        },
+        "rawChoice": "{\"i\":\"plan\",\"m\":[{\"r\":\"r1\",\"p\":[\"c8p2\"]},{\"r\":\"r2\",\"p\":[null]},{\"r\":\"r3\",\"p\":[null]},{\"r\":\"r4\",\"p\":[\"c9p5\",\"c9p6\"]}],\"x\":[\"каталог, оформление заказа и уведомления.\",\"Сами цветы доставляют курьеры.\"],\"ask\":null}",
+        "error": null
+      },
+      {
+        "id": "D03",
+        "query": "Хочу сделать сайт для службы доставки цветов: каталог, оформление заказа и уведомления. Сами цветы доставляют курьеры.\nПредыдущее уточнение 1: а если мне нужен бэкенд, а не только фронтенд?\nПоследнее уточнение (при противоречии считать актуальным): какой скилл мне использовать чтобы это все закодить?",
+        "answer": {
+          "decision": "recommend",
+          "lead": "Подходящие сценарии для вашей задачи:",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-feature-adr",
+              "scenarios": [
+                {
+                  "summary": "Навык frontend-design. Поможет выбрать визуальное направление и реализовать интерфейс в коде с вниманием к типографике и композиции.",
+                  "boundary": "Создание frontend не означает готовый backend, публикацию или подключённые внешние сервисы.",
+                  "nextAction": "Опишите аудиторию, назначение страницы и технический стек.",
+                  "details": [
+                    {
+                      "action": "Хочу сделать сайт для службы доставки цветов",
+                      "quote": "The user provides frontend requirements: a component, page, application, or interface to build. They may include context about the purpose, audience, or technical constraints."
+                    },
+                    {
+                      "action": "каталог, оформление заказа и уведомления.",
+                      "quote": "Use this skill when the user asks to build web components, pages, artifacts, posters, or applications (examples include websites, landing pages, dashboards, React components, HTML/CSS layouts, or when styling/beautifying any web UI)."
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": null
+            },
+            {
+              "package": "@dzhechkov/skills-meta",
+              "scenarios": [
+                {
+                  "summary": "Навык decision-mockups. Излагает контекст и альтернативы простым языком, используя HTML или компактный текст для явных ответов.",
+                  "boundary": "Простая развилка может остаться текстом; учебные примеры не подменяют проверенные факты задачи.",
+                  "nextAction": "Соберите основания, сделанное и оставшееся, затем сформулируйте точный ответ, который нужен от владельца.",
+                  "details": [
+                    {
+                      "action": "Сами цветы доставляют курьеры.",
+                      "quote": "| Порядок взаимодействий/доставки | Семантическая HTML-схема последовательности или потока |"
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": null
+            }
+          ],
+          "missingParts": [],
+          "clarificationQuestion": null
+        },
+        "rawChoice": "{\"i\":\"plan\",\"m\":[{\"r\":\"r1\",\"p\":[\"c3p6\"]},{\"r\":\"r2\",\"p\":[\"c3p4\"]},{\"r\":\"r3\",\"p\":[\"c8p1\"]},{\"r\":\"r4\",\"p\":[\"ctx\"]}],\"x\":[],\"ask\":null}",
+        "error": null
+      }
+    ]
+  }
+]
