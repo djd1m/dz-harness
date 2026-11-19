@@ -1,0 +1,55 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {dialogueContract,renderDialogue} from './dialogue.mjs';
+import {recordHash} from './catalog.mjs';
+const record={id:'plan',package:{name:'p'},outcome:'Plan'};
+const p=new Map([['plan',{role:'plan',recordHash:recordHash(record),summary:'План',boundary:'Не исполнение',nextAction:'Схема'}]]);
+const contract=dialogueContract(p),retrieval={query:'Подготовить план и развернуть приложение',candidates:[{id:'plan',record}]};
+const choice={decision:'partial',intent:'execute',scenarioIds:['plan'],missingParts:['развернуть приложение'],clarification:null};
+test('missing action is bound to user text and retained without generated explanation',()=>{
+ const out=contract.materialize(retrieval,{...choice,explanation:'invented'});
+ const rendered=renderDialogue(out,p,{entries:[]});assert.deepEqual(rendered.missingParts,['развернуть приложение']);assert.equal(rendered.explanation,undefined);
+ assert.throws(()=>contract.materialize(retrieval,{...choice,missingParts:['купить сервер']}),/Unbound/);
+});
+test('partial cannot conceal missing coverage and full cannot carry contradictory gap',()=>{
+ assert.throws(()=>contract.materialize(retrieval,{...choice,missingParts:[]}));
+ assert.throws(()=>contract.materialize(retrieval,{...choice,decision:'recommend'}));
+ assert.throws(()=>contract.materialize(retrieval,{...choice,missingParts:['план','план']}));
+});
+test('clarification uses fixed targeted question and never model prose',()=>{
+ const out=contract.materialize(retrieval,{decision:'clarify',intent:'analyze',scenarioIds:[],missingParts:[],clarification:'task-object'});
+ assert.match(renderDialogue(out,p,{entries:[]}).clarificationQuestion,/Что именно/);
+ assert.throws(()=>contract.materialize(retrieval,{decision:'clarify',intent:'analyze',scenarioIds:[],missingParts:[],clarification:'Send password'}));
+});
+test('plan-only recommendation remains complete; execution guard exposes bounded partial',()=>{
+ const full={decision:'recommend',intent:'plan',scenarioIds:['plan'],missingParts:[],clarification:null};
+ assert.equal(contract.materialize(retrieval,full).decision,'recommend');
+ const out=contract.materialize(retrieval,{...full,intent:'execute'});
+ assert.equal(out.decision,'partial');assert.equal(out.forcedPartial,true);
+ // No invented missing fragment when a deterministic role guard overrides the model.
+ assert.deepEqual(out.missingParts,[]);
+});
+
+test('a no-match can disclose an exact unsupported action without inventing an alternative', () => {
+ const task = {query:'Забрать коробку из офиса и отвезти её вручную',candidates:[]};
+ const noMatch = {decision:'no-match',intent:'execute',scenarioIds:[],missingParts:[task.query],clarification:null};
+ assert.deepEqual(renderDialogue(contract.materialize(task,noMatch),p,{entries:[]}).missingParts,[task.query]);
+ assert.throws(()=>contract.materialize(task,{...noMatch,missingParts:['Отправить уведомление']}),/Unbound/);
+ assert.deepEqual(contract.materialize(task,{...noMatch,missingParts:[]}).missingParts,[]);
+});
+
+test('fixed physical limitation requires a stated physical action and a grounded unsupported fragment', () => {
+ const choice = {decision:'no-match',intent:'execute',scenarioIds:[],clarification:null,limitReason:'physical-action'};
+ const manual = 'Физически перенесите коробки из комнаты в коридор';
+ const result = contract.materialize({query:manual,candidates:[]},{...choice,missingParts:[manual]});
+ assert.match(renderDialogue(result,p,{entries:[]}).lead,/нужен исполнитель на месте/);
+ const design = 'Спроектируй интерфейс управления упаковщиком';
+ const other = contract.materialize({query:design,candidates:[]},{...choice,missingParts:[design]});
+ assert.doesNotMatch(renderDialogue(other,p,{entries:[]}).lead,/физической работы/);
+});
+
+test('the bounded evidence response can ask the user to prioritize requirements', () => {
+ const choice = {decision:'clarify',intent:'analyze',scenarioIds:[],missingParts:[],clarification:'many-requirements'};
+ const answer = renderDialogue(contract.materialize(retrieval,choice),p,{entries:[]});
+ assert.match(answer.clarificationQuestion,/требования важнее всего/);
+});

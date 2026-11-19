@@ -1,0 +1,12 @@
+{
+  "allRows": 74,
+  "audited": 74,
+  "unique": 74,
+  "hashesMatch": true,
+  "semanticCorrect": 71,
+  "falseFull": 0,
+  "fabricated": 0,
+  "executedDriverHash": "35c9fb817e4a3d5e3199cfb473d756ae4661acfc32877a0d46613aa01a1d9520",
+  "boundDriverHash": "35c9fb817e4a3d5e3199cfb473d756ae4661acfc32877a0d46613aa01a1d9520",
+  "conservativeCost": 0.5345712090000001
+}

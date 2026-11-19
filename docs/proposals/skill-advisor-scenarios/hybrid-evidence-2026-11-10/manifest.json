@@ -1,0 +1,29 @@
+{
+  "executedRunnerSha256": "453fbcd1b430c6c03b6576df257aa70aadb4a9249bdd99c8458873400625963a",
+  "reviewedRunnerSha256": "78cd07ef79850e6280cd48df382f4cba0afcb2ed2580ed34b3135e8d7cd9cc37",
+  "difference": "After paid run began, add preflight paid-rerun rejection and cached-vector count/dimension checks. Retrieval algorithms, prompts and labels unchanged. All retrieval rankings/scores reproduced under final runner and minimal install; paid calls not repeated.",
+  "frozenQuestionsSha256": "d19feacff3f5339ff3162ece6597bbf3d25971fd9f5d5844c379eeb3d40dfdec",
+  "embeddingCacheSha256": "ce703c1b631b93ee53c03d906dbbbb675d99e08fe9bfd70f06e981cc29d3011b",
+  "embeddingCacheLocation": "Host-only /var/lib/aicoding/advisor-hybrid-20261110-v2/embeddings.json; rerunning provider regenerates vectors, exact future model revision not guaranteed.",
+  "code": {
+    "integrations/skill-advisor-catalog/experiments/hybrid/run.mjs": "78cd07ef79850e6280cd48df382f4cba0afcb2ed2580ed34b3135e8d7cd9cc37",
+    "integrations/skill-advisor-catalog/experiments/hybrid/verify.mjs": "48f0d272ed85621704bb590eb1a5e3dd8028481a4fce0c76030a90007db05cf1",
+    "integrations/skill-advisor-catalog/experiments/hybrid/package-lock.json": "1a74e51ce9db44330f59db5797a51454a979eb6e2e430676bcf691c4b9a4ad58",
+    "integrations/skill-advisor-catalog/cli.mjs": "0e7357ad60fa1201c7e1971f2e960874a8ff19c16fdf73aecddf653fe1654845",
+    "integrations/skill-advisor-catalog/search.mjs": "33ceabf849721756bdfd50ef72a83b8ca229837adbd16ab3decb79828be1b8d7",
+    "integrations/skill-advisor-catalog/selector.mjs": "0bbac23027e551eee069b302644b11b2e1f140acb2ecfbb7c4c96a5cc203c63b",
+    "integrations/skill-advisor-catalog/dialogue.mjs": "38746bd746f03086409b4eb85cdca997d60a6c7899288172406ee25e334e136d",
+    "integrations/skill-advisor-catalog/answer.mjs": "d382efce7379763498f1957206fb0a0542ed54c95e03e444f20da7b2cedb0052",
+    "integrations/skill-advisor-catalog/scoring.mjs": "37953e4bf63ddab543a39a56fc3a5662e80f92a9a6ae1679a733589be2535185",
+    "integrations/skill-advisor-catalog/catalog.mjs": "8818c8876aae870be1e35ec3b7ad0a4b5f2368f9e6c32081dda8cf6c27e99103"
+  },
+  "artifacts": {
+    "selection.json": "c505b3377687cd35d53f9a0d04b0dc8f576118875c7b813f5e9c451e5839551f",
+    "embedding-receipts.json": "f1b8438335b28b58180c2bd148b83164136329d55759cf8999cc59d6bf8747b0",
+    "minimal-install-summary.json": "d1b8817c678f10728abb9cc9c5c39df47fe0b784fd5b73590773e36362c3962c",
+    "retrieval.json": "ee350094f9d495239a7613d75ed1a7b8ffafaffd15d09d96673b6c9f1f5bd249",
+    "dependency-audit-default.json": "6be225ac4e9afa82c057e275fb41b90254142b1948600bf22124f863b6c18f4b",
+    "dependency-audit-minimal.json": "1ed8ed8949192dd3dc68bbf309ba8b7d7411e5d9d20389b493639ccd5e4b83d6",
+    "verification.json": "ce8f405dc833f2a1b9ccab3f0e76705ff83ea1de3de74044a709458fd8c2677e"
+  }
+}

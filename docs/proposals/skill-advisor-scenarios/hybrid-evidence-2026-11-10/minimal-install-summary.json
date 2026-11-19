@@ -1,0 +1,281 @@
+{
+  "config": {
+    "catalogRevision": "298c5b2030cd139553fdddc21cc008ae7c68b03db1fecba380d487d01e80fda2",
+    "questionSha256": "d19feacff3f5339ff3162ece6597bbf3d25971fd9f5d5844c379eeb3d40dfdec",
+    "documentSha256": "67aa6d1733506b220ff936fc37b357fa41a065eb07cac84c50060a60ce98ad85",
+    "model": "baai/bge-m3",
+    "dimension": 1024
+  },
+  "versions": {
+    "node": "v24.21.0",
+    "orama": "3.1.18",
+    "lancedb": "0.41.0"
+  },
+  "settings": {
+    "topK": 5,
+    "lexical": "shared RU/EN stems, library FTS no stopword removal",
+    "oramaHybrid": "equal normalized text/vector weights, similarity 0",
+    "lanceHybrid": "cosine flat scan + FTS, default RRF"
+  },
+  "build": {
+    "oramaBuildMs": 25.020215000000007,
+    "lanceBuildMs": 64.53903200000002,
+    "oramaSerializedBytes": 2758043,
+    "lanceBytes": 168838,
+    "processRssBytes": 214646784
+  },
+  "summary": {
+    "baseline": {
+      "all-labelled": {
+        "n": 54,
+        "recallAt5": 0.8703703703703703,
+        "complete": 47,
+        "mrr": 0.8364197530864197
+      },
+      "ru-paraphrase": {
+        "n": 32,
+        "recallAt5": 0.96875,
+        "complete": 31,
+        "mrr": 0.9270833333333333
+      },
+      "en-paraphrase": {
+        "n": 8,
+        "recallAt5": 0.25,
+        "complete": 2,
+        "mrr": 0.25
+      },
+      "exact-name": {
+        "n": 6,
+        "recallAt5": 1,
+        "complete": 6,
+        "mrr": 0.9166666666666666
+      },
+      "multi-intent": {
+        "n": 4,
+        "recallAt5": 1,
+        "complete": 4,
+        "mrr": 1
+      },
+      "partial": {
+        "n": 4,
+        "recallAt5": 1,
+        "complete": 4,
+        "mrr": 1
+      },
+      "warmMs": {
+        "p50": 2.2309130000001005,
+        "p95": 3.1559149999998226
+      }
+    },
+    "semantic": {
+      "all-labelled": {
+        "n": 54,
+        "recallAt5": 1,
+        "complete": 54,
+        "mrr": 0.9290123456790125
+      },
+      "ru-paraphrase": {
+        "n": 32,
+        "recallAt5": 1,
+        "complete": 32,
+        "mrr": 0.9322916666666667
+      },
+      "en-paraphrase": {
+        "n": 8,
+        "recallAt5": 1,
+        "complete": 8,
+        "mrr": 0.9166666666666666
+      },
+      "exact-name": {
+        "n": 6,
+        "recallAt5": 1,
+        "complete": 6,
+        "mrr": 0.8333333333333334
+      },
+      "multi-intent": {
+        "n": 4,
+        "recallAt5": 1,
+        "complete": 4,
+        "mrr": 1
+      },
+      "partial": {
+        "n": 4,
+        "recallAt5": 1,
+        "complete": 4,
+        "mrr": 1
+      },
+      "warmMs": {
+        "p50": 0.6415309999997589,
+        "p95": 1.5662730000003648
+      }
+    },
+    "orama-fts": {
+      "all-labelled": {
+        "n": 54,
+        "recallAt5": 0.7222222222222222,
+        "complete": 38,
+        "mrr": 0.4765432098765431
+      },
+      "ru-paraphrase": {
+        "n": 32,
+        "recallAt5": 0.8125,
+        "complete": 26,
+        "mrr": 0.5166666666666666
+      },
+      "en-paraphrase": {
+        "n": 8,
+        "recallAt5": 0.125,
+        "complete": 1,
+        "mrr": 0.0625
+      },
+      "exact-name": {
+        "n": 6,
+        "recallAt5": 1,
+        "complete": 6,
+        "mrr": 0.8333333333333334
+      },
+      "multi-intent": {
+        "n": 4,
+        "recallAt5": 0.75,
+        "complete": 2,
+        "mrr": 0.7083333333333333
+      },
+      "partial": {
+        "n": 4,
+        "recallAt5": 0.75,
+        "complete": 3,
+        "mrr": 0.21666666666666667
+      },
+      "warmMs": {
+        "p50": 0.1645809999999983,
+        "p95": 0.41992000000004737
+      }
+    },
+    "orama-hybrid": {
+      "all-labelled": {
+        "n": 54,
+        "recallAt5": 0.8796296296296297,
+        "complete": 47,
+        "mrr": 0.7901234567901235
+      },
+      "ru-paraphrase": {
+        "n": 32,
+        "recallAt5": 0.875,
+        "complete": 28,
+        "mrr": 0.8020833333333333
+      },
+      "en-paraphrase": {
+        "n": 8,
+        "recallAt5": 0.75,
+        "complete": 6,
+        "mrr": 0.6041666666666667
+      },
+      "exact-name": {
+        "n": 6,
+        "recallAt5": 1,
+        "complete": 6,
+        "mrr": 1
+      },
+      "multi-intent": {
+        "n": 4,
+        "recallAt5": 0.875,
+        "complete": 3,
+        "mrr": 0.875
+      },
+      "partial": {
+        "n": 4,
+        "recallAt5": 1,
+        "complete": 4,
+        "mrr": 0.6666666666666666
+      },
+      "warmMs": {
+        "p50": 0.252570999999989,
+        "p95": 0.5422009999999773
+      }
+    },
+    "lance-fts": {
+      "all-labelled": {
+        "n": 54,
+        "recallAt5": 0.8518518518518519,
+        "complete": 46,
+        "mrr": 0.8333333333333334
+      },
+      "ru-paraphrase": {
+        "n": 32,
+        "recallAt5": 0.96875,
+        "complete": 31,
+        "mrr": 0.953125
+      },
+      "en-paraphrase": {
+        "n": 8,
+        "recallAt5": 0.25,
+        "complete": 2,
+        "mrr": 0.1875
+      },
+      "exact-name": {
+        "n": 6,
+        "recallAt5": 0.8333333333333334,
+        "complete": 5,
+        "mrr": 0.8333333333333334
+      },
+      "multi-intent": {
+        "n": 4,
+        "recallAt5": 1,
+        "complete": 4,
+        "mrr": 1
+      },
+      "partial": {
+        "n": 4,
+        "recallAt5": 1,
+        "complete": 4,
+        "mrr": 1
+      },
+      "warmMs": {
+        "p50": 3.33279500000026,
+        "p95": 5.5492080000003625
+      }
+    },
+    "lance-hybrid": {
+      "all-labelled": {
+        "n": 54,
+        "recallAt5": 1,
+        "complete": 54,
+        "mrr": 0.9351851851851852
+      },
+      "ru-paraphrase": {
+        "n": 32,
+        "recallAt5": 1,
+        "complete": 32,
+        "mrr": 0.9479166666666666
+      },
+      "en-paraphrase": {
+        "n": 8,
+        "recallAt5": 1,
+        "complete": 8,
+        "mrr": 0.9166666666666666
+      },
+      "exact-name": {
+        "n": 6,
+        "recallAt5": 1,
+        "complete": 6,
+        "mrr": 0.8055555555555557
+      },
+      "multi-intent": {
+        "n": 4,
+        "recallAt5": 1,
+        "complete": 4,
+        "mrr": 1
+      },
+      "partial": {
+        "n": 4,
+        "recallAt5": 1,
+        "complete": 4,
+        "mrr": 1
+      },
+      "warmMs": {
+        "p50": 5.182488000000376,
+        "p95": 8.4877019999999
+      }
+    }
+  }
+}

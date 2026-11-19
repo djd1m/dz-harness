@@ -1,0 +1,40 @@
+{
+  "reviewerModel": "gpt-6.1-terra",
+  "reviews": [
+    {
+      "id": "p-replicator-brutal-honesty-review-33781c43",
+      "verdict": "approved",
+      "reason": "SKILL описывает структурированную прямую критику кода и тестов и исключает первый PR новичка и низкую психологическую безопасность.",
+      "recordHash": "b535c2ed5c1483cc9f66be7b771a51facb449604e639da68c6d95ed10795b257",
+      "presentationHash": "6585a583c455e1c76d7b3069f13546cff1a6959890ea62740d6828e83d8da7c6"
+    },
+    {
+      "id": "p-replicator-knowledge-extractor-35fb9d25",
+      "verdict": "approved",
+      "reason": "SKILL описывает режимы MARKER, QUICK, FULL и AUDIT и отдельную фазу обобщения проектных артефактов.",
+      "recordHash": "04dbf9e8765f64bc92181199099b22822cac0695f5b4af38a9e4023c545833d1",
+      "presentationHash": "7dff7bc2f18b12f5e0d54a160c8af5b749c991d0840221a1dd1b1221e4ba4212"
+    },
+    {
+      "id": "skills-academic-defense-evaluator-ad971909",
+      "verdict": "approved",
+      "reason": "SKILL разбирает транскрипт доклада, структуру, признаки владения материалом и сопоставление с ВКР; это не решение комиссии.",
+      "recordHash": "6ab8e3259899122aa71628b0269965bc8d95fd18b61a116af55da08cb04639ee",
+      "presentationHash": "9089dcfa26e559f9dac30fed1044788cc3cff92ed64ec61956b1a8b978dcfd28"
+    },
+    {
+      "id": "skills-devops-api-design-0c4d943d",
+      "verdict": "approved",
+      "reason": "SKILL создаёт спецификацию API, сравнивает REST и GraphQL и прямо исключает реализацию и тестирование API.",
+      "recordHash": "e7bc7b24bdd99017f1bed7c0a1f527ba2a67cc72932818c8ecf194fda95ed96a",
+      "presentationHash": "8ef1d191c26cf4fbe4d8c784904df6a9450d5b0e3e6fca2958c615ff65c0fb3c"
+    },
+    {
+      "id": "skills-devops-deploy-on-cloudru-vm-458aa6e5",
+      "verdict": "approved",
+      "reason": "SKILL описывает анализ репозитория и развёртывание Compose через cloudru-vm, требуя CLI и учётные данные и исключая Kubernetes.",
+      "recordHash": "4e403c39abdaf1de8b0f34980d5ff2312dea64a56975bdebed27a0b173f5c644",
+      "presentationHash": "9bbac9005d280ae587b214c59e0351b3d0b761ddf0362c52160748ecac1bcc7f"
+    }
+  ]
+}

@@ -1,0 +1,2246 @@
+{
+  "schema": "dz-scenario-index/1",
+  "revision": "47c7322a376b3bbd8e1d3f0499f1410b973a62620646c32f7efb9cc360e5ed43",
+  "records": [
+    {
+      "id": "meta-explore-product",
+      "package": {
+        "name": "@dzhechkov/skills-meta",
+        "version": "0.9.75",
+        "manifest": "packages/skills-meta/package.json"
+      },
+      "skillIds": [
+        "explore"
+      ],
+      "title": "Уточнить идею продукта",
+      "queries": [
+        "Хочу сделать приложение, помоги понять задачу"
+      ],
+      "intent": "Превратить размытую идею в постановку задачи.",
+      "whenToUse": [
+        "Цель и ограничения продукта ещё не ясны."
+      ],
+      "whenNotToUse": [
+        "Нужна немедленная реализация без этапа уточнения."
+      ],
+      "outcome": "Постановка с критериями успеха.",
+      "prerequisites": [
+        "Описание идеи от пользователя."
+      ],
+      "steps": [
+        "Определить тип задачи и выбрать измерения для уточнения.",
+        "Уточнить пользователей, результат, ограничения и критерии успеха."
+      ],
+      "limitations": [
+        "Навык сначала исследует задачу и не предлагает решение до завершения исследования."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-meta/package.json",
+          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+        },
+        {
+          "path": "packages/skills-meta/explore/SKILL.md",
+          "sha256": "2473e7961845db0d64566cd42627b374d1830664b9e302058a1b1aa466bc7361"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-meta/explore/SKILL.md",
+          "quote": "  Adaptive task exploration and clarification skill for transforming vague "
+        },
+        {
+          "path": "packages/skills-meta/explore/SKILL.md",
+          "quote": "  understanding the real need is essential before proposing solutions. Does NOT"
+        },
+        {
+          "path": "packages/skills-meta/explore/SKILL.md",
+          "quote": "| **Product/Feature** | \"build\", \"create app\", \"develop\" | Outcome, Users, Constraints, Success |"
+        },
+        {
+          "path": "packages/skills-meta/explore/SKILL.md",
+          "quote": "Select 3-5 dimensions based on task type. Each dimension has multiple question variants—choose the most natural for context."
+        },
+        {
+          "path": "packages/skills-meta/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-meta\","
+        },
+        {
+          "path": "packages/skills-meta/package.json",
+          "quote": "  \"version\": \"0.9.75\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "meta-feature-adr",
+      "package": {
+        "name": "@dzhechkov/skills-meta",
+        "version": "0.9.75",
+        "manifest": "packages/skills-meta/package.json"
+      },
+      "skillIds": [
+        "feature-adr"
+      ],
+      "title": "Разработать функциональность с архитектурными решениями",
+      "queries": [
+        "Реализуй новую функцию с архитектурным планом и проверкой"
+      ],
+      "intent": "Провести разработку функциональности через адаптивный процесс.",
+      "whenToUse": [
+        "Есть задача на реализацию функциональности."
+      ],
+      "whenNotToUse": [
+        "Нужно только уточнить неясную идею без разработки."
+      ],
+      "outcome": "Артефакты разработки и проверки по выбранному масштабу.",
+      "prerequisites": [
+        "Описание функциональности или путь к задаче."
+      ],
+      "steps": [
+        "Определить масштаб и активные этапы.",
+        "Выполнить предусмотренные масштабом этапы разработки и проверки."
+      ],
+      "limitations": [
+        "Этапы зависят от сложности; Direct-режимы имеют отдельные настройки."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-meta/package.json",
+          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+        },
+        {
+          "path": "packages/skills-meta/feature-adr/SKILL.md",
+          "sha256": "6eb5ab29e0d30115cd2377dc1e800034557228d78f687c4db7c10e7a2c3ce613"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-meta/feature-adr/SKILL.md",
+          "quote": "  11-step feature development pipeline with Complexity Router (S/M/L/XL),"
+        },
+        {
+          "path": "packages/skills-meta/feature-adr/SKILL.md",
+          "quote": "  quality engineering. Supports 3 modes: Reference (no setup), Direct (--full-qe),"
+        },
+        {
+          "path": "packages/skills-meta/feature-adr/SKILL.md",
+          "quote": "- `/feature-adr [описание или путь к issue]`"
+        },
+        {
+          "path": "packages/skills-meta/feature-adr/SKILL.md",
+          "quote": "→ Output: {COMPLEXITY_TIER}, {ACTIVE_STEPS}, {TIME_BUDGET}"
+        },
+        {
+          "path": "packages/skills-meta/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-meta\","
+        },
+        {
+          "path": "packages/skills-meta/package.json",
+          "quote": "  \"version\": \"0.9.75\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "devops-cloudru-deploy",
+      "package": {
+        "name": "@dzhechkov/skills-devops",
+        "version": "0.3.18",
+        "manifest": "packages/skills-devops/package.json"
+      },
+      "skillIds": [
+        "deploy-on-cloudru-vm"
+      ],
+      "title": "Развернуть репозиторий на Cloud.ru VM",
+      "queries": [
+        "Разверни мой GitHub-репозиторий на виртуальной машине Cloud.ru"
+      ],
+      "intent": "Проанализировать репозиторий и подготовить развёртывание на ВМ.",
+      "whenToUse": [
+        "Нужна одна ВМ Cloud.ru с Docker Compose."
+      ],
+      "whenNotToUse": [
+        "Нужен Kubernetes, serverless или другой провайдер."
+      ],
+      "outcome": "Приложение на ВМ с адресом подключения после проверки.",
+      "prerequisites": [
+        "Ссылка на репозиторий; необходимые данные Cloud.ru; внешний CLI cloudru-vm."
+      ],
+      "steps": [
+        "Изучить репозиторий и подготовить Compose.",
+        "Собрать недостающие данные и передать развёртывание внешнему CLI.",
+        "Проверить работоспособность и сообщить адрес подключения."
+      ],
+      "limitations": [
+        "Навык использует внешний CLI; проверку доступности нужно выполнить после развёртывания."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-devops/package.json",
+          "sha256": "3a6d66b689bcbeb15f8b69b6673a30fb5293b1f73666fe1722be831219b0c0cb"
+        },
+        {
+          "path": "packages/skills-devops/deploy-on-cloudru-vm/SKILL.md",
+          "sha256": "3b734b65872e8b37dc9dfd6184b7cc19aeac786d1efa293a310d703eb88f87d5"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-devops/deploy-on-cloudru-vm/SKILL.md",
+          "quote": "  Repo URL → running app on a Cloud.ru VM, one conversation: clone & analyze any GitHub/GitLab"
+        },
+        {
+          "path": "packages/skills-devops/deploy-on-cloudru-vm/SKILL.md",
+          "quote": "  back the public IP / connection URL / ssh string. Wraps github.com/djd1m/cloudru-vm-cli"
+        },
+        {
+          "path": "packages/skills-devops/deploy-on-cloudru-vm/SKILL.md",
+          "quote": "- Kubernetes-shaped workloads (many services, autoscaling) → use the `kubernetes` skill; this"
+        },
+        {
+          "path": "packages/skills-devops/deploy-on-cloudru-vm/SKILL.md",
+          "quote": "- Serverless / static-site hosting — a VM is the wrong shape"
+        },
+        {
+          "path": "packages/skills-devops/deploy-on-cloudru-vm/SKILL.md",
+          "quote": "- Providers other than Cloud.ru (the CLI is Cloud.ru-specific)"
+        },
+        {
+          "path": "packages/skills-devops/deploy-on-cloudru-vm/SKILL.md",
+          "quote": "collection, and honest verification."
+        },
+        {
+          "path": "packages/skills-devops/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-devops\","
+        },
+        {
+          "path": "packages/skills-devops/package.json",
+          "quote": "  \"version\": \"0.3.18\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "devops-github-actions",
+      "package": {
+        "name": "@dzhechkov/skills-devops",
+        "version": "0.3.18",
+        "manifest": "packages/skills-devops/package.json"
+      },
+      "skillIds": [
+        "github-actions"
+      ],
+      "title": "Проверить CI на GitHub Actions",
+      "queries": [
+        "Проверь workflow GitHub Actions на безопасность и корректность"
+      ],
+      "intent": "Проверить конфигурацию CI и предложить улучшения.",
+      "whenToUse": [
+        "Есть workflow GitHub Actions для проверки."
+      ],
+      "whenNotToUse": [
+        "Проблема относится к другой CI-платформе или логике тестов."
+      ],
+      "outcome": "Предложения по структуре и защите workflow.",
+      "prerequisites": [
+        "Файлы workflow и контекст проекта."
+      ],
+      "steps": [
+        "Определить события, задания и исполнители.",
+        "Проверить настройки безопасности и корректность workflow."
+      ],
+      "limitations": [
+        "Рассматривается конфигурация GitHub Actions, а не логика тестов."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-devops/package.json",
+          "sha256": "3a6d66b689bcbeb15f8b69b6673a30fb5293b1f73666fe1722be831219b0c0cb"
+        },
+        {
+          "path": "packages/skills-devops/github-actions/SKILL.md",
+          "sha256": "283b4f5d95ec27275ae170b8ea151ba0c74339f01e170278295c592f19a20c0f"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-devops/github-actions/SKILL.md",
+          "quote": "description: \"Designs and reviews GitHub Actions workflows — CI/CD pipelines, matrix builds, caching, secrets, reusable workflows, and security hardening.\""
+        },
+        {
+          "path": "packages/skills-devops/github-actions/SKILL.md",
+          "quote": "- User asks to review an existing workflow for performance, security, or correctness"
+        },
+        {
+          "path": "packages/skills-devops/github-actions/SKILL.md",
+          "quote": "Determine the workflow triggers, job layout, and runner selection."
+        },
+        {
+          "path": "packages/skills-devops/github-actions/SKILL.md",
+          "quote": "- User wants to set up Jenkins, CircleCI, GitLab CI, or another CI platform (not GitHub Actions)"
+        },
+        {
+          "path": "packages/skills-devops/github-actions/SKILL.md",
+          "quote": "- User wants to fix a CI failure caused by test logic, not workflow config (use `ci-fix`)"
+        },
+        {
+          "path": "packages/skills-devops/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-devops\","
+        },
+        {
+          "path": "packages/skills-devops/package.json",
+          "quote": "  \"version\": \"0.3.18\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "mcp-git-research",
+      "package": {
+        "name": "@dzhechkov/skills-mcp",
+        "version": "0.3.11",
+        "manifest": "packages/skills-mcp/package.json"
+      },
+      "skillIds": [
+        "git-mcp"
+      ],
+      "title": "Изучить историю GitHub-репозитория",
+      "queries": [
+        "Посмотри историю изменений файла в GitHub-репозитории"
+      ],
+      "intent": "Получить историю файла и различия через Git MCP.",
+      "whenToUse": [
+        "Нужно исследовать историю и изменения Git-репозитория."
+      ],
+      "whenNotToUse": [
+        "Нужен обзор документации библиотеки по API."
+      ],
+      "outcome": "История файла и выбранные различия.",
+      "prerequisites": [
+        "Доступен MCP-сервер @cyanheads/git-mcp-server; URL репозитория и путь к файлу."
+      ],
+      "steps": [
+        "Клонировать репозиторий через MCP при необходимости.",
+        "Изучить историю файла и различия."
+      ],
+      "limitations": [
+        "Для удалённого доступа могут потребоваться системные Git credentials."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-mcp/package.json",
+          "sha256": "ac3a772642140dbd5f487c6784b689725b9901fb29adf44d663c70c87a2ff595"
+        },
+        {
+          "path": "packages/skills-mcp/git-mcp/SKILL.md",
+          "sha256": "e223bf00356cb3ee3af3390e080e0c285d0d3883ad41c0dff1b591807c3688e9"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-mcp/git-mcp/SKILL.md",
+          "quote": "Git version control via the [@cyanheads/git-mcp-server](https://github.com/cyanheads/git-mcp-server). Full Git operations including clone, commit, branch, merge, rebase, diff, stash, cherry-pick, tag, and worktree management."
+        },
+        {
+          "path": "packages/skills-mcp/git-mcp/SKILL.md",
+          "quote": "Clone a remote repository."
+        },
+        {
+          "path": "packages/skills-mcp/git-mcp/SKILL.md",
+          "quote": "- Use `git_log` with `file_path` to trace the history of a specific file"
+        },
+        {
+          "path": "packages/skills-mcp/git-mcp/SKILL.md",
+          "quote": "- **Code review diffs** — viewing changes between branches, commits, or working tree"
+        },
+        {
+          "path": "packages/skills-mcp/git-mcp/SKILL.md",
+          "quote": "- **SSH keys** — the server uses the system's Git configuration; ensure SSH keys or credential helpers are configured for remote access"
+        },
+        {
+          "path": "packages/skills-mcp/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-mcp\","
+        },
+        {
+          "path": "packages/skills-mcp/package.json",
+          "quote": "  \"version\": \"0.3.11\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "mcp-context7-docs",
+      "package": {
+        "name": "@dzhechkov/skills-mcp",
+        "version": "0.3.11",
+        "manifest": "packages/skills-mcp/package.json"
+      },
+      "skillIds": [
+        "context7"
+      ],
+      "title": "Найти документацию библиотеки",
+      "queries": [
+        "Найди документацию и примеры API библиотеки через Context7"
+      ],
+      "intent": "Получить документацию и примеры для библиотеки.",
+      "whenToUse": [
+        "Нужны документация и примеры API."
+      ],
+      "whenNotToUse": [
+        "Нужно исследовать локальную историю коммитов."
+      ],
+      "outcome": "Подборка документации и примеров.",
+      "prerequisites": [
+        "Доступен MCP-сервер Context7; название библиотеки."
+      ],
+      "steps": [
+        "Найти библиотеку в Context7.",
+        "Получить документацию по нужной теме."
+      ],
+      "limitations": [
+        "Навык обращается к внешнему MCP-серверу."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-mcp/package.json",
+          "sha256": "ac3a772642140dbd5f487c6784b689725b9901fb29adf44d663c70c87a2ff595"
+        },
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "sha256": "ee821f0386bac755cac30b4bbe4a9b041e000d6916b5b18985197c1e83c08585"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "quote": "description: \"Context7 documentation search via MCP — search up-to-date library docs, API references, code examples.\""
+        },
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "quote": "- **Server**: `@upstash/context7-mcp` (or Smithery hosted)"
+        },
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "quote": "| `resolve_library` | Resolve a library name to its Context7 identifier |"
+        },
+        {
+          "path": "packages/skills-mcp/context7/SKILL.md",
+          "quote": "| `get_library_docs` | Get up-to-date documentation for a specific library and topic |"
+        },
+        {
+          "path": "packages/skills-mcp/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-mcp\","
+        },
+        {
+          "path": "packages/skills-mcp/package.json",
+          "quote": "  \"version\": \"0.3.11\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "qe-generate-tests",
+      "package": {
+        "name": "@dzhechkov/skills-qe",
+        "version": "0.3.15",
+        "manifest": "packages/skills-qe/package.json"
+      },
+      "skillIds": [
+        "qe-test-generation"
+      ],
+      "title": "Подготовить тесты изменённого кода",
+      "queries": [
+        "Напиши тесты для нового обработчика, включая ошибки и крайние случаи"
+      ],
+      "intent": "Вывести тестовые случаи из анализа кода.",
+      "whenToUse": [
+        "Нужно покрыть новый или изменённый код тестами."
+      ],
+      "whenNotToUse": [
+        "Нужно только оценить существующий отчёт покрытия."
+      ],
+      "outcome": "Набор тестов для выбранного кода.",
+      "prerequisites": [
+        "Исходный код и подходящий тестовый фреймворк; для автоматического пути — доступный внешний runtime AQE и инициализированный fleet."
+      ],
+      "steps": [
+        "Проанализировать код и ветви.",
+        "Подготовить тесты с ошибками и крайними случаями вручную по инструкциям или через доступный AQE.",
+        "Запустить и проверить полученные тесты."
+      ],
+      "limitations": [
+        "Пакет навыков сам по себе не обеспечивает запуск AQE; сгенерированные тесты необходимо запускать и проверять."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-qe/package.json",
+          "sha256": "77c3f9fb3cab6c4ad6f8cf38085b50923872d2268e673c1c38a503f26986f5e1"
+        },
+        {
+          "path": "packages/skills-qe/qe-test-generation/SKILL.md",
+          "sha256": "f95c7d82355d42db37f7c5dda2e17a8ddb8b27082df2bb8ce95007622237f686"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-qe/qe-test-generation/SKILL.md",
+          "quote": "description: \"Generates unit, integration, and e2e tests from code analysis including branch coverage, error paths, and edge cases. Use when creating tests for new or changed code, filling coverage gaps, or migrating test suites between Jest, Vitest, and Playwright.\""
+        },
+        {
+          "path": "packages/skills-qe/qe-test-generation/SKILL.md",
+          "quote": "- When generating tests for new code"
+        },
+        {
+          "path": "packages/skills-qe/qe-test-generation/SKILL.md",
+          "quote": "- When generating edge case tests"
+        },
+        {
+          "path": "packages/skills-qe/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-qe\","
+        },
+        {
+          "path": "packages/skills-qe/package.json",
+          "quote": "  \"version\": \"0.3.15\","
+        },
+        {
+          "path": "packages/skills-qe/qe-test-generation/SKILL.md",
+          "quote": "# Generate unit tests for a file\naqe test generate --file src/services/UserService.ts --framework jest"
+        },
+        {
+          "path": "packages/skills-qe/qe-test-generation/SKILL.md",
+          "quote": "- Fleet must be initialized before using QE agents: run `aqe health` to diagnose, or `aqe init` to re-initialize if you get \"Fleet not initialized\""
+        },
+        {
+          "path": "packages/skills-qe/qe-test-generation/SKILL.md",
+          "quote": "- Completion theater: agent may claim \"comprehensive tests generated\" but leave stubs or hardcoded values — always run the generated tests before accepting"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "qe-coverage-gaps",
+      "package": {
+        "name": "@dzhechkov/skills-qe",
+        "version": "0.3.15",
+        "manifest": "packages/skills-qe/package.json"
+      },
+      "skillIds": [
+        "qe-coverage-analysis"
+      ],
+      "title": "Найти рисковые пробелы покрытия",
+      "queries": [
+        "Какие непокрытые участки кода проверить в первую очередь?"
+      ],
+      "intent": "Выявить и приоритизировать пробелы покрытия.",
+      "whenToUse": [
+        "Есть данные покрытия для анализа."
+      ],
+      "whenNotToUse": [
+        "Нужно только создать новые тесты без анализа покрытия."
+      ],
+      "outcome": "Приоритетный список пробелов покрытия.",
+      "prerequisites": [
+        "Отчёт покрытия и исходный код; для автоматического пути — доступный внешний runtime AQE."
+      ],
+      "steps": [
+        "Проанализировать покрытие и найти пробелы вручную по отчёту или через доступный AQE.",
+        "Расставить приоритеты с учётом риска."
+      ],
+      "limitations": [
+        "Пакет навыков сам по себе не обеспечивает запуск AQE; при сбое используйте ручные инструменты покрытия.",
+        "Показатель покрытия не заменяет оценку качества самих тестов."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-qe/package.json",
+          "sha256": "77c3f9fb3cab6c4ad6f8cf38085b50923872d2268e673c1c38a503f26986f5e1"
+        },
+        {
+          "path": "packages/skills-qe/qe-coverage-analysis/SKILL.md",
+          "sha256": "1d97eae9c6b2220a170f1ba50ae66b79bfbe9bd1fb0e09953daaab51cd24396c"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-qe/qe-coverage-analysis/SKILL.md",
+          "quote": "description: \"Analyzes test coverage data (Istanbul, c8, lcov) to identify uncovered lines, branches, and functions with risk-weighted gap detection. Use when analyzing coverage reports, identifying coverage gaps, comparing coverage between branches, or prioritizing which untested code to cover first.\""
+        },
+        {
+          "path": "packages/skills-qe/qe-coverage-analysis/SKILL.md",
+          "quote": "- When identifying coverage gaps"
+        },
+        {
+          "path": "packages/skills-qe/qe-coverage-analysis/SKILL.md",
+          "quote": "- When prioritizing testing effort"
+        },
+        {
+          "path": "packages/skills-qe/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-qe\","
+        },
+        {
+          "path": "packages/skills-qe/package.json",
+          "quote": "  \"version\": \"0.3.15\","
+        },
+        {
+          "path": "packages/skills-qe/qe-coverage-analysis/SKILL.md",
+          "quote": "# Analyze coverage with gap detection\naqe coverage analyze --source src/ --tests tests/"
+        },
+        {
+          "path": "packages/skills-qe/qe-coverage-analysis/SKILL.md",
+          "quote": "- coverage-analysis domain has 86% success rate — 14% of runs fail on initialization. Always verify results and have fallback plan (e.g. manual coverage tools)"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "news-period-digest",
+      "package": {
+        "name": "@dzhechkov/skills-news",
+        "version": "0.1.17",
+        "manifest": "packages/skills-news/package.json"
+      },
+      "skillIds": [
+        "news-digest"
+      ],
+      "title": "Подготовить новостной дайджест",
+      "queries": [
+        "Подготовь дайджест новостей рынка за месяц с источниками"
+      ],
+      "intent": "Собрать обзор за период с источниками.",
+      "whenToUse": [
+        "Нужен тематический обзор за конкретный период."
+      ],
+      "whenNotToUse": [
+        "Нужна только короткая проверка изменений с прошлого запуска."
+      ],
+      "outcome": "Дайджест в Markdown со ссылками и индексом источников.",
+      "prerequisites": [
+        "Тема и период; доступ к обязательному backend goap-research-ed25519."
+      ],
+      "steps": [
+        "Определить тему, период и профиль.",
+        "Собрать материалы через исследовательский backend и проверить покрытие.",
+        "Составить обзор со ссылками и индексом источников."
+      ],
+      "limitations": [
+        "Материалы без проверенного подписанного источника не включаются."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-news/package.json",
+          "sha256": "de0c3cda9439b89c9cfeccf9d522a1671571f9eca9ec1de15756db32441267e8"
+        },
+        {
+          "path": "packages/skills-news/news-digest/SKILL.md",
+          "sha256": "323fe7246946b4754e70258be365d8f5610f9ac40babb9121849e527e614d7a5"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-news/news-digest/SKILL.md",
+          "quote": "  Build a professional, source-cited news digest on ANY topic for a given period — research across multiple streams, tier sources by credibility, audit coverage, then synthesize a structured report (Markdown, optionally .docx) with inline clickable citations and a full source index. All source-gathering runs through the bundled goap-research-ed25519 skill as a MANDATORY verified-research backend (GOAP-planned research + ed25519-signed source provenance, anti-hallucination) — no claim ships without a verified, signed source. Topic-agnostic via swappable profiles (e.g. genai-world for AI news, or a custom profile you define). Use when the user wants a periodic digest, newsletter, or \"what's new in X\" report. Triggers on: \"news digest\", \"новости за период\", \"AI digest\", \"дайджест\", \"weekly/monthly digest\", \"what's new in X\", \"подготовь newsletter\", \"обзор новостей\", \"/news-digest\"."
+        },
+        {
+          "path": "packages/skills-news/news-digest/SKILL.md",
+          "quote": "  Build a professional, source-cited news digest on ANY topic for a given period — research across multiple streams, tier sources by credibility, audit coverage, then synthesize a structured report (Markdown, optionally .docx) with inline clickable citations and a full source index. All source-gathering runs through the bundled goap-research-ed25519 skill as a MANDATORY verified-research backend (GOAP-planned research + ed25519-signed source provenance, anti-hallucination) — no claim ships without a verified, signed source. Topic-agnostic via swappable profiles (e.g. genai-world for AI news, or a custom profile you define). Use when the user wants a periodic digest, newsletter, or \"what's new in X\" report. Triggers on: \"news digest\", \"новости за период\", \"AI digest\", \"дайджест\", \"weekly/monthly digest\", \"what's new in X\", \"подготовь newsletter\", \"обзор новостей\", \"/news-digest\"."
+        },
+        {
+          "path": "packages/skills-news/news-digest/SKILL.md",
+          "quote": "**Output:** Markdown always; `.docx` optional. Every claim carries an inline citation; the report"
+        },
+        {
+          "path": "packages/skills-news/news-digest/SKILL.md",
+          "quote": "  Build a professional, source-cited news digest on ANY topic for a given period — research across multiple streams, tier sources by credibility, audit coverage, then synthesize a structured report (Markdown, optionally .docx) with inline clickable citations and a full source index. All source-gathering runs through the bundled goap-research-ed25519 skill as a MANDATORY verified-research backend (GOAP-planned research + ed25519-signed source provenance, anti-hallucination) — no claim ships without a verified, signed source. Topic-agnostic via swappable profiles (e.g. genai-world for AI news, or a custom profile you define). Use when the user wants a periodic digest, newsletter, or \"what's new in X\" report. Triggers on: \"news digest\", \"новости за период\", \"AI digest\", \"дайджест\", \"weekly/monthly digest\", \"what's new in X\", \"подготовь newsletter\", \"обзор новостей\", \"/news-digest\"."
+        },
+        {
+          "path": "packages/skills-news/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-news\","
+        },
+        {
+          "path": "packages/skills-news/package.json",
+          "quote": "  \"version\": \"0.1.17\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "news-monitor-delta",
+      "package": {
+        "name": "@dzhechkov/skills-news",
+        "version": "0.1.17",
+        "manifest": "packages/skills-news/package.json"
+      },
+      "skillIds": [
+        "news-monitor"
+      ],
+      "title": "Отследить новые релизы",
+      "queries": [
+        "Что нового в релизах проекта с прошлой проверки?"
+      ],
+      "intent": "Собрать изменения с последней проверки.",
+      "whenToUse": [
+        "Нужна регулярная краткая проверка обновлений."
+      ],
+      "whenNotToUse": [
+        "Нужен полный обзор за период."
+      ],
+      "outcome": "Краткий отчёт со ссылками и обновлённой отметкой предыдущего запуска.",
+      "prerequisites": [
+        "Тема; доступ к обязательному backend goap-research-ed25519."
+      ],
+      "steps": [
+        "Прочитать сохранённую отметку или использовать начальный период.",
+        "Проверить источники и исключить уже увиденное.",
+        "Подготовить отчёт и обновить отметку."
+      ],
+      "limitations": [
+        "При первом запуске по умолчанию используется период в 14 дней."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-news/package.json",
+          "sha256": "de0c3cda9439b89c9cfeccf9d522a1671571f9eca9ec1de15756db32441267e8"
+        },
+        {
+          "path": "packages/skills-news/news-monitor/SKILL.md",
+          "sha256": "30351d38770bf74d1a68fca196cd1c3a34347cf53e67bb175fba278f04e5cb78"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-news/news-monitor/SKILL.md",
+          "quote": "- A recurring \"any updates on X?\" between full digests (daily/weekly pulse)."
+        },
+        {
+          "path": "packages/skills-news/news-monitor/SKILL.md",
+          "quote": "| `since` | Watermark from the last run (ISO date); first run defaults to 14 days ago |"
+        },
+        {
+          "path": "packages/skills-news/news-monitor/SKILL.md",
+          "quote": "1. **Load the watermark.** Read the last-seen state (`.news/monitor-<topic>.json` — last run ISO + seen item ids/URLs). First run → no watermark; use `since` default."
+        },
+        {
+          "path": "packages/skills-news/news-monitor/SKILL.md",
+          "quote": "3. **Diff against the watermark.** Drop anything dated ≤ `since` or whose URL/title is already in the seen set. Dedup near-duplicates (same announcement across outlets → keep the Tier-1 source)."
+        },
+        {
+          "path": "packages/skills-news/news-monitor/SKILL.md",
+          "quote": "6. **Advance the watermark.** Write the new last-run ISO + the union of seen ids back to `.news/monitor-<topic>.json` so the next run only shows what's new again."
+        },
+        {
+          "path": "packages/skills-news/news-monitor/SKILL.md",
+          "quote": "- NOT for a comprehensive period report (use `news-digest`) and NOT for building a deployed scraping bot (use `data-scraper-agent`)."
+        },
+        {
+          "path": "packages/skills-news/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-news\","
+        },
+        {
+          "path": "packages/skills-news/package.json",
+          "quote": "  \"version\": \"0.1.17\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "pm-sprint-plan",
+      "package": {
+        "name": "@dzhechkov/skills-pm",
+        "version": "0.1.6",
+        "manifest": "packages/skills-pm/package.json"
+      },
+      "skillIds": [
+        "sprint-plan"
+      ],
+      "title": "Составить план спринта",
+      "queries": [
+        "Помоги спланировать спринт с учётом отпусков и зависимостей"
+      ],
+      "intent": "Согласовать объём спринта с доступной ёмкостью.",
+      "whenToUse": [
+        "Есть приоритизированный бэклог и данные команды."
+      ],
+      "whenNotToUse": [
+        "Нужно сначала ранжировать идеи продукта."
+      ],
+      "outcome": "План спринта с зависимостями и рисками.",
+      "prerequisites": [
+        "Бэклог, доступность команды и данные о скорости при наличии."
+      ],
+      "steps": [
+        "Оценить ёмкость команды.",
+        "Выбрать готовые задачи в пределах ёмкости.",
+        "Указать зависимости и риски."
+      ],
+      "limitations": [
+        "Оценки зависят от данных о доступности и скорости команды."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-pm/package.json",
+          "sha256": "030b78a847d0c8a67a16dffc1d7e3421e23a0335ff20938ae7f048ff0d0e14cf"
+        },
+        {
+          "path": "packages/skills-pm/sprint-plan/SKILL.md",
+          "sha256": "d50731a025c1f9674ec8b04032e172099e88a6267969ae9486bae4371e0034d3"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-pm/sprint-plan/SKILL.md",
+          "quote": "description: \"Plan a sprint with capacity estimation, story selection, dependency mapping, and risk identification. Use when preparing for sprint planning, estimating team capacity, selecting stories, or balancing sprint scope against velocity.\""
+        },
+        {
+          "path": "packages/skills-pm/sprint-plan/SKILL.md",
+          "quote": "   - Number of team members and their availability (PTO, meetings, on-call)"
+        },
+        {
+          "path": "packages/skills-pm/sprint-plan/SKILL.md",
+          "quote": "   - Pull from the prioritized backlog (highest priority first)"
+        },
+        {
+          "path": "packages/skills-pm/sprint-plan/SKILL.md",
+          "quote": "   - Identify stories that depend on other stories or external teams"
+        },
+        {
+          "path": "packages/skills-pm/sprint-plan/SKILL.md",
+          "quote": "4. **Identify risks and mitigations**:"
+        },
+        {
+          "path": "packages/skills-pm/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-pm\","
+        },
+        {
+          "path": "packages/skills-pm/package.json",
+          "quote": "  \"version\": \"0.1.6\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "pm-feature-priority",
+      "package": {
+        "name": "@dzhechkov/skills-pm",
+        "version": "0.1.6",
+        "manifest": "packages/skills-pm/package.json"
+      },
+      "skillIds": [
+        "prioritize-features"
+      ],
+      "title": "Приоритизировать идеи продукта",
+      "queries": [
+        "Помоги выбрать пять функций из бэклога"
+      ],
+      "intent": "Сравнить идеи по влиянию, трудоёмкости, риску и стратегии.",
+      "whenToUse": [
+        "Есть цель продукта и список идей."
+      ],
+      "whenNotToUse": [
+        "Нужно распределить уже выбранные задачи по ёмкости спринта."
+      ],
+      "outcome": "Ранжированный список до пяти функций с причинами и компромиссами.",
+      "prerequisites": [
+        "Цель продукта, метрики и список идей."
+      ],
+      "steps": [
+        "Уточнить цель и метрики успеха.",
+        "Оценить влияние, трудоёмкость, риск и стратегическое соответствие.",
+        "Представить приоритеты и причины отложенных решений."
+      ],
+      "limitations": [
+        "Оценки зависят от предоставленных данных и предположений."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-pm/package.json",
+          "sha256": "030b78a847d0c8a67a16dffc1d7e3421e23a0335ff20938ae7f048ff0d0e14cf"
+        },
+        {
+          "path": "packages/skills-pm/prioritize-features/SKILL.md",
+          "sha256": "4049b0d718158d6626f4a219c877fce09fb08536df30dfd27d84bc6e071b0e86"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-pm/prioritize-features/SKILL.md",
+          "quote": "description: \"Prioritize a backlog of feature ideas based on impact, effort, risk, and strategic alignment with top 5 recommendations. Use when prioritizing a feature backlog, making scope decisions, or ranking product ideas.\""
+        },
+        {
+          "path": "packages/skills-pm/prioritize-features/SKILL.md",
+          "quote": "1. **Understand priorities**: Confirm the product objective and success metrics."
+        },
+        {
+          "path": "packages/skills-pm/prioritize-features/SKILL.md",
+          "quote": "   - **Impact**: How much does it move the needle on desired outcomes? Consider Opportunity Score if customer data is available."
+        },
+        {
+          "path": "packages/skills-pm/prioritize-features/SKILL.md",
+          "quote": "   - **Effort**: How much development, design, and coordination is required?"
+        },
+        {
+          "path": "packages/skills-pm/prioritize-features/SKILL.md",
+          "quote": "   - **Risk**: How much uncertainty exists? What assumptions need testing?"
+        },
+        {
+          "path": "packages/skills-pm/prioritize-features/SKILL.md",
+          "quote": "   - **Strategic alignment**: How well does it fit the product vision and current goals?"
+        },
+        {
+          "path": "packages/skills-pm/prioritize-features/SKILL.md",
+          "quote": "   - What was deprioritized and why"
+        },
+        {
+          "path": "packages/skills-pm/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-pm\","
+        },
+        {
+          "path": "packages/skills-pm/package.json",
+          "quote": "  \"version\": \"0.1.6\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "bto-build",
+      "package": {
+        "name": "@dzhechkov/skills-bto",
+        "version": "1.4.7",
+        "manifest": "packages/skills-bto/package.json"
+      },
+      "skillIds": [
+        "bto"
+      ],
+      "title": "Создать инструкцию для агента",
+      "queries": [
+        "Создай навык из требований к задаче"
+      ],
+      "intent": "Подготовить навык или команду по требованиям.",
+      "whenToUse": [
+        "Нужно создать артефакт Claude Code."
+      ],
+      "whenNotToUse": [
+        "Нужно только оценить готовый артефакт."
+      ],
+      "outcome": "Планируется генерация и самопроверка артефакта.",
+      "prerequisites": [
+        "Описание задачи и ожидаемого результата."
+      ],
+      "steps": [
+        "Уточнить требования.",
+        "Выбрать шаблон и сгенерировать артефакт.",
+        "Проверить полноту и ссылки."
+      ],
+      "limitations": [
+        "Документ описывает процесс, а не подтверждает качество конкретного результата."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-bto/package.json",
+          "sha256": "8deefed20a66b5f8025a217c28adc789004b7691b7214d157342e13fd0094d3b"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "sha256": "cc15a07922126226776d4c48446b3d75fa8caaf16949389f448f42c9787207cb"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Generate skill/command from requirements"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Check against quality checklist (Layer 0)"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "bto-evaluate",
+      "package": {
+        "name": "@dzhechkov/skills-bto",
+        "version": "1.4.7",
+        "manifest": "packages/skills-bto/package.json"
+      },
+      "skillIds": [
+        "bto"
+      ],
+      "title": "Оценить готовый навык",
+      "queries": [
+        "Проверь готовый навык по эталонным примерам"
+      ],
+      "intent": "Сравнить артефакт с эталонами и оценить его.",
+      "whenToUse": [
+        "Есть существующий артефакт и эталонные примеры."
+      ],
+      "whenNotToUse": [
+        "Нужно лишь создать новый артефакт по описанию."
+      ],
+      "outcome": "Предусмотрены benchmark и оценка коллегией судей.",
+      "prerequisites": [
+        "Путь к артефакту, эталонные примеры и среда с доступными моделями и многоагентным запуском."
+      ],
+      "steps": [
+        "Проверить доступность этапов и сравнить артефакт с эталонами.",
+        "При разрешающем результате benchmark перейти к оценке коллегией.",
+        "При BLOCK исправить недостатки; при ABORT или INCONCLUSIVE сообщить о незавершённой оценке."
+      ],
+      "limitations": [
+        "При BLOCK переход к TEST запрещён; недоступный обязательный этап отмечается INCONCLUSIVE и не считается пройденным."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-bto/package.json",
+          "sha256": "8deefed20a66b5f8025a217c28adc789004b7691b7214d157342e13fd0094d3b"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "sha256": "cc15a07922126226776d4c48446b3d75fa8caaf16949389f448f42c9787207cb"
+        },
+        {
+          "path": "packages/skills-bto/README.md",
+          "sha256": "418b01d2dd1391d4bb7d2d93580fd0f58346f7828f039e95023088f83132f491"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Deterministic benchmarking against golden samples"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "Multi-agent evaluation with judge panel"
+        },
+        {
+          "path": "packages/skills-bto/README.md",
+          "quote": "| Any layer INCONCLUSIVE | **INCONCLUSIVE** — not a pass and not a failure; TEST is not entered |"
+        },
+        {
+          "path": "packages/skills-bto/README.md",
+          "quote": "| **B2** | Minimal (3× haiku) | Consistency probe — 3 parallel agents, agreement measurement |"
+        },
+        {
+          "path": "packages/skills-bto/README.md",
+          "quote": "| B-1 returned ABORT | **ABORT** — no score is emitted at all |"
+        },
+        {
+          "path": "packages/skills-bto/templates/.claude/skills/bto/SKILL.md",
+          "quote": "| < 0.50 | BLOCK — Do not proceed to TEST. Fix structural issues first. |"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "reasoning-diagnose",
+      "package": {
+        "name": "@dzhechkov/skills-reasoning",
+        "version": "0.1.6",
+        "manifest": "packages/skills-reasoning/package.json"
+      },
+      "skillIds": [
+        "investigate"
+      ],
+      "title": "Исследовать причину сбоя",
+      "queries": [
+        "Разберись почему запрос возвращает ошибку, пока ничего не исправляй"
+      ],
+      "intent": "Выяснить причину и собрать доказательства.",
+      "whenToUse": [
+        "Нужна диагностика без изменений кода."
+      ],
+      "whenNotToUse": [
+        "Требуется сразу внести исправление."
+      ],
+      "outcome": "Диагноз с симптомом, причиной, доказательствами и трассировкой.",
+      "prerequisites": [
+        "Симптом, ожидаемое поведение и доступные логи."
+      ],
+      "steps": [
+        "Попытаться воспроизвести сбой.",
+        "Проследить данные от симптома к причине.",
+        "Описать доказательства и границы вывода."
+      ],
+      "limitations": [
+        "Воспроизведение может не удаться; попытки и причину следует записать."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-reasoning/package.json",
+          "sha256": "5991fca16c6b4bd12cbe0472d20020ec5e65a7d4b15416ec186568c9587d7f93"
+        },
+        {
+          "path": "packages/skills-reasoning/investigate/SKILL.md",
+          "sha256": "db7432a23ba94a34056844043c0255ccb22e3e16eabfc2ff591574a0c32ec34f"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-reasoning/investigate/SKILL.md",
+          "quote": "INVESTIGATE ONLY. DO NOT MODIFY CODE."
+        },
+        {
+          "path": "packages/skills-reasoning/investigate/SKILL.md",
+          "quote": "If you cannot reproduce — document what you tried and why it didn't work."
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "reasoning-refactor",
+      "package": {
+        "name": "@dzhechkov/skills-reasoning",
+        "version": "0.1.6",
+        "manifest": "packages/skills-reasoning/package.json"
+      },
+      "skillIds": [
+        "solid"
+      ],
+      "title": "Рефакторинг с тестами",
+      "queries": [
+        "Помоги отрефакторить модуль и сохранить поведение"
+      ],
+      "intent": "Провести рефакторинг с тестами и принципами проектирования.",
+      "whenToUse": [
+        "Нужно менять или проектировать код."
+      ],
+      "whenNotToUse": [
+        "Нужна только диагностика без изменения кода."
+      ],
+      "outcome": "Процесс red-green-refactor и проверка ответственности компонентов.",
+      "prerequisites": [
+        "Доступ к коду и возможность проверять поведение тестами."
+      ],
+      "steps": [
+        "Описать поведение падающим тестом.",
+        "Добиться прохождения простым кодом.",
+        "Рефакторить и проверить ответственность компонентов."
+      ],
+      "limitations": [
+        "Навык предписывает TDD; сам по себе он не доказывает прохождение тестов."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-reasoning/package.json",
+          "sha256": "5991fca16c6b4bd12cbe0472d20020ec5e65a7d4b15416ec186568c9587d7f93"
+        },
+        {
+          "path": "packages/skills-reasoning/solid/SKILL.md",
+          "sha256": "5412ae153013ad3ca5cd318b0223c79abc945feea99cd0d12d73f9282aaa82d6"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-reasoning/solid/SKILL.md",
+          "quote": "Red-Green-Refactor is not optional:"
+        },
+        {
+          "path": "packages/skills-reasoning/solid/SKILL.md",
+          "quote": "Single Responsibility"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "reverse-business",
+      "package": {
+        "name": "@dzhechkov/skills-reverse-engineering",
+        "version": "0.3.5",
+        "manifest": "packages/skills-reverse-engineering/package.json"
+      },
+      "skillIds": [
+        "reverse-engineering-unicorn"
+      ],
+      "title": "Разобрать бизнес-модель компании",
+      "queries": [
+        "Разбери бизнес-модель стартапа для запуска аналога"
+      ],
+      "intent": "Исследовать компанию и подготовить план запуска.",
+      "whenToUse": [
+        "Нужно разобрать продукт, рынок и экономику компании."
+      ],
+      "whenNotToUse": [
+        "Задача ограничена копированием внешнего вида сайта."
+      ],
+      "outcome": "Предусмотрен план запуска с анализом компании и контрольными точками.",
+      "prerequisites": [
+        "Название компании, сайт, отрасль и география."
+      ],
+      "steps": [
+        "Собрать факты о компании.",
+        "Изучить клиентов, рынок и экономику.",
+        "Свести выводы в план запуска."
+      ],
+      "limitations": [
+        "Глубина и состав анализа зависят от выбранного режима."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-reverse-engineering/package.json",
+          "sha256": "9bf4f896f231c8eb8aa30afa8e289aa4c63dc51f42f8e838e8fad2ea07be6d29"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "sha256": "20d6b667971f9749d091c1d47e2f75df957f259647cbb861ac54174280096c71"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "\"разбери бизнес-модель [X]\""
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "90-Day Plan + BS-check"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "reverse-cjm",
+      "package": {
+        "name": "@dzhechkov/skills-reverse-engineering",
+        "version": "0.3.5",
+        "manifest": "packages/skills-reverse-engineering/package.json"
+      },
+      "skillIds": [
+        "reverse-engineering-unicorn"
+      ],
+      "title": "Сравнить варианты пути клиента",
+      "queries": [
+        "Изучи путь клиента конкурента и помоги выбрать вариант для нового продукта"
+      ],
+      "intent": "Сравнить варианты CJM при разборе компании.",
+      "whenToUse": [
+        "Нужен выбор пути клиента для дальнейшей стратегии в режиме DEEP."
+      ],
+      "whenNotToUse": [
+        "Нужна только копия визуального оформления сайта."
+      ],
+      "outcome": "В режиме DEEP процесс предусматривает три гипотезы CJM и интерактивный прототип.",
+      "prerequisites": [
+        "Компания и контекст анализа; режим DEEP и доступный внешний навык frontend-design."
+      ],
+      "steps": [
+        "Исследовать продукт и клиентов.",
+        "Подготовить и сравнить три гипотезы CJM в прототипе.",
+        "Зафиксировать выбранный вариант для дальнейшего анализа."
+      ],
+      "limitations": [
+        "Варианты CJM являются гипотезами, а прототип сам по себе не подтверждает поведение клиентов.",
+        "Навык frontend-design указан как внешняя зависимость и не входит в пакет."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-reverse-engineering/package.json",
+          "sha256": "9bf4f896f231c8eb8aa30afa8e289aa4c63dc51f42f8e838e8fad2ea07be6d29"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "sha256": "20d6b667971f9749d091c1d47e2f75df957f259647cbb861ac54174280096c71"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/README.md",
+          "sha256": "6de618926683204046fc49debe98c02a3546218a3115b50c63f76bccce7f4daa"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "3 CJM variants → clickable React prototype"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "User locks winning CJM (✅) → {CHOSEN_CJM}"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/README.md",
+          "quote": "A few **DEEP / Post-M6** modes reference extra skills that are **not bundled**"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/README.md",
+          "quote": "| `frontend-design` | M2.5 CJM prototype (DEEP)"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "Generate 3 variant hypotheses (different Aha × Entry × Paywall)"
+        },
+        {
+          "path": "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+          "quote": "| `frontend-design` | M2.5 (DEEP) | Production-grade CJM prototype design |"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "tutorial-create",
+      "package": {
+        "name": "@dzhechkov/skills-tutorial-factory",
+        "version": "0.7.5",
+        "manifest": "packages/skills-tutorial-factory/package.json"
+      },
+      "skillIds": [
+        "package-tutorial-factory"
+      ],
+      "title": "Создать учебный сайт по пакету",
+      "queries": [
+        "Сделай интерактивный курс по этому пакету навыков"
+      ],
+      "intent": "Превратить материалы одного пакета в учебный сайт.",
+      "whenToUse": [
+        "Есть пакет с достаточным учебным материалом."
+      ],
+      "whenNotToUse": [
+        "Нужна только ссылка на существующую инструкцию."
+      ],
+      "outcome": "Процесс предусматривает извлечение понятий, авторинг и создание сайта.",
+      "prerequisites": [
+        "Доступ к целевому пакету и его материалам."
+      ],
+      "steps": [
+        "Извлечь понятия из пакета.",
+        "Согласовать темы и подготовить материал.",
+        "Проверить и сформировать сайт."
+      ],
+      "limitations": [
+        "При недостаточной учебной поверхности процесс должен остановиться."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-tutorial-factory/package.json",
+          "sha256": "c49f4fec0afcb5eb3e07474ec7c7c36e69ef86a547e39f29d88423f06a8f3685"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "sha256": "f655c9899d6b9dd722a6c46287ca71f7d377e1c7fb2e920eb5334a6a0aa20a18"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "Skip when: the target has no teachable surface"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "if\n   `insufficient-surface`, STOP and report — never ship a 1-topic course."
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "tutorial-check",
+      "package": {
+        "name": "@dzhechkov/skills-tutorial-factory",
+        "version": "0.7.5",
+        "manifest": "packages/skills-tutorial-factory/package.json"
+      },
+      "skillIds": [
+        "package-tutorial-factory"
+      ],
+      "title": "Проверить материал курса перед передачей",
+      "queries": [
+        "Проверь курс по пакету перед передачей ученикам"
+      ],
+      "intent": "Провести предусмотренные фабрикой проверки курса.",
+      "whenToUse": [
+        "Подготовлен материал курса по пакету."
+      ],
+      "whenNotToUse": [
+        "Нужна только статическая ссылка на инструкцию."
+      ],
+      "outcome": "Предусмотрены структурная проверка, проверка заимствований и работа сайта.",
+      "prerequisites": [
+        "Данные курса, инструменты фабрики, доверенный HTML и доступ к свежему рецензенту другой модели."
+      ],
+      "steps": [
+        "Запустить структурную проверку и проверку заимствований.",
+        "Провести семантическое ревью другой моделью по базе методики.",
+        "Проверить создание и работу доверенного сайта."
+      ],
+      "limitations": [
+        "Структурная проверка не оценивает тон, неожиданность и сюжет; пустое ревью не считается чистым проходом.",
+        "Проверка сайта исполняет JavaScript и предназначена для HTML фабрики или иного доверенного ввода.",
+        "Если проверка не проходит после добросовестной доработки, процесс должен остановиться."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-tutorial-factory/package.json",
+          "sha256": "c49f4fec0afcb5eb3e07474ec7c7c36e69ef86a547e39f29d88423f06a8f3685"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "sha256": "f655c9899d6b9dd722a6c46287ca71f7d377e1c7fb2e920eb5334a6a0aa20a18"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/README.md",
+          "sha256": "ffd76fe42b06557209655ab98c727d7068fa4b5b07909d1d3dd300c607ddfd98"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "Re-run the gate + shingling; confirm"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "or the gate\n  cannot pass after honest authoring, STOP and report"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/README.md",
+          "quote": "HTML inside its Node DOM shim. Run it only on HTML produced by this factory or otherwise trusted input;"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/README.md",
+          "quote": "it is a behavioural verifier, not a sandbox for hostile third-party pages."
+        },
+        {
+          "path": "packages/skills-tutorial-factory/README.md",
+          "quote": "prompt for a FRESH cross-model reviewer, and an empty/gradeless answer is a loud fallback, never a"
+        },
+        {
+          "path": "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+          "quote": "only tone/surprise/story go to the cross-model review (layer 3)"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "website-clone-page",
+      "package": {
+        "name": "@dzhechkov/skills-website-cloner",
+        "version": "0.1.6",
+        "manifest": "packages/skills-website-cloner/package.json"
+      },
+      "skillIds": [
+        "clone-website"
+      ],
+      "title": "Воссоздать страницу по адресу",
+      "queries": [
+        "Воссоздай внешний вид и взаимодействия этой страницы"
+      ],
+      "intent": "Воссоздать видимую страницу в проекте.",
+      "whenToUse": [
+        "Есть доступный адрес страницы и задача воспроизвести интерфейс."
+      ],
+      "whenNotToUse": [
+        "Требуется реализация настоящей авторизации или серверной части."
+      ],
+      "outcome": "Предусмотрены изучение страницы, сборка и визуальное сравнение.",
+      "prerequisites": [
+        "Браузерная автоматизация и готовый каркас Next.js, shadcn/ui и Tailwind."
+      ],
+      "steps": [
+        "Проверить адрес и доступность страницы.",
+        "Изучить оформление и взаимодействия.",
+        "Собрать страницу и сравнить визуально."
+      ],
+      "limitations": [
+        "Настоящие сервер, авторизация и аудит доступности исключены из области навыка."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-website-cloner/package.json",
+          "sha256": "be4cb7087df0402db97e672d9c19250d73f37ad67e1aebff6fe6fc384356a26c"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "sha256": "b3b4bac20854e18c3d34d6660652a2758c083065818dc00c9c33d1ea8647c00c"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "**Requires** a browser-automation MCP and a Next.js/shadcn/Tailwind scaffold"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "Real backend / database, authentication, real-time features, SEO optimization, accessibility audit"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "website-clone-multiple",
+      "package": {
+        "name": "@dzhechkov/skills-website-cloner",
+        "version": "0.1.6",
+        "manifest": "packages/skills-website-cloner/package.json"
+      },
+      "skillIds": [
+        "clone-website"
+      ],
+      "title": "Воссоздать несколько сайтов",
+      "queries": [
+        "Воссоздай интерфейсы по этим двум адресам"
+      ],
+      "intent": "Раздельно исследовать и собрать несколько интерфейсов.",
+      "whenToUse": [
+        "Даны несколько доступных адресов для воспроизведения."
+      ],
+      "whenNotToUse": [
+        "Нужно исследовать бизнес-модель компании."
+      ],
+      "outcome": "Процесс предусматривает отдельные материалы для каждого сайта.",
+      "prerequisites": [
+        "Браузерная автоматизация, доступные адреса и готовый каркас Next.js, shadcn/ui и Tailwind v4."
+      ],
+      "steps": [
+        "Проверить каждый адрес.",
+        "Изолировать материалы исследования по сайтам.",
+        "Собрать интерфейсы и провести визуальную проверку."
+      ],
+      "limitations": [
+        "При нескольких сайтах параллельность зависит от доступных ресурсов.",
+        "Реальные сервер, база данных, авторизация, функции реального времени, SEO и аудит доступности исключены из области навыка."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-website-cloner/package.json",
+          "sha256": "be4cb7087df0402db97e672d9c19250d73f37ad67e1aebff6fe6fc384356a26c"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "sha256": "b3b4bac20854e18c3d34d6660652a2758c083065818dc00c9c33d1ea8647c00c"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "When multiple URLs are provided, process them independently and in parallel where possible"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "optionally confirm whether to run them in parallel"
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "The Next.js + shadcn/ui + Tailwind v4 scaffold should already be in place."
+        },
+        {
+          "path": "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md",
+          "quote": "Real backend / database, authentication, real-time features, SEO optimization, accessibility audit"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "presentation-sales",
+      "package": {
+        "name": "@dzhechkov/skills-presentation-storyteller",
+        "version": "0.1.15",
+        "manifest": "packages/skills-presentation-storyteller/package.json"
+      },
+      "skillIds": [
+        "presentation-storyteller"
+      ],
+      "title": "Подготовить продающую презентацию",
+      "queries": [
+        "Сделай продающую презентацию продукта для клиентов"
+      ],
+      "intent": "Подготовить содержание продающей презентации с источниками.",
+      "whenToUse": [
+        "Известна тема и можно уточнить аудиторию и цель."
+      ],
+      "whenNotToUse": [
+        "Нужна только копия визуального оформления сайта."
+      ],
+      "outcome": "Предусмотрены план, содержание с источниками и сценарий выступления.",
+      "prerequisites": [
+        "Тема презентации и сведения об аудитории и цели."
+      ],
+      "steps": [
+        "Согласовать бриф.",
+        "Исследовать источники и выбрать сюжетную структуру.",
+        "Подготовить слайды и сценарии."
+      ],
+      "limitations": [
+        "Подтверждение источников и структуры предусмотрено контрольными точками."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-presentation-storyteller/package.json",
+          "sha256": "2da98ce1bd43126dc923051b72febbe2db0e8979475abb7137c5314a1151dd0b"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "sha256": "f6ad6e6020280f17ccc4e7b71b28551310805aa99999b4056ec0ccfead1193d5"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "⏸️ CHECKPOINT 2: Confirm Research"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "**Sell product** | AIDA"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "presentation-speaker",
+      "package": {
+        "name": "@dzhechkov/skills-presentation-storyteller",
+        "version": "0.1.15",
+        "manifest": "packages/skills-presentation-storyteller/package.json"
+      },
+      "skillIds": [
+        "presentation-storyteller"
+      ],
+      "title": "Подготовить речь к слайдам",
+      "queries": [
+        "Сделай презентацию для выступления со связным текстом для каждого слайда"
+      ],
+      "intent": "Создать презентацию со сценарием выступления.",
+      "whenToUse": [
+        "Нужен связный рассказ и содержание для каждого слайда."
+      ],
+      "whenNotToUse": [
+        "Нужна только диагностика ошибки в коде."
+      ],
+      "outcome": "Предусмотрены сценарии «Как рассказывать?» и индекс источников.",
+      "prerequisites": [
+        "Тема, аудитория, цель и длительность выступления."
+      ],
+      "steps": [
+        "Уточнить контекст и хронометраж.",
+        "Согласовать структуру и источники.",
+        "Подготовить содержание и текст выступления."
+      ],
+      "limitations": [
+        "Сценарий должен соответствовать содержанию и хронометражу."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-presentation-storyteller/package.json",
+          "sha256": "2da98ce1bd43126dc923051b72febbe2db0e8979475abb7137c5314a1151dd0b"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "sha256": "f6ad6e6020280f17ccc4e7b71b28551310805aa99999b4056ec0ccfead1193d5"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "**Storytelling-скриптами** «Как рассказывать?» для каждого слайда"
+        },
+        {
+          "path": "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+          "quote": "Время скрипта соответствует хронометражу"
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "meta-capture-adr",
+      "package": {
+        "name": "@dzhechkov/skills-meta",
+        "version": "0.9.75",
+        "manifest": "packages/skills-meta/package.json"
+      },
+      "skillIds": [
+        "capture-adr"
+      ],
+      "title": "Зафиксировать принятое архитектурное решение",
+      "queries": [
+        "Запиши в ADR уже принятое архитектурное решение"
+      ],
+      "intent": "Сохранить решение из контекста обсуждения.",
+      "whenToUse": [
+        "Архитектурно значимое решение уже принято."
+      ],
+      "whenNotToUse": [
+        "Решение ещё обсуждается или требуется полноценное проектирование."
+      ],
+      "outcome": "Краткая запись решения с контекстом и последствиями.",
+      "prerequisites": [
+        "Контекст и принятое решение доступны."
+      ],
+      "steps": [
+        "Извлечь название, контекст, решение и последствия.",
+        "Сохранить запись с отметкой для проверки человеком."
+      ],
+      "limitations": [
+        "Автоматически созданная запись требует подтверждения человеком."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-meta/package.json",
+          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+        },
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "sha256": "ea409786fa3cfaee8e24a0ed6841400965a27801e9662f86cc7cd3efba981857"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "quote": "  Lightweight ADR capture mid-conversation without full ceremony. Detects architectural decisions"
+        },
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "quote": "- When the decision is still being debated — wait until the decision is actually made"
+        },
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "quote": "Extract the four required fields from the conversation context:"
+        },
+        {
+          "path": "packages/skills-meta/capture-adr/SKILL.md",
+          "quote": "`needs-oversight` tag is always added for auto-captured ADRs. A human should review and"
+        },
+        {
+          "path": "packages/skills-meta/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-meta\","
+        },
+        {
+          "path": "packages/skills-meta/package.json",
+          "quote": "  \"version\": \"0.9.75\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "meta-knowledge-harvest",
+      "package": {
+        "name": "@dzhechkov/skills-meta",
+        "version": "0.9.75",
+        "manifest": "packages/skills-meta/package.json"
+      },
+      "skillIds": [
+        "knowledge-extractor"
+      ],
+      "title": "Извлечь опыт из завершённого проекта",
+      "queries": [
+        "Извлеки повторно используемые практики из завершённого проекта"
+      ],
+      "intent": "Найти и оформить повторно используемые знания проекта.",
+      "whenToUse": [
+        "Есть завершённый проект для анализа."
+      ],
+      "whenNotToUse": [
+        "Нужен анализ ещё не завершённого проекта."
+      ],
+      "outcome": "Отчёт и прошедшие проверки материалы для повторного использования.",
+      "prerequisites": [
+        "Путь к существующей директории проекта; среда для описанного процесса с агентами."
+      ],
+      "steps": [
+        "Извлечь и классифицировать находки.",
+        "Показать находки пользователю для проверки.",
+        "Проверить находки и разместить одобренные материалы."
+      ],
+      "limitations": [
+        "Источник описывает многоагентный процесс с обязательной проверкой пользователем и изменением файлов."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-meta/package.json",
+          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "sha256": "2b7e6f3a7037104b8fa23b86c113733e047a9a9f0e8b4f16c4cde8a6341c8525"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "  Multi-agent knowledge harvesting system that extracts reusable patterns, commands,"
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "   - If `{TARGET_PATH}` does not exist → report error and stop"
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "Loop until user says \"ок\"."
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "Findings passing all gates → status `approved`."
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "2. Auto-place by category:"
+        },
+        {
+          "path": "packages/skills-meta/knowledge-extractor/SKILL.md",
+          "quote": "| Extracting from incomplete phases | Artifact lacks promise tag or checkpoint | Only harvest from completed projects |"
+        },
+        {
+          "path": "packages/skills-meta/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-meta\","
+        },
+        {
+          "path": "packages/skills-meta/package.json",
+          "quote": "  \"version\": \"0.9.75\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "devops-database-migration",
+      "package": {
+        "name": "@dzhechkov/skills-devops",
+        "version": "0.3.18",
+        "manifest": "packages/skills-devops/package.json"
+      },
+      "skillIds": [
+        "database-migration"
+      ],
+      "title": "Спланировать миграцию схемы базы",
+      "queries": [
+        "Спланируй миграцию схемы базы данных с откатом"
+      ],
+      "intent": "Подготовить изменение схемы и план отката.",
+      "whenToUse": [
+        "Нужно изменить схему существующей базы."
+      ],
+      "whenNotToUse": [
+        "Нужно исследовать производительность SQL или устранить текущую аварию."
+      ],
+      "outcome": "План миграции и отката с учётом используемого стека.",
+      "prerequisites": [
+        "Описание текущей схемы, целевого изменения и стека."
+      ],
+      "steps": [
+        "Выбрать инструмент миграции с учётом базы и стека.",
+        "Определить тип изменения и подготовить план отката."
+      ],
+      "limitations": [
+        "Цель отсутствия простоя и потери данных не является гарантией результата."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-devops/package.json",
+          "sha256": "3a6d66b689bcbeb15f8b69b6673a30fb5293b1f73666fe1722be831219b0c0cb"
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "sha256": "7237328a8c83e89a595fdd99f8178126fd01be5d84ec3b683824d14d7428ca4d"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "description: \"Plans and executes database migrations — schema changes, data migrations, zero-downtime strategies, and rollback plans.\""
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "- Writing rollback plans for irreversible schema changes"
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "- Reviewing SQL query performance (use the database-review skill)"
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "- Debugging a production database outage (use the incident-response skill)"
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "Choose the right migration tool for your stack. All tools in this table follow the same core pattern: numbered migration files applied in order, with up/down operations."
+        },
+        {
+          "path": "packages/skills-devops/database-migration/SKILL.md",
+          "quote": "3. **Evaluate rollback support** -- some tools generate rollbacks automatically, others require manual down migrations"
+        },
+        {
+          "path": "packages/skills-devops/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-devops\","
+        },
+        {
+          "path": "packages/skills-devops/package.json",
+          "quote": "  \"version\": \"0.3.18\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "devops-observability",
+      "package": {
+        "name": "@dzhechkov/skills-devops",
+        "version": "0.3.18",
+        "manifest": "packages/skills-devops/package.json"
+      },
+      "skillIds": [
+        "observability"
+      ],
+      "title": "Спроектировать наблюдаемость сервиса",
+      "queries": [
+        "Помоги настроить метрики, трассировку, SLO и оповещения сервиса"
+      ],
+      "intent": "Спланировать наблюдаемость сервиса.",
+      "whenToUse": [
+        "Нужно определить сигналы, SLO и оповещения."
+      ],
+      "whenNotToUse": [
+        "Нужно реагировать на действующий инцидент."
+      ],
+      "outcome": "Проект сигналов, дашбордов, SLO и правил оповещения.",
+      "prerequisites": [
+        "Описание сервисов, текущих сигналов и требований к надёжности."
+      ],
+      "steps": [
+        "Оценить текущие метрики, логи и трассировку.",
+        "Выбрать нужные сигналы и определить SLO и оповещения."
+      ],
+      "limitations": [
+        "Набор инструментов и глубина внедрения зависят от системы."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-devops/package.json",
+          "sha256": "3a6d66b689bcbeb15f8b69b6673a30fb5293b1f73666fe1722be831219b0c0cb"
+        },
+        {
+          "path": "packages/skills-devops/observability/SKILL.md",
+          "sha256": "b8baf0a141a5f521e6597d2b69b06ebf4979deec5bd514195e6be6decf9ae754"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-devops/observability/SKILL.md",
+          "quote": "description: \"Designs observability stacks — metrics, logs, traces, dashboards, alerting, and SLO/SLI definitions.\""
+        },
+        {
+          "path": "packages/skills-devops/observability/SKILL.md",
+          "quote": "- Responding to an active production incident (use the incident-response skill)"
+        },
+        {
+          "path": "packages/skills-devops/observability/SKILL.md",
+          "quote": "Evaluate the current state and choose the right tool for each pillar. Not every system needs all three from day one — start with what gives the most signal for the least effort."
+        },
+        {
+          "path": "packages/skills-devops/observability/SKILL.md",
+          "quote": "Evaluate the current state and choose the right tool for each pillar. Not every system needs all three from day one — start with what gives the most signal for the least effort."
+        },
+        {
+          "path": "packages/skills-devops/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-devops\","
+        },
+        {
+          "path": "packages/skills-devops/package.json",
+          "quote": "  \"version\": \"0.3.18\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "mcp-gmail-search",
+      "package": {
+        "name": "@dzhechkov/skills-mcp",
+        "version": "0.3.11",
+        "manifest": "packages/skills-mcp/package.json"
+      },
+      "skillIds": [
+        "gmail"
+      ],
+      "title": "Найти письма в Gmail",
+      "queries": [
+        "Найди письма от поставщика в Gmail"
+      ],
+      "intent": "Найти сообщения по запросу в почтовом ящике.",
+      "whenToUse": [
+        "Нужен поиск писем Gmail."
+      ],
+      "whenNotToUse": [
+        "Нужно анализировать локальную историю Git."
+      ],
+      "outcome": "Список найденных писем с краткими сведениями.",
+      "prerequisites": [
+        "Настроены внешний Gmail MCP-сервер и gogcli; выполнена авторизация Gmail."
+      ],
+      "steps": [
+        "Сформировать поисковый запрос Gmail.",
+        "Получить найденные сообщения через MCP."
+      ],
+      "limitations": [
+        "Навык использует внешний MCP-сервер и базовый CLI; доступ зависит от авторизации."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-mcp/package.json",
+          "sha256": "ac3a772642140dbd5f487c6784b689725b9901fb29adf44d663c70c87a2ff595"
+        },
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "sha256": "757763fb0c86004c3caa32db0d5d8dcecdf69b5a97d2de1a0cacd07f88b2885f"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "quote": "Gmail integration via the [gogcli-mcp-gmail](https://github.com/chrischall/gogcli-mcp) MCP server (built on [gogcli](https://github.com/openclaw/gogcli)). Provides full email management: search, read, send, draft, label, forward, autoreply, and bulk operations."
+        },
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "quote": "- **Package:** `gogcli-mcp-gmail`"
+        },
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "quote": "1. Install gogcli (the underlying Google Suite CLI — see [github.com/openclaw/gogcli](https://github.com/openclaw/gogcli)):"
+        },
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "quote": "3. Authenticate with your Gmail account:"
+        },
+        {
+          "path": "packages/skills-mcp/gmail/SKILL.md",
+          "quote": "Search emails using Gmail query syntax. Returns message IDs, subjects, senders, dates, and snippets."
+        },
+        {
+          "path": "packages/skills-mcp/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-mcp\","
+        },
+        {
+          "path": "packages/skills-mcp/package.json",
+          "quote": "  \"version\": \"0.3.11\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "qe-chaos-latency",
+      "package": {
+        "name": "@dzhechkov/skills-qe",
+        "version": "0.3.15",
+        "manifest": "packages/skills-qe/package.json"
+      },
+      "skillIds": [
+        "qe-chaos-resilience"
+      ],
+      "title": "Проверить восстановление после сетевой задержки",
+      "queries": [
+        "Проверь, как сервис восстанавливается после сетевой задержки"
+      ],
+      "intent": "Подготовить контролируемый эксперимент устойчивости.",
+      "whenToUse": [
+        "Нужно проверить реакцию сервиса на сетевую задержку."
+      ],
+      "whenNotToUse": [
+        "Нужен анализ отчёта покрытия тестами."
+      ],
+      "outcome": "Эксперимент с наблюдением за состоянием и восстановлением сервиса.",
+      "prerequisites": [
+        "Тестируемый сервис и среда эксперимента; для автоматического пути — доступный внешний runtime AQE."
+      ],
+      "steps": [
+        "Определить задержку и целевой сервис.",
+        "Наблюдать состояние и проверить восстановление.",
+        "Зафиксировать результаты эксперимента."
+      ],
+      "limitations": [
+        "Навык описывает использование внешнего AQE; наличие пакета навыков само по себе не обеспечивает запуск эксперимента."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-qe/package.json",
+          "sha256": "77c3f9fb3cab6c4ad6f8cf38085b50923872d2268e673c1c38a503f26986f5e1"
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "sha256": "5835fe7e2d0139f75205f86e1d3f5c08abfef650a44264ebd6eb3ef4d1926204"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "description: \"Injects controlled faults (network partition, latency, process kill, disk pressure) into distributed systems and validates recovery behavior. Use when testing circuit breakers, failover paths, retry logic, or building confidence in system resilience through chaos engineering.\""
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "Guide the use of v3's chaos engineering capabilities including controlled fault injection, load/stress testing, resilience validation, and disaster recovery testing."
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "aqe chaos run --experiment network-latency --target api-service"
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "  - Inject 500ms network latency"
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "  - Measure recovery time"
+        },
+        {
+          "path": "packages/skills-qe/qe-chaos-resilience/SKILL.md",
+          "quote": "  - Document findings"
+        },
+        {
+          "path": "packages/skills-qe/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-qe\","
+        },
+        {
+          "path": "packages/skills-qe/package.json",
+          "quote": "  \"version\": \"0.3.15\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "pm-ab-test-analysis",
+      "package": {
+        "name": "@dzhechkov/skills-pm",
+        "version": "0.1.6",
+        "manifest": "packages/skills-pm/package.json"
+      },
+      "skillIds": [
+        "ab-test-analysis"
+      ],
+      "title": "Проанализировать результаты A/B-теста",
+      "queries": [
+        "Проанализируй результаты A/B-теста и предложи решение"
+      ],
+      "intent": "Оценить результаты эксперимента и обосновать решение.",
+      "whenToUse": [
+        "Есть результаты A/B-теста и описание его метрик."
+      ],
+      "whenNotToUse": [
+        "Нужно только выбрать идеи для будущего бэклога."
+      ],
+      "outcome": "Анализ эффекта и рекомендация с обоснованием.",
+      "prerequisites": [
+        "Данные контрольной и тестовой групп, гипотеза и метрики."
+      ],
+      "steps": [
+        "Уточнить гипотезу, метрики и устройство эксперимента.",
+        "Проверить размер выборки, оценить эффект и доверительный интервал.",
+        "Проверить защитные метрики и сформулировать рекомендацию."
+      ],
+      "limitations": [
+        "Вывод зависит от качества данных и корректности условий эксперимента."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-pm/package.json",
+          "sha256": "030b78a847d0c8a67a16dffc1d7e3421e23a0335ff20938ae7f048ff0d0e14cf"
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "sha256": "76e60c63a4645165ad193706bac746958884eb55239784fc2a35e56fa28aab0e"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "description: \"Analyze A/B test results with statistical significance, sample size validation, confidence intervals, and ship/extend/stop recommendations. Use when evaluating experiment results, checking if a test reached significance, interpreting split test data, or deciding whether to ship a variant.\""
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "   - What was the hypothesis?"
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "   - **Sample size**: Is the sample large enough for the expected effect size?"
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "   - **Confidence interval**: 95% CI for the difference"
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "   - Did any guardrail metrics (revenue, engagement, page load time) degrade?"
+        },
+        {
+          "path": "packages/skills-pm/ab-test-analysis/SKILL.md",
+          "quote": "   **Recommendation**: [Ship / Extend / Stop / Investigate]"
+        },
+        {
+          "path": "packages/skills-pm/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-pm\","
+        },
+        {
+          "path": "packages/skills-pm/package.json",
+          "quote": "  \"version\": \"0.1.6\","
+        }
+      ],
+      "courseUrl": null
+    },
+    {
+      "id": "reasoning-agents-md",
+      "package": {
+        "name": "@dzhechkov/skills-reasoning",
+        "version": "0.1.6",
+        "manifest": "packages/skills-reasoning/package.json"
+      },
+      "skillIds": [
+        "agents-md-creator"
+      ],
+      "title": "Создать архитектурные инструкции для нескольких репозиториев",
+      "queries": [
+        "Создай AGENTS.md для каждого сервиса и общий индекс"
+      ],
+      "intent": "Подготовить архитектурные инструкции для агентов в нескольких репозиториях.",
+      "whenToUse": [
+        "Несколько репозиториев нуждаются в конкретных архитектурных границах."
+      ],
+      "whenNotToUse": [
+        "Нужны небольшие правки сильного существующего AGENTS.md."
+      ],
+      "outcome": "Файл AGENTS.md для каждого репозитория и общий индекс.",
+      "prerequisites": [
+        "Доступ к репозиториям и подходящая среда для параллельного анализа и проверки."
+      ],
+      "steps": [
+        "Изучить репозитории и измерить крупные файлы.",
+        "Подготовить инструкции и общий индекс.",
+        "Проверить качество и фактические утверждения."
+      ],
+      "limitations": [
+        "Примеры команд и механика работы с агентами зависят от среды; требуется адаптация."
+      ],
+      "sources": [
+        {
+          "path": "packages/skills-reasoning/package.json",
+          "sha256": "5991fca16c6b4bd12cbe0472d20020ec5e65a7d4b15416ec186568c9587d7f93"
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "sha256": "dbcb63c2f678966b2de30c1fa5e186c3312f59df71c01fa20481afacdbc89a1f"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "  Use to produce per-repository AGENTS.md files for a multi-repo"
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "  already strong and just needs minor edits."
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "  Output: one AGENTS.md per repo, plus a parent index linking them."
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "- **Measurement commands in Phase 3** are stack-specific examples"
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "  harness (Codex CLI, Aider, Cursor), parallel sub-agents may"
+        },
+        {
+          "path": "packages/skills-reasoning/agents-md-creator/SKILL.md",
+          "quote": "### VV-Factual — claims verification"
+        },
+        {
+          "path": "packages/skills-reasoning/package.json",
+          "quote": "  \"name\": \"@dzhechkov/skills-reasoning\","
+        },
+        {
+          "path": "packages/skills-reasoning/package.json",
+          "quote": "  \"version\": \"0.1.6\","
+        }
+      ],
+      "courseUrl": null
+    }
+  ],
+  "excluded": []
+}

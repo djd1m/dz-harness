@@ -1,0 +1,19 @@
+{
+  "name": "dz-advisor-hybrid-experiment",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@orama/orama": "3.1.18",
+    "@lancedb/lancedb": "0.41.0",
+    "@lancedb/lancedb-linux-x64-gnu": "0.41.0"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ]
+}

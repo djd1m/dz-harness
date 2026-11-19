@@ -1,0 +1,1193 @@
+{
+  "schema": "compact-advisor-trial/1",
+  "frozenSha256": "f4c50049c76fe219b9f50a3c47f53a19817d2938aaa3ae54a7fb86e6bbb08436",
+  "index": {
+    "revision": "5f3f0f2c160fd00df167539c8a465d6dd42f8ca79a8523917af2e7154a24fcd9",
+    "model": "baai/bge-m3",
+    "dimensions": 1024,
+    "lexicalizerId": "dz-ru-en-stems-v1"
+  },
+  "selector": "anthropic/claude-haiku-5.5",
+  "additionalSpendUsd": 0.014063715,
+  "additionalCapUsd": 0.06,
+  "gate": {
+    "knownCompletions": 4,
+    "mustPassKnown": [
+      "C03",
+      "fresh-compose-details"
+    ],
+    "freshSemanticMinimum": 5,
+    "freshTotal": 6
+  },
+  "gatePassed": false,
+  "preflight": [
+    {
+      "id": "C03",
+      "previousChars": 44266,
+      "compactChars": 17623,
+      "requirements": [
+        {
+          "id": "r1",
+          "text": "pr-review — замечания с file:line и серьёзностью",
+          "cards": [
+            "c1",
+            "c3"
+          ]
+        },
+        {
+          "id": "r2",
+          "text": "ci-fix — разбор красного job по логу, воспроизведение и исправление причины. Просто ревью не заменяет вторую задачу.",
+          "cards": [
+            "c2",
+            "c4"
+          ]
+        }
+      ],
+      "skills": [
+        "skills-devops-pr-review-ce0f7b73",
+        "skills-devops-ci-fix-4748f1fb"
+      ]
+    },
+    {
+      "id": "H52",
+      "previousChars": 42859,
+      "compactChars": 17412,
+      "requirements": [
+        {
+          "id": "r1",
+          "text": "настрой выразительность, плотность и интенсивность движения",
+          "cards": [
+            "c1",
+            "c3"
+          ]
+        },
+        {
+          "id": "r2",
+          "text": "проверь доступность и reduced motion",
+          "cards": [
+            "c2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fresh-compose-details",
+      "previousChars": 38841,
+      "compactChars": 16510,
+      "requirements": [
+        {
+          "id": "r1",
+          "text": "Нужен Docker Compose для web и PostgreSQL"
+        },
+        {
+          "id": "r2",
+          "text": "база должна сохраняться в именованном томе"
+        },
+        {
+          "id": "r3",
+          "text": "web ждать успешного healthcheck базы."
+        }
+      ],
+      "volume": {
+        "id": "c2p2",
+        "text": "| Named volume | Database data, persistent storage | Yes (unless `-v` flag) |"
+      },
+      "readiness": {
+        "id": "c2p5",
+        "text": "| No health checks | `depends_on` without `condition: service_healthy` only waits for container start, not readiness. App crashes connecting to a database that is still initializing."
+      }
+    },
+    {
+      "id": "fresh-02",
+      "previousChars": 56693,
+      "compactChars": 22177,
+      "requirements": [
+        {
+          "id": "r1",
+          "text": "Explain our storage choice to the product owner in compact text",
+          "cards": [
+            "c1",
+            "c2"
+          ]
+        },
+        {
+          "id": "r2",
+          "text": "compare at least two viable alternatives with their consequences, and distinguish sourced facts from assumptions",
+          "cards": [
+            "c1",
+            "c2"
+          ]
+        }
+      ]
+    }
+  ],
+  "browser": [
+    {
+      "width": 390,
+      "groundedCard": true,
+      "plainText": true,
+      "oldResponseCompatible": true,
+      "gapVisible": true
+    },
+    {
+      "width": 1440,
+      "groundedCard": true,
+      "plainText": true,
+      "oldResponseCompatible": true,
+      "gapVisible": true
+    }
+  ],
+  "finalInputHashesReproduced": 10,
+  "frozenSourceSha256": {
+    "harness/integrations/skill-advisor-catalog/acceptance-evaluate.mjs": "207a522483850a8ccc82fdb2af018f8128fce8e2467b2124d4573cc14ca69a32",
+    "harness/integrations/skill-advisor-catalog/action-coverage.mjs": "f88068c78f4d03807e9692105edeeb367ccd5df97c56f875c86e7545ab708e3e",
+    "harness/integrations/skill-advisor-catalog/answer-details.mjs": "0a2c66c20b43c506219b16e506c61ed2acfdb8ce0e83a46c08517ae766af0028",
+    "harness/integrations/skill-advisor-catalog/answer-evaluate.mjs": "d1e0a1fabe544ed8722a7ad9fb9760ea29ef8b0a477b332baaa6ca4f19a005ea",
+    "harness/integrations/skill-advisor-catalog/answer.mjs": "f1bba9a518b50c78273bc53ba419918b7c490df215faf809cd32cf4297844ce5",
+    "harness/integrations/skill-advisor-catalog/browser-8h-check.mjs": "2d5811095157cf222a11541ff8e1fca5e18ea822bd794feb00ae817d8f96fc2d",
+    "harness/integrations/skill-advisor-catalog/catalog-inventory.mjs": "602996c63a36bda270ccc8fb0fd31cce2bebbc963f387f98c14b9c458a6a3232",
+    "harness/integrations/skill-advisor-catalog/catalog.mjs": "fd849a0fc4b7b70c77265e61a4e88620010413539d097cd27fa333080e426c67",
+    "harness/integrations/skill-advisor-catalog/choice-error.mjs": "f5c52f785fe940995afe63764be9a9561cfc92044d6d849b0f4ae5d05348b47e",
+    "harness/integrations/skill-advisor-catalog/cli.mjs": "cf2178f173a0f35866f14cdb2d5207146a5e479b76401a3ac21d8eed3145077f",
+    "harness/integrations/skill-advisor-catalog/compact-dialogue.mjs": "a3137683c7e41ae45ee3827f97d5765454df25b2b29a250684a37e879ca331d4",
+    "harness/integrations/skill-advisor-catalog/dialogue.mjs": "9fd68282aaa9a58c7b2a87f08ec1cf4c93d140bf812c8296af23d3d25d2f7fa9",
+    "harness/integrations/skill-advisor-catalog/draft-catalog.mjs": "4f4dcb2760268d0485ff27921526436da8dbb0ae07d021e41514b2a65fa10d89",
+    "harness/integrations/skill-advisor-catalog/evaluate.mjs": "236b73abd09f605e5905c166675677413ef37ec9700969f55beeed00f78d129c",
+    "harness/integrations/skill-advisor-catalog/evaluation-budget.mjs": "99813428ce130cf8ccc2bd062f50f959eeabb04bd918ffac9caf622b9fb3306e",
+    "harness/integrations/skill-advisor-catalog/evaluation-matching.mjs": "3e256921dffcf67b0607188cb29be65f17db3c1c1d56e56c71dea20b35e28742",
+    "harness/integrations/skill-advisor-catalog/full-evaluate.mjs": "54625af49c0b6cc3a7541825f649d3e7081eb880e5116f7c97e19cbf2285aeee",
+    "harness/integrations/skill-advisor-catalog/historical-catalog.mjs": "b98d0d927cd74b5b0c044abd72a8c540b5155f3e70defbbbaecd196a1e57bb73",
+    "harness/integrations/skill-advisor-catalog/hybrid-advisor.mjs": "8f7613be88f76ae871724c5a98f8d6bfe170bfae7f63561b6f9a0e47c8bc3bd9",
+    "harness/integrations/skill-advisor-catalog/package-retrieval.mjs": "fdcfd3c5c5c7ffff06c7d9d36fafe471db6469319318c294cfeab2621286b418",
+    "harness/integrations/skill-advisor-catalog/preview-server.mjs": "f587948b2c7699d6d3045f7048183b0f5b01d6220d1c8abe5445b495a1b66361",
+    "harness/integrations/skill-advisor-catalog/refresh-catalog.mjs": "721806f7f999c850f4480afb91a7a4c435e167abc8c3fe98b9a46cfda06bfb0a",
+    "harness/integrations/skill-advisor-catalog/request-ledger.mjs": "3b678322457c45a30cb542a39115a329f9a60f8905b6d1614e67a00118d03304",
+    "harness/integrations/skill-advisor-catalog/scoring.mjs": "37953e4bf63ddab543a39a56fc3a5662e80f92a9a6ae1679a733589be2535185",
+    "harness/integrations/skill-advisor-catalog/search.mjs": "98ea88ad47b3765ea4dd32332477bc8d3dd690a3ce9dbcde944bd97bf10864e8",
+    "harness/integrations/skill-advisor-catalog/selector.mjs": "24195f3e4da784af9d6408eff013e02c9df7bcdbce79171e8cd9bf43ac6d60d6",
+    "harness/integrations/skill-advisor-catalog/source-context.mjs": "79a6a157604bb29f4e13a46e1f8d431df853ea4f092a910610be3c052dce6aba",
+    "harness/integrations/skill-advisor-catalog/source-projection.mjs": "043ce9532e9470c91521baf269a278f80e9da1d5421b6b7f713b7c6cc2c02ac8",
+    "site/src/lib/advisor/client.js": "35b03713a99e802a37389d183b32153e24e38d0bb1dd9f311ad52c3bacd5be85",
+    "site/deploy/advisor-containers/prepare.mjs": "fc331fc73a66137cc3413c174afc19ce8a48788a45c48f21d8be0358b6c95434",
+    "site/deploy/advisor-containers/start-advisor.mjs": "e32c2fa76e78174825a635e700bb7204806c240b4dca6f792607d3b9ee557cdd"
+  },
+  "rounds": [
+    {
+      "cohort": "replay",
+      "case": {
+        "id": "C03",
+        "kind": "compound",
+        "query": "Нужны два результата для одного PR: (1) pr-review — замечания с file:line и серьёзностью; (2) ci-fix — разбор красного job по логу, воспроизведение и исправление причины. Просто ревью не заменяет вторую задачу.",
+        "acceptableDecisions": [
+          "recommend"
+        ],
+        "essential": [
+          "Distinguish actionable PR review from diagnosis and root-cause repair of failed CI.",
+          "Name pr-review and ci-fix, both from skills-devops."
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/pr-review/SKILL.md",
+          "packages/skills-devops/ci-fix/SKILL.md"
+        ],
+        "acceptablePackages": [
+          [
+            "@dzhechkov/skills-devops"
+          ]
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "pr-review"
+          },
+          {
+            "package": "skills-devops",
+            "skillId": "ci-fix"
+          }
+        ],
+        "unsupported": []
+      },
+      "semanticReview": {
+        "id": "C03",
+        "ok": false,
+        "reason": "Technical failure: invalid-choice / detail-passage. No user-visible answer was materialized. Pinned pr-review and ci-fix sources support distinct review and CI diagnosis workflows, but retrieved/offered passages do not count as delivered output. No aggregate multi-card answer exists to credit.",
+        "omissions": [
+          "Both named skills pr-review and ci-fix from skills-devops in visible recommendation",
+          "PR findings with file:line and severity",
+          "CI log diagnosis, local reproduction, and root-cause repair"
+        ]
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1132,
+          "reasoningTokens": 1066
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 17623,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "pr-review — замечания с file:line и серьёзностью",
+            "cards": [
+              "c1",
+              "c3"
+            ]
+          },
+          {
+            "id": "r2",
+            "text": "ci-fix — разбор красного job по логу, воспроизведение и исправление причины. Просто ревью не заменяет вторую задачу.",
+            "cards": [
+              "c2",
+              "c4"
+            ]
+          }
+        ],
+        "chosenIds": null,
+        "candidateIds": [
+          "skills-devops-pr-review-ce0f7b73",
+          "skills-devops-ci-fix-4748f1fb",
+          "skills-12factor-12factor-logs-as-streams-90ff35a9",
+          "p-replicator-brutal-honesty-review-33781c43",
+          "skills-devops-overview-a6cd470c",
+          "skills-qe-overview-7fb6f43e",
+          "skills-qe-brutal-honesty-review-230143fd",
+          "skills-qe-validate-aa98f767",
+          "p-replicator-overview-0b410b50",
+          "skills-feature-adr-overview-35190d6c",
+          "skills-feature-adr-system-grill-70fefd4c",
+          "skills-feature-adr-code-impl-54ab875a"
+        ],
+        "error": "invalid-choice",
+        "choiceReason": "detail-passage",
+        "answer": null,
+        "selectorInputHash": "4682d5bcd6e5b24d6382ddd277ff17599c2b31be6df5f2d91805bcf0f253b2b0",
+        "responseMs": 5415,
+        "returnedVisibleAnswer": false
+      }
+    },
+    {
+      "cohort": "replay",
+      "case": {
+        "id": "H52",
+        "kind": "positive",
+        "query": "Переработай лендинг портфолио: настрой выразительность, плотность и интенсивность движения, проверь доступность и reduced motion.",
+        "targetPackage": "@dzhechkov/skills-taste",
+        "acceptablePackages": [
+          "@dzhechkov/skills-taste"
+        ],
+        "essential": [
+          "Redesign portfolio landing page with deliberate visual and motion choices",
+          "Address accessibility and reduced motion"
+        ],
+        "sourcePaths": [
+          "packages/skills-taste/README.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-taste",
+            "skillId": "design-taste-frontend"
+          }
+        ],
+        "unsupported": []
+      },
+      "semanticReview": {
+        "id": "H52",
+        "ok": false,
+        "reason": "Technical failure: invalid-choice / action-selection. No user-visible recommendation was materialized. Pinned skills-taste README explicitly supports the three design dials and reduced-motion/accessibility guardrails, but these were not delivered.",
+        "omissions": [
+          "design-taste-frontend recommendation",
+          "Deliberate expressiveness, visual density, and motion intensity for portfolio redesign",
+          "Accessibility and reduced motion"
+        ]
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1236,
+          "reasoningTokens": 1173
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 17412,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "настрой выразительность, плотность и интенсивность движения",
+            "cards": [
+              "c1",
+              "c3"
+            ]
+          },
+          {
+            "id": "r2",
+            "text": "проверь доступность и reduced motion",
+            "cards": [
+              "c2"
+            ]
+          }
+        ],
+        "chosenIds": null,
+        "candidateIds": [
+          "health-advisor-health-advisor-rehabilitation-analyzer-463ba334",
+          "skills-ecc-browser-qa-0b8ea06a",
+          "skills-ecc-django-tdd-ad1834c0",
+          "skills-taste-overview-c63b8b64",
+          "skills-taste-design-taste-frontend-6856c4ba",
+          "skills-qe-overview-7fb6f43e",
+          "skills-qe-qe-visual-accessibility-4aa8bd95",
+          "health-advisor-overview-0968b6f3",
+          "health-advisor-health-advisor-fitness-analyzer-4e961943",
+          "skills-ecc-overview-3bdf1e3f",
+          "skills-feature-adr-overview-35190d6c",
+          "skills-feature-adr-frontend-design-3a9a3ad9"
+        ],
+        "error": "invalid-choice",
+        "choiceReason": "action-selection",
+        "answer": null,
+        "selectorInputHash": "dd05190c88af98a4e1457855bb458fa550de293aa9dcf4df26eda4c656746909",
+        "responseMs": 5940,
+        "returnedVisibleAnswer": false
+      }
+    },
+    {
+      "cohort": "replay",
+      "case": {
+        "id": "fresh-compose-details",
+        "query": "Нужен Docker Compose для web и PostgreSQL: база должна сохраняться в именованном томе, а web ждать успешного healthcheck базы. Какой навык выбрать?",
+        "kind": "positive",
+        "essential": [
+          "Recommend docker-compose",
+          "Identify named volume for PostgreSQL persistence",
+          "Identify service_healthy dependency on the database"
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/docker-compose/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "docker-compose"
+          }
+        ],
+        "unsupported": []
+      },
+      "semanticReview": {
+        "id": "fresh-compose-details",
+        "ok": true,
+        "reason": "Visible answer names docker-compose in @dzhechkov/skills-devops. Its three detail quotes support web/PostgreSQL Compose, named-volume database persistence, and depends_on condition: service_healthy for readiness. Quotes match pinned docker-compose/SKILL.md lines 814, 174, and 782; the same source demonstrates pgdata PostgreSQL mounting and service_healthy dependency. Single atomic skill card supplies the complete scope; no cross-card provenance borrowing. Appropriate boundary states that configuration work does not prove target-server startup.",
+        "omissions": []
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 833,
+          "reasoningTokens": 788
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 16510,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "Нужен Docker Compose для web и PostgreSQL"
+          },
+          {
+            "id": "r2",
+            "text": "база должна сохраняться в именованном томе"
+          },
+          {
+            "id": "r3",
+            "text": "web ждать успешного healthcheck базы."
+          }
+        ],
+        "chosenIds": [
+          "skills-devops-docker-compose-1a1fbd1d"
+        ],
+        "candidateIds": [
+          "skills-devops-overview-a6cd470c",
+          "skills-devops-docker-compose-1a1fbd1d",
+          "skills-devops-playwright-testing-bdc49c55",
+          "skills-ecc-overview-3bdf1e3f",
+          "skills-ecc-docker-patterns-d78f32f7",
+          "health-advisor-overview-0968b6f3",
+          "health-advisor-goap-research-ed25519-4e63a891",
+          "health-advisor-health-advisor-health-trend-analyzer-63d87884",
+          "harness-presets-package-641c226b",
+          "skills-book-fundamental-software-architecture-overview-dfce55d4",
+          "skills-book-fundamental-software-architecture-fundamental-software-architecture-guide-0ec0f7af"
+        ],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "recommend",
+          "lead": "Подходящие сценарии для вашей задачи:",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-devops",
+              "scenarios": [
+                {
+                  "summary": "Навык docker-compose. Поможет составить или проверить конфигурацию Compose, связи сервисов и постоянные данные.",
+                  "boundary": "Работа с конфигурацией не подтверждает успешный запуск на целевом сервере.",
+                  "nextAction": "Передайте список сервисов, порты и требования к хранению данных.",
+                  "details": [
+                    {
+                      "action": "Нужен Docker Compose для web и PostgreSQL",
+                      "quote": "- \"Create a docker-compose.yml for a Node.js app with PostgreSQL and Redis\""
+                    },
+                    {
+                      "action": "база должна сохраняться в именованном томе",
+                      "quote": "| Named volume | Database data, persistent storage | Yes (unless `-v` flag) |"
+                    },
+                    {
+                      "action": "web ждать успешного healthcheck базы.",
+                      "quote": "| No health checks | `depends_on` without `condition: service_healthy` only waits for container start, not readiness. App crashes connecting to a database that is still initializing."
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-devops/"
+            }
+          ],
+          "missingParts": [],
+          "clarificationQuestion": null
+        },
+        "selectorInputHash": "0fce33ebd6babf5ee9845b328c647293904d392ade13c9dc1f0c4a316248b48f",
+        "responseMs": 4441,
+        "returnedVisibleAnswer": true
+      }
+    },
+    {
+      "cohort": "replay",
+      "case": {
+        "id": "fresh-02",
+        "query": "Explain our storage choice to the product owner in compact text: compare at least two viable alternatives with their consequences, and distinguish sourced facts from assumptions.",
+        "kind": "positive",
+        "essential": [
+          "Use compact text to explain a decision to an owner.",
+          "Compare at least two viable alternatives and their consequences.",
+          "Distinguish sourced facts from assumptions."
+        ],
+        "sourcePaths": [
+          "packages/skills-decision-mockups/decision-mockups/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-decision-mockups",
+            "skillId": "decision-mockups"
+          }
+        ],
+        "unsupported": []
+      },
+      "semanticReview": {
+        "id": "fresh-02",
+        "ok": false,
+        "reason": "Technical failure: invalid-choice / action-selection. No user-visible answer was materialized. Pinned decision-mockups/SKILL.md supports compact text, at least two viable alternatives with consequences, and separation of sourced facts from assumptions. Reviewed as requested replay index 3 although frozen cohort labels it fresh.",
+        "omissions": [
+          "decision-mockups recommendation for compact owner explanation",
+          "At least two viable alternatives and their consequences",
+          "Sourced facts distinguished from assumptions"
+        ]
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1402,
+          "reasoningTokens": 1356
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 22177,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "Explain our storage choice to the product owner in compact text",
+            "cards": [
+              "c1",
+              "c2"
+            ]
+          },
+          {
+            "id": "r2",
+            "text": "compare at least two viable alternatives with their consequences, and distinguish sourced facts from assumptions",
+            "cards": [
+              "c1",
+              "c2"
+            ]
+          }
+        ],
+        "chosenIds": null,
+        "candidateIds": [
+          "skills-decision-mockups-decision-mockups-d1152848",
+          "skills-meta-decision-mockups-8ade23f9",
+          "skills-meta-overview-559f6001",
+          "skills-meta-capture-adr-e8d5cd4b",
+          "skills-decision-mockups-overview-9144579b",
+          "p-replicator-overview-0b410b50",
+          "p-replicator-problem-solver-enhanced-614a56db",
+          "p-replicator-explore-ecc90278",
+          "keysarium-overview-e81e1bb8",
+          "keysarium-problem-solver-enhanced-c149a152",
+          "keysarium-analyst-manual-full-cccdd912",
+          "skills-book-ai-apps-overview-86b16c2c",
+          "skills-book-ai-apps-aiagents-agent-ux-96ff6925",
+          "skills-book-ai-apps-aiagents-orchestration-and-planning-9b416f99"
+        ],
+        "error": "invalid-choice",
+        "choiceReason": "action-selection",
+        "answer": null,
+        "selectorInputHash": "e8d0fc4dc5881c65136dd12c41eab15baf69f85f8554f11eb9a28ade1592212e",
+        "responseMs": 6713,
+        "returnedVisibleAnswer": false
+      }
+    },
+    {
+      "cohort": "fresh",
+      "case": {
+        "id": "N01",
+        "query": "Plan a zero-downtime type change on a very large production table, including a backfill and a rollback plan.",
+        "kind": "positive",
+        "essential": [
+          "zero-downtime schema change",
+          "data backfill",
+          "rollback plan"
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/database-migration/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "database-migration"
+          }
+        ],
+        "unsupported": []
+      },
+      "semanticReview": {
+        "id": "N01",
+        "ok": false,
+        "reason": "The visible response marks backfill as missing, although database-migration explicitly covers batched backfills for a type change. The shown recommendation does not itself describe backfill.",
+        "omissions": [
+          "Data backfill on the large table"
+        ]
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1523,
+          "reasoningTokens": 1482
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 20342,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "Plan a zero-downtime type change on a very large production table, including a backfill and a rollback plan."
+          }
+        ],
+        "chosenIds": [
+          "skills-devops-database-migration-74c0ac9f"
+        ],
+        "candidateIds": [
+          "skills-devops-overview-a6cd470c",
+          "skills-devops-database-migration-74c0ac9f",
+          "skills-devops-database-review-c6ded265",
+          "skills-feature-adr-overview-35190d6c",
+          "skills-feature-adr-code-impl-54ab875a",
+          "skills-feature-adr-feature-adr-aba74aac",
+          "skills-12factor-overview-0b0f0465",
+          "skills-12factor-12factor-dev-prod-parity-6f779997",
+          "skills-12factor-12factor-concurrency-process-model-e880e58a",
+          "skills-ecc-overview-3bdf1e3f",
+          "skills-ecc-autonomous-loops-8660c516",
+          "skills-reverse-engineering-overview-ef8844ba",
+          "skills-reverse-engineering-reverse-engineering-unicorn-1ff98a5c",
+          "skills-reverse-engineering-problem-solver-enhanced-970c5012"
+        ],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "partial",
+          "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-devops",
+              "scenarios": [
+                {
+                  "summary": "Навык database-migration. Поможет разобрать изменение схемы или данных, порядок миграции и возврат к прежнему состоянию.",
+                  "boundary": "Выполнение требует доступа к БД и проверки стратегии на вашем окружении.",
+                  "nextAction": "Покажите текущую схему, изменение и допустимое окно простоя.",
+                  "details": [
+                    {
+                      "action": "Plan a zero-downtime type change on a very large production table,",
+                      "quote": "description: \"Plans and executes database migrations — schema changes, data migrations, zero-downtime strategies, and rollback plans.\""
+                    },
+                    {
+                      "action": "Plan a zero-downtime type change on a very large production table,",
+                      "quote": "- \"Our users table has 500M rows and we need to change the `id` column from INT to BIGINT\" -- large table migration with shadow table"
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-devops/"
+            }
+          ],
+          "missingParts": [
+            "including a backfill"
+          ],
+          "clarificationQuestion": null
+        },
+        "selectorInputHash": "9fbc20298c3cb3187b2bcaa26e40d17ccd780cd5ccf0baf6a7e4ed06dd89774b",
+        "responseMs": 7322,
+        "returnedVisibleAnswer": true
+      }
+    },
+    {
+      "cohort": "fresh",
+      "case": {
+        "id": "N02",
+        "query": "Для нового сервиса спроектируй наблюдаемость: структурированные логи, распределённые трассировки, SLO и правила оповещения с меньшим числом ложных тревог.",
+        "kind": "positive",
+        "essential": [
+          "structured logs",
+          "distributed tracing",
+          "SLO",
+          "alert rules"
+        ],
+        "sourcePaths": [
+          "packages/skills-devops/observability/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-devops",
+            "skillId": "observability"
+          }
+        ],
+        "unsupported": []
+      },
+      "semanticReview": {
+        "id": "N02",
+        "ok": false,
+        "reason": "The visible response marks reducing false alarms as missing although observability covers alert rules, persistence windows to avoid transient spikes, and alert fatigue prevention. The shown recommendation does not state that capability.",
+        "omissions": [
+          "Alert rules that reduce false alarms"
+        ]
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1715,
+          "reasoningTokens": 1657
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 18587,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "Для нового сервиса спроектируй наблюдаемость"
+          },
+          {
+            "id": "r2",
+            "text": "структурированные логи, распределённые трассировки, SLO и правила оповещения с меньшим числом ложных тревог."
+          }
+        ],
+        "chosenIds": [
+          "skills-devops-observability-338720b5",
+          "skills-ecc-backend-patterns-9dd9a844"
+        ],
+        "candidateIds": [
+          "skills-devops-overview-a6cd470c",
+          "skills-devops-observability-338720b5",
+          "skills-devops-data-pipeline-a40a8637",
+          "skills-book-ai-apps-overview-86b16c2c",
+          "skills-book-ai-apps-aiagents-observability-and-drift-6971df35",
+          "skills-book-ai-apps-aiagents-learning-strategy-bc57e4e9",
+          "keysarium-overview-e81e1bb8",
+          "keysarium-ai-factory-mapper-b03fc0eb",
+          "skills-ecc-overview-3bdf1e3f",
+          "skills-ecc-enterprise-agent-ops-2c856b22",
+          "skills-ecc-backend-patterns-9dd9a844",
+          "skills-12factor-overview-0b0f0465",
+          "skills-12factor-12factor-concurrency-process-model-e880e58a"
+        ],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "partial",
+          "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-devops",
+              "scenarios": [
+                {
+                  "summary": "Навык observability. Поможет выбрать метрики, логи, трассировки, панели и сигналы по SLO/SLI.",
+                  "boundary": "Это проектирование наблюдаемости; сбор телеметрии требует инструментирования сервисов.",
+                  "nextAction": "Опишите критические потоки и доступный стек мониторинга.",
+                  "details": [
+                    {
+                      "action": "Для нового сервиса спроектируй наблюдаемость",
+                      "quote": "Design and implement a production-grade observability stack covering the three pillars (metrics, logs, traces), dashboards, alerting, SLOs, on-call integration, and cost optimization."
+                    },
+                    {
+                      "action": "структурированные логи, распределённые трассировки, SLO и правила оповещения с",
+                      "quote": "Design and implement a production-grade observability stack covering the three pillars (metrics, logs, traces), dashboards, alerting, SLOs, on-call integration, and cost optimization."
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-devops/"
+            },
+            {
+              "package": "@dzhechkov/skills-ecc",
+              "scenarios": [
+                {
+                  "summary": "Навык backend-patterns. Предлагает серверные паттерны API, доступа к данным, кеширования, фоновых задач и обработки ошибок.",
+                  "boundary": "Примеры ориентированы на Node.js, Express и Next.js; выбор зависит от нагрузки и устройства проекта.",
+                  "nextAction": "Покажите маршрут и путь доступа к данным, а также узкое место или требование к API.",
+                  "details": [
+                    {
+                      "action": "структурированные логи, распределённые трассировки, SLO и правила оповещения с",
+                      "quote": "### Structured Logging"
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-ecc/"
+            }
+          ],
+          "missingParts": [
+            "меньшим числом ложных тревог"
+          ],
+          "clarificationQuestion": null
+        },
+        "selectorInputHash": "2660ae02bb08212339fd2311db22b9191fe20a3ec098e96f93ef2097fd21beac",
+        "responseMs": 7752,
+        "returnedVisibleAnswer": true
+      }
+    },
+    {
+      "cohort": "fresh",
+      "case": {
+        "id": "N03",
+        "query": "Using our engagement export, compare retention curves by signup cohort and identify feature adoption trends; then define a customer-centric North Star Metric with supporting input metrics.",
+        "kind": "compound",
+        "essential": [
+          "cohort retention curves",
+          "feature adoption trends",
+          "North Star Metric",
+          "supporting input metrics"
+        ],
+        "sourcePaths": [
+          "packages/skills-pm/cohort-analysis/SKILL.md",
+          "packages/skills-pm/north-star-metric/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-pm",
+            "skillId": "cohort-analysis"
+          },
+          {
+            "package": "skills-pm",
+            "skillId": "north-star-metric"
+          }
+        ],
+        "unsupported": []
+      },
+      "semanticReview": {
+        "id": "N03",
+        "ok": false,
+        "reason": "The visible response marks the North Star and supporting input metrics as missing; the pinned north-star-metric skill explicitly covers both. Only cohort analysis is actually recommended.",
+        "omissions": [
+          "Customer-centric North Star Metric",
+          "Supporting input metrics"
+        ]
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1299,
+          "reasoningTokens": 1231
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 16145,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "compare retention curves by signup cohort",
+            "cards": [
+              "c1",
+              "c2"
+            ]
+          },
+          {
+            "id": "r2",
+            "text": "identify feature adoption trends",
+            "cards": [
+              "c1",
+              "c3"
+            ]
+          }
+        ],
+        "chosenIds": [
+          "skills-pm-cohort-analysis-7165ea3f"
+        ],
+        "candidateIds": [
+          "skills-pm-cohort-analysis-7165ea3f",
+          "health-advisor-health-advisor-clinical-decision-support-afbe025d",
+          "skills-book-ai-apps-aiagents-org-adoption-and-governance-62082206",
+          "skills-pm-overview-b0d8f3a8",
+          "skills-pm-north-star-metric-5bdd7c7d",
+          "health-advisor-overview-0968b6f3",
+          "health-advisor-health-advisor-fitness-analyzer-4e961943",
+          "skills-meta-overview-559f6001",
+          "skills-meta-design-thinking-08d3fa8b",
+          "design-thinking-overview-4f2174c6",
+          "design-thinking-design-thinking-cbb2e523"
+        ],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "partial",
+          "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано.",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-pm",
+              "scenarios": [
+                {
+                  "summary": "Навык cohort-analysis. Поможет проанализировать удержание, принятие функций и различия пользовательских когорт.",
+                  "boundary": "Нужны реальные данные и определения когорт; выводы не подтверждают причинность сами по себе.",
+                  "nextAction": "Передайте таблицу событий или метрик с периодами и сегментами.",
+                  "details": [
+                    {
+                      "action": "compare retention curves by signup cohort",
+                      "quote": "description: \"Perform cohort analysis on user engagement data — retention curves, feature adoption trends, and segment-level insights."
+                    },
+                    {
+                      "action": "compare retention curves by signup cohort",
+                      "quote": "2. **Define cohort clearly**: Make cohort grouping explicit (signup month, feature launch date, etc.)"
+                    },
+                    {
+                      "action": "identify feature adoption trends",
+                      "quote": "## Purpose\nAnalyze user engagement and retention patterns by cohort to identify trends in user behavior, feature adoption, and long-term engagement. Combine quantitative insights with qualitative research recommendations."
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-pm/"
+            }
+          ],
+          "missingParts": [
+            "define a customer-centric North Star Metric with supporting input metrics"
+          ],
+          "clarificationQuestion": null
+        },
+        "selectorInputHash": "9971a220d82af2120fb888c3125b3146cc73ed060a6d8518c6c3f83110876bba",
+        "responseMs": 6426,
+        "returnedVisibleAnswer": true
+      }
+    },
+    {
+      "cohort": "fresh",
+      "case": {
+        "id": "N04",
+        "query": "По транскрипту оцени доклад на защите магистерской ВКР относительно текста работы, а отдельно оцени полноту и глубину ответов студента на вопросы комиссии.",
+        "kind": "compound",
+        "essential": [
+          "evaluate defense presentation against thesis",
+          "assess completeness and depth of answers"
+        ],
+        "sourcePaths": [
+          "packages/skills-academic/defense-evaluator/SKILL.md",
+          "packages/skills-academic/answer-assessor/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-academic",
+            "skillId": "defense-evaluator"
+          },
+          {
+            "package": "skills-academic",
+            "skillId": "answer-assessor"
+          }
+        ],
+        "unsupported": []
+      },
+      "semanticReview": {
+        "id": "N04",
+        "ok": false,
+        "reason": "Technical failure: selector returned invalid-choice (detail-passage), so no visible answer was produced. Both pinned academic skills cover the requested separate evaluations.",
+        "omissions": [
+          "Evaluate defense presentation against thesis",
+          "Assess completeness and depth of answers"
+        ]
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 1253,
+          "reasoningTokens": 1207
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 16595,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "По транскрипту оцени доклад на защите магистерской ВКР относительно текста работы"
+          },
+          {
+            "id": "r2",
+            "text": "отдельно оцени полноту и глубину ответов студента на вопросы комиссии."
+          }
+        ],
+        "chosenIds": null,
+        "candidateIds": [
+          "skills-academic-overview-74144a5f",
+          "skills-academic-answer-assessor-bf990c08",
+          "skills-academic-defense-evaluator-ad971909",
+          "skills-decision-mockups-overview-9144579b",
+          "skills-decision-mockups-decision-mockups-d1152848",
+          "skills-meta-overview-559f6001",
+          "skills-meta-decision-mockups-8ade23f9",
+          "harness-cli-package-ec6546b1",
+          "health-advisor-overview-0968b6f3",
+          "health-advisor-health-advisor-medical-entity-extractor-0241f1cb",
+          "health-advisor-health-advisor-case-state-e3b970c7"
+        ],
+        "error": "invalid-choice",
+        "choiceReason": "detail-passage",
+        "answer": null,
+        "selectorInputHash": "69e9dc5fcb65f1b985de4276507c8ba652b356c08d4d87a64628ea72eba4f49c",
+        "responseMs": 6191,
+        "returnedVisibleAnswer": false
+      }
+    },
+    {
+      "cohort": "fresh",
+      "case": {
+        "id": "N05",
+        "query": "Investigate why the service occasionally times out and produce a root-cause diagnosis without modifying code; also design a monitoring stack with metrics, traces and alerts.",
+        "kind": "compound",
+        "essential": [
+          "root-cause diagnosis without code changes",
+          "metrics traces and alerts"
+        ],
+        "sourcePaths": [
+          "packages/skills-reasoning/investigate/SKILL.md",
+          "packages/skills-devops/observability/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-reasoning",
+            "skillId": "investigate"
+          },
+          {
+            "package": "skills-devops",
+            "skillId": "observability"
+          }
+        ],
+        "unsupported": []
+      },
+      "semanticReview": {
+        "id": "N05",
+        "ok": true,
+        "reason": "The visible answer recommends diagnosis without code changes and observability for metrics, traces and alerts, consistent with both pinned sources.",
+        "omissions": []
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 934,
+          "reasoningTokens": 893
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 21096,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "Investigate why the service occasionally times out and produce a root-cause diagnosis without modifying code"
+          },
+          {
+            "id": "r2",
+            "text": "also design a monitoring stack with metrics, traces and alerts."
+          }
+        ],
+        "chosenIds": [
+          "skills-reasoning-investigate-a24701a4",
+          "skills-devops-observability-338720b5"
+        ],
+        "candidateIds": [
+          "skills-reasoning-overview-81482c09",
+          "skills-reasoning-investigate-a24701a4",
+          "skills-reasoning-karpathy-guidelines-684e7364",
+          "skills-devops-overview-a6cd470c",
+          "skills-devops-debugging-2c04ece1",
+          "skills-devops-observability-338720b5",
+          "skills-qe-overview-7fb6f43e",
+          "skills-qe-systematic-debugging-c9ab6034",
+          "skills-qe-qe-defect-intelligence-f23d662d",
+          "design-thinking-overview-4f2174c6",
+          "design-thinking-problem-solver-enhanced-92b3e754",
+          "skills-book-ai-apps-overview-86b16c2c",
+          "skills-book-ai-apps-aiagents-observability-and-drift-6971df35",
+          "skills-book-ai-apps-aiagents-release-gates-and-rollout-0c95e14f"
+        ],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "recommend",
+          "lead": "Подходящие сценарии для вашей задачи:",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-reasoning",
+              "scenarios": [
+                {
+                  "summary": "Навык investigate. Проведёт системный поиск первопричины и подготовит объяснение проблемы.",
+                  "boundary": "Режим исследования не вносит исправлений; реализация требует отдельной задачи.",
+                  "nextAction": "Опишите симптомы, наблюдения и область исследования.",
+                  "details": [
+                    {
+                      "action": "Investigate why the service occasionally times out and produce a root-cause diagnosis without modifying code",
+                      "quote": "Find and explain the root cause of a problem. Do NOT fix it. Do NOT propose code changes. Produce a clear diagnosis that someone else (or a future session) can act on."
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-reasoning/"
+            },
+            {
+              "package": "@dzhechkov/skills-devops",
+              "scenarios": [
+                {
+                  "summary": "Навык observability. Поможет выбрать метрики, логи, трассировки, панели и сигналы по SLO/SLI.",
+                  "boundary": "Это проектирование наблюдаемости; сбор телеметрии требует инструментирования сервисов.",
+                  "nextAction": "Опишите критические потоки и доступный стек мониторинга.",
+                  "details": [
+                    {
+                      "action": "also design a monitoring stack with metrics, traces and alerts.",
+                      "quote": "Design and implement a production-grade observability stack covering the three pillars (metrics, logs, traces), dashboards, alerting, SLOs, on-call integration, and cost optimization."
+                    },
+                    {
+                      "action": "also design a monitoring stack with metrics, traces and alerts.",
+                      "quote": "Design alerts that are actionable, routed to the right person, and do not cause fatigue."
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-devops/"
+            }
+          ],
+          "missingParts": [],
+          "clarificationQuestion": null
+        },
+        "selectorInputHash": "f72137e4250bf5be9f54038fa94eb2c1c3903eea3b765fbcc7206e471c33dd0e",
+        "responseMs": 5000,
+        "returnedVisibleAnswer": true
+      }
+    },
+    {
+      "cohort": "fresh",
+      "case": {
+        "id": "N06",
+        "query": "Помоги выбрать первый сегмент рынка по остроте проблемы и готовности платить, а затем physically carry a paper poster across my office.",
+        "kind": "compound",
+        "essential": [
+          "first market segment",
+          "pain and willingness to pay"
+        ],
+        "sourcePaths": [
+          "packages/skills-pm/beachhead-segment/SKILL.md"
+        ],
+        "requiredSkills": [
+          {
+            "package": "skills-pm",
+            "skillId": "beachhead-segment"
+          }
+        ],
+        "unsupported": [
+          "physically carry a paper poster across my office"
+        ]
+      },
+      "semanticReview": {
+        "id": "N06",
+        "ok": true,
+        "reason": "The visible answer recommends segment selection by pain and willingness to pay and explicitly identifies physical transport as unsupported, consistent with the pinned source and task boundary.",
+        "omissions": []
+      },
+      "result": {
+        "providerDiagnostic": {
+          "reason": "stop",
+          "outputTokens": 845,
+          "reasoningTokens": 790
+        },
+        "retrievalMode": "hybrid",
+        "promptChars": 17904,
+        "slots": [
+          {
+            "id": "r1",
+            "text": "выбрать первый сегмент рынка по остроте проблемы и готовности платить",
+            "cards": [
+              "c1",
+              "c2"
+            ]
+          },
+          {
+            "id": "r2",
+            "text": "physically carry a paper poster across my office",
+            "manual": true,
+            "cards": []
+          }
+        ],
+        "chosenIds": [
+          "skills-pm-beachhead-segment-f92ddebe"
+        ],
+        "candidateIds": [
+          "skills-pm-beachhead-segment-f92ddebe",
+          "skills-pm-pricing-strategy-e32efd8e",
+          "skills-pm-overview-b0d8f3a8",
+          "skills-book-ai-apps-overview-86b16c2c",
+          "skills-book-ai-apps-aiagents-agent-fit-and-model-choice-54acf0f5",
+          "skills-book-ai-apps-aiagents-multi-agent-infrastructure-fe208d15",
+          "skills-book-fundamental-software-architecture-overview-dfce55d4",
+          "skills-book-fundamental-software-architecture-fundamental-software-architecture-guide-0ec0f7af",
+          "skills-12factor-overview-0b0f0465",
+          "skills-12factor-12factor-disposability-fast-startup-3132a574",
+          "skills-analyst-manual-overview-6758eed2",
+          "skills-analyst-manual-problem-solver-enhanced-9ef85c73",
+          "skills-analyst-manual-analyst-manual-full-2bd0f916"
+        ],
+        "error": null,
+        "choiceReason": null,
+        "answer": {
+          "decision": "partial",
+          "lead": "Эти пакеты помогут с частью задачи. Полное решение пока не подобрано. Для физической работы нужен исполнитель на месте. Пакеты каталога её не выполняют.",
+          "items": [
+            {
+              "package": "@dzhechkov/skills-pm",
+              "scenarios": [
+                {
+                  "summary": "Навык beachhead-segment. Сравнит стартовые сегменты по боли, готовности платить, достижимой доле и рекомендациям.",
+                  "boundary": "Оценка сегмента требует подтверждения реальными данными о клиентах.",
+                  "nextAction": "Опишите продукт и несколько возможных аудиторий.",
+                  "details": [
+                    {
+                      "action": "выбрать первый сегмент рынка по остроте проблемы и готовности платить",
+                      "quote": "description: \"Identify the first beachhead market segment for a product launch. Evaluates segments against burning pain, willingness to pay, winnable market share, and referral potential."
+                    },
+                    {
+                      "action": "выбрать первый сегмент рынка по остроте проблемы и готовности платить",
+                      "quote": "Use when choosing a first market, targeting an initial customer segment, or planning market entry strategy.\""
+                    }
+                  ]
+                }
+              ],
+              "courseUrl": "https://aicoding.space/courses/skills-pm/"
+            }
+          ],
+          "missingParts": [
+            "physically carry a paper poster across my office"
+          ],
+          "clarificationQuestion": null
+        },
+        "selectorInputHash": "72d6e7151b08aa12a5ed7d60a33d358aa1c68c0f7106b23e56a62a7afc6f9714",
+        "responseMs": 4241,
+        "returnedVisibleAnswer": true
+      }
+    }
+  ]
+}

@@ -1,0 +1,2961 @@
+{
+  "schema": "advisor-heldout-labels-final-v2",
+  "provenance": {
+    "sourceCommit": "a2af2732b01d516966e076db77c35902f5e72ac1",
+    "adjudicator": "Same independent source reviewer as corpus one; outcome-blind second corpus, NOT a new author or new reviewer",
+    "corpusOrdinal": 2,
+    "method": "Authored new bounded source-based tasks after parent reported first-trial failure without per-case outcomes. Did not inspect outcomes or authored catalog. Reviewed actual shipped SKILL scope/body and support READMEs; accepted byte-identical skill carriers. Familiar regressions retained exactly.",
+    "limitations": "Support packages and single-purpose skills necessarily reuse their underlying bounded functions; concrete task focus changed rather than treating a paraphrase as independent capability evidence. Corpus shares author and source space with first trial and is not statistically independent. Source relevance does not prove tool availability or runtime completion.",
+    "parentFeedbackExposure": "Only aggregate first-trial threshold failure and source-only candidate change summary; no per-case outcomes, scores or queries supplied by parent.",
+    "priorCorpusSha256": "30e62602d5f8fb65f57afa9cb983e6ad0e87107aab7cd6861e8b9376d6f6a5b9"
+  },
+  "cases": [
+    {
+      "id": "H001",
+      "query": "Есть вручную написанный AGENTS.md. Хочу при повторной сборке менять только fenced-блок dz:skills и проверить идемпотентность слияния.",
+      "source": "packages/adapter-agents-md/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-agents-md"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-agents-md"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-agents-md"
+      ],
+      "rationale": "Root AGENTS.md managed-fence merge preserves outside bytes and is idempotent.",
+      "sourceEvidence": [
+        "packages/adapter-agents-md/README.md",
+        "packages/adapter-agents-md/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/adapter-agents-md/README.md": "152259e19bbbe2665959774eb0672765e0bb084300ff6bd0af57c159ba06581f",
+        "packages/adapter-agents-md/package.json": "b2918069ec00953997de5e75d420fc188ef75bc379ec92117a657004cb48580e"
+      }
+    },
+    {
+      "id": "H002",
+      "query": "В интеграционном тесте нужно получить массив файлов для Claude Code из CanonicalSkill без записи на диск; требуется сохранение исходных байтов SKILL.md.",
+      "source": "packages/adapter-claude/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-claude"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-claude"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-claude"
+      ],
+      "rationale": "Claude compile is pure and establishes byte-identity baseline.",
+      "sourceEvidence": [
+        "packages/adapter-claude/README.md",
+        "packages/adapter-claude/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/adapter-claude/README.md": "76ba17c22b08c1b87cfa294df5b1591b353c36f72e06699b91e7fcd88b2d75f6",
+        "packages/adapter-claude/package.json": "780384726a099a107533b453a7052e7238926355aae6e7d0538e86aaaeee9347"
+      }
+    },
+    {
+      "id": "H003",
+      "query": "Нужно проверить результат компиляции навыка для Codex с приложенными scripts и references, не смешивая его с механизмом AGENTS.md.",
+      "source": "packages/adapter-codex/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-codex"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-codex"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-codex"
+      ],
+      "rationale": "Codex compile/verify are pure; assets use .agents/skills, distinct from AGENTS.md.",
+      "sourceEvidence": [
+        "packages/adapter-codex/README.md",
+        "packages/adapter-codex/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/adapter-codex/README.md": "67104fe9609aa8a4bcbf58ec9bc073b1e36c1b9d31453059c5b1bc4cac6999ac",
+        "packages/adapter-codex/package.json": "c8400f670a012484847751bbe589d7d1a62271d6399ab325165caca5ebdf3f30"
+      }
+    },
+    {
+      "id": "H004",
+      "query": "Проверяю строгий режим преобразования навыка для Copilot: потеря progressive disclosure должна вызывать ошибку, а не незаметно проходить.",
+      "source": "packages/adapter-copilot/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-copilot"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-copilot"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-copilot"
+      ],
+      "rationale": "Copilot transform is lossy; strict mode throws.",
+      "sourceEvidence": [
+        "packages/adapter-copilot/README.md",
+        "packages/adapter-copilot/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/adapter-copilot/README.md": "c297ee10aa12955b7e68bf77ed3e111317244e31bf34e749df58b51d94787a76",
+        "packages/adapter-copilot/package.json": "a3a2c8ea391175dd727205daed61bcaf26bf26379c953a74b59b8195d0087c7e"
+      }
+    },
+    {
+      "id": "H005",
+      "query": "Почему правило Cursor с расширением .md не подхватывается? Нужен компонент генерации .mdc с alwaysApply:false из канонического навыка.",
+      "source": "packages/adapter-cursor/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-cursor"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-cursor"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-cursor"
+      ],
+      "rationale": "Cursor README requires .mdc and documents alwaysApply false.",
+      "sourceEvidence": [
+        "packages/adapter-cursor/README.md",
+        "packages/adapter-cursor/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/adapter-cursor/README.md": "7ae4ec642c185c0726a072107ebc0d8923ccaa4e435b9aa197fa92b6a7ce59b7",
+        "packages/adapter-cursor/package.json": "dc078d92bafcf708f0dc4d63ed8d7d8f237e0510a55ed9032f86f1c0b28b285a"
+      }
+    },
+    {
+      "id": "H006",
+      "query": "У нас уже есть GEMINI.md с ручными соглашениями. Нужен повторяемый merge управляемой секции без дублирования маркеров и перезаписи соглашений.",
+      "source": "packages/adapter-gemini/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-gemini"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-gemini"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-gemini"
+      ],
+      "rationale": "Gemini managed-fence merge is idempotent and preserves authored outside content.",
+      "sourceEvidence": [
+        "packages/adapter-gemini/README.md",
+        "packages/adapter-gemini/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/adapter-gemini/README.md": "eeeedd6e8e7872bd17dc4b56e4592f7a6b607ac11f7990c84a31565bf6d171bf",
+        "packages/adapter-gemini/package.json": "6055ee0a3eeaf8046462ee4eb1e8d736ca4a72c21c2d621e0b45b7382ee292a7"
+      }
+    },
+    {
+      "id": "H007",
+      "query": "В библиотеке интеграции Hermes нужно получить EmitResult с относительными путями, чтобы вызывающий код сам выбрал домашний или проектный корень.",
+      "source": "packages/adapter-hermes/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-hermes"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-hermes"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-hermes"
+      ],
+      "rationale": "Hermes pure compiler emits relative tree and caller chooses target root.",
+      "sourceEvidence": [
+        "packages/adapter-hermes/README.md",
+        "packages/adapter-hermes/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/adapter-hermes/README.md": "0b4994ec8afc37e2cb6cd49afbbd3e54c38ac7fdd987d4ee05b814110e922c9c",
+        "packages/adapter-hermes/package.json": "04be2a3996b34195c5aeb0606152e343f153247c95037c3d66582015763121b7"
+      }
+    },
+    {
+      "id": "H008",
+      "query": "В тестовой папке готовлю проектный layout .openclaude/skills; нужен соответствующий платформенный адаптер, а не глобальная установка.",
+      "source": "packages/adapter-openclaude/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-openclaude"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-openclaude"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-openclaude"
+      ],
+      "rationale": "OpenClaude README explicitly distinguishes project adapter layout from global skills.",
+      "sourceEvidence": [
+        "packages/adapter-openclaude/README.md",
+        "packages/adapter-openclaude/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/adapter-openclaude/README.md": "ef9b2dd3c6813c8123b648b59eb0c4101531c4cc700866ae3a813d1218f856bf",
+        "packages/adapter-openclaude/package.json": "9d128a27c6423b8027c22109f61adbbead58ac9025f727607c56c8b24ead0dc7"
+      }
+    },
+    {
+      "id": "H009",
+      "query": "Для OpenCode хочу программно скомпилировать CanonicalSkill и затем проверить EmitResult, оставив запись файлов вызывающему коду.",
+      "source": "packages/adapter-opencode/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-opencode"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-opencode"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-opencode"
+      ],
+      "rationale": "OpenCode adapter compile/verify APIs are pure.",
+      "sourceEvidence": [
+        "packages/adapter-opencode/README.md",
+        "packages/adapter-opencode/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/adapter-opencode/README.md": "ff7abd62fe720c85454836025d3c3ec83f700f36df0c29ff6bfb7e358789ec1f",
+        "packages/adapter-opencode/package.json": "9ad996237b5eeeaf71772c38402670047dee748cb8f5247050661b42e93b966f"
+      }
+    },
+    {
+      "id": "H010",
+      "query": "В генераторе правил Windsurf требуется trigger:model_decision и перенос globs только при его наличии в исходном навыке. Какой компонент это реализует?",
+      "source": "packages/adapter-windsurf/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-windsurf"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-windsurf"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-windsurf"
+      ],
+      "rationale": "Windsurf README defines trigger and optional globs transform.",
+      "sourceEvidence": [
+        "packages/adapter-windsurf/README.md",
+        "packages/adapter-windsurf/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/adapter-windsurf/README.md": "07b1f47b193ba205eb755e9fe502b5d204e0151e85319fa7e98f3d55a6e12cce",
+        "packages/adapter-windsurf/package.json": "5ec0edc4dd780e001b51d6f404fa766692aba8df577bd79b168ba784dd6a5373"
+      }
+    },
+    {
+      "id": "H011",
+      "query": "Перед подключением Cloud.ru credentials хочу выполнить self-test запускателя: сверить SHA движка и локальный список MCP tools без вызова облачного API.",
+      "source": "packages/cloudru-hub/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/cloudru-hub"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/cloudru-hub"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/cloudru-hub"
+      ],
+      "rationale": "Launcher self-test verifies binary hash/version/local tool catalog without credentials.",
+      "sourceEvidence": [
+        "packages/cloudru-hub/README.md",
+        "packages/cloudru-hub/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/cloudru-hub/README.md": "ed7ebc1b48b65ef7eff23fab1ef048dc3144e61cb931a6e965d360bd84c041a0",
+        "packages/cloudru-hub/package.json": "dba9080e2deb35d6ba68e563f46ae95edd01357046260dc25881ae6c6d361d6b"
+      }
+    },
+    {
+      "id": "H012",
+      "query": "В Linux/x64 сборке запрещены postinstall-загрузки. Нужен пакет движка для cloudru-hub, который подключается точной optional dependency и проверяется по SHA.",
+      "source": "packages/cloudru-vm-linux-x64/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/cloudru-vm-linux-x64"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/cloudru-vm-linux-x64"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/cloudru-vm-linux-x64"
+      ],
+      "rationale": "Linux/x64 engine README documents optional exact dependency and no postinstall download.",
+      "sourceEvidence": [
+        "packages/cloudru-vm-linux-x64/README.md",
+        "packages/cloudru-vm-linux-x64/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/cloudru-vm-linux-x64/README.md": "acd6f92980e36939229f0003f262480528212817d43594eaedc0522c345745b0",
+        "packages/cloudru-vm-linux-x64/package.json": "647c713867b0e5f50e2968e110067a238f90581c1484b493f0e14233f1e5a425"
+      }
+    },
+    {
+      "id": "H013",
+      "query": "Создаю парсер frontmatter: нужна строгая стандартная схема и отдельная расширенная схема Claude с passthrough неизвестных проектных полей.",
+      "source": "packages/core/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/core"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/core"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/core"
+      ],
+      "rationale": "Core exposes CanonicalSkillFrontmatter and relaxed ClaudeSkillFrontmatter.",
+      "sourceEvidence": [
+        "packages/core/README.md",
+        "packages/core/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/core/README.md": "043c86fb24960ec16553fddc1a4c0b632b25be8186aa27b05342278afd025ab9",
+        "packages/core/package.json": "5ff7b78f0faf77020bd21cff29dfc9e43708838920d9bfa591086e5fee562328"
+      }
+    },
+    {
+      "id": "H014",
+      "query": "Проведём ретроспективу тестирования API по шести шляпам: отдельно факты, риски, эмоции, преимущества, идеи и итоговые действия.",
+      "source": "packages/design-thinking/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/design-thinking"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/design-thinking"
+        ],
+        [
+          "@dzhechkov/skills-qe"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/design-thinking"
+      ],
+      "rationale": "Six Thinking Hats SKILL explicitly structures testing retrospectives across six perspectives.",
+      "sourceEvidence": [
+        "packages/design-thinking/README.md",
+        "packages/design-thinking/package.json",
+        "packages/design-thinking/templates/.claude/skills/six-thinking-hats/SKILL.md",
+        "packages/skills-qe/six-thinking-hats/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/design-thinking/README.md": "3e2098939fccbadd583744b0fcc7d7ea390ae167fd8167297afef79709985af3",
+        "packages/design-thinking/package.json": "0909652bbee00cf3d687cc0f022ffe13c677bc09938da0f095ceabe43e6493f9",
+        "packages/design-thinking/templates/.claude/skills/six-thinking-hats/SKILL.md": "c3eb12f7ed4908bd64df234c7417248471426c744ff3319833c5fa852fd47e8a",
+        "packages/skills-qe/six-thinking-hats/SKILL.md": "c3eb12f7ed4908bd64df234c7417248471426c744ff3319833c5fa852fd47e8a"
+      }
+    },
+    {
+      "id": "H015",
+      "query": "После добавления ADR о доменной сущности надо обновить wiki/INDEX.md и wiki/graph.json, связав существующие концепты обратными ссылками.",
+      "source": "packages/evidence-wiki/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/evidence-wiki"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/evidence-wiki"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/evidence-wiki"
+      ],
+      "rationale": "Concept wiki source explicitly covers regeneration and backlinks from existing source documents.",
+      "sourceEvidence": [
+        "packages/evidence-wiki/README.md",
+        "packages/evidence-wiki/package.json",
+        "packages/evidence-wiki/skills/concept-wiki-generator/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/evidence-wiki/README.md": "7dca354af818d4a1b2f5a10a352e7f1f4d9986844b597d0c55139d5544d40fad",
+        "packages/evidence-wiki/package.json": "02157f891166ee308d6b8bd430dddfa396d7d9c95a12eeca3858944d2a2ac4bf",
+        "packages/evidence-wiki/skills/concept-wiki-generator/SKILL.md": "21fd7688234576e3b70a992001093b0ddd83ab444d61078b7eba54c18550fcd2"
+      }
+    },
+    {
+      "id": "H016",
+      "query": "После локальной установки дополнительного provider хочу заново выполнить dz setup с явным --select и проверить состояние через dz doctor.",
+      "source": "packages/harness-cli/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/harness-cli"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/harness-cli"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/harness-cli"
+      ],
+      "rationale": "CLI README documents setup, selection and doctor; provider dependency remains explicit.",
+      "sourceEvidence": [
+        "packages/harness-cli/README.md",
+        "packages/harness-cli/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/harness-cli/README.md": "94eb694d96b611182b7b11ba6557300d1b54daa37fc2c707c039d7e42d7fbcf7",
+        "packages/harness-cli/package.json": "155010cdbe6483d4b79d7c86e1582687ee4f3cf40502cea0fcf51a78afc676c4"
+      }
+    },
+    {
+      "id": "H017",
+      "query": "Пишу обёртку над runInit: нужно получить структурированный список failures по нечитабельным SKILL.md, продолжив обработку остальных навыков.",
+      "source": "packages/harness-core/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/harness-core"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/harness-core"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/harness-core"
+      ],
+      "rationale": "harness-core operations README documents additive SkillLoadFailure arrays rather than aborting the whole loop.",
+      "sourceEvidence": [
+        "packages/harness-core/README.md",
+        "packages/harness-core/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/harness-core/README.md": "9c618c50f75430a719abcab1fd4c6fb551f4b76395c970cfcedbd24ff6099f51",
+        "packages/harness-core/package.json": "ec72f9dbe5193c1d3dd5b358c39addf0e16ce3e88389bc468c4c83b4de219e55"
+      }
+    },
+    {
+      "id": "H018",
+      "query": "В своём инициализаторе хочу прочитать providers у встроенного preset и показать недостающие пакеты до применения; сам preset не должен их скачивать.",
+      "source": "packages/harness-presets/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/harness-presets"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/harness-presets"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/harness-presets"
+      ],
+      "rationale": "Presets README provides optional provider metadata and explicitly says presets do not install packages.",
+      "sourceEvidence": [
+        "packages/harness-presets/README.md",
+        "packages/harness-presets/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/harness-presets/README.md": "c2431f6e6903ce1efe79759817c9571cf19f9a285c541c6ba05c274fd37888e1",
+        "packages/harness-presets/package.json": "0857330669a7948868e2f7d33f2d279435df19465ecc819a1dc7f9c7fbc6ea49"
+      }
+    },
+    {
+      "id": "H019",
+      "query": "Перед разбором лабораторного числа проверь условия забора: длительность голодания, тренировку и сон; сомнительные наблюдения не передавай на интерпретацию.",
+      "source": "packages/health-advisor/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/health-advisor"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/health-advisor"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/health-advisor"
+      ],
+      "rationale": "Preanalytical guard audits sampling conditions and withholds inadmissible observations before interpretation.",
+      "sourceEvidence": [
+        "packages/health-advisor/README.md",
+        "packages/health-advisor/package.json",
+        "packages/health-advisor/skills/preanalytical-guard/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/health-advisor/README.md": "369d641b06ed0a7c420812bb20bffe3ce251be6f74c0736e86828b05c121b90b",
+        "packages/health-advisor/package.json": "054710e33fcbc3f9c8a75206a8e731a8a0202c107573b9fa622904dec9646ae6",
+        "packages/health-advisor/skills/preanalytical-guard/SKILL.md": "42a8b93f08f951e2cc14504f285c5935216f599c29f28444172aa206a82fe441"
+      }
+    },
+    {
+      "id": "H020",
+      "query": "Разложи сценарий поддержки клиентов на сервисы Cloud.ru Evolution AI Factory и покажи, какие шаги потребуют собственной разработки.",
+      "source": "packages/keysarium/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/keysarium"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/keysarium"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/keysarium"
+      ],
+      "rationale": "AI Factory Mapper maps business workflow steps to services with explicit coverage gaps.",
+      "sourceEvidence": [
+        "packages/keysarium/README.md",
+        "packages/keysarium/package.json",
+        "packages/keysarium/templates/.claude/skills/ai-factory-mapper/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/keysarium/README.md": "748bcfec4d7e98ca87b124bcb688342130bdd8fffe7cf9cf1a2291a5479a783d",
+        "packages/keysarium/package.json": "35b623270c0e3b2a510455550f04b1bb51a48b16fa9f323891f930d4b674a99d",
+        "packages/keysarium/templates/.claude/skills/ai-factory-mapper/SKILL.md": "41b7bf54bbf050a498277246579bb8becb952f0b525519e439c03b3b9be7f53f"
+      }
+    },
+    {
+      "id": "H021",
+      "query": "Проектирую перенос памяти между агентными сессиями: нужен протокол delta brain export с JSON Patch и жизненным циклом HOT/WARM/COLD/PURGE.",
+      "source": "packages/keysarium-core/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/keysarium-core"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/keysarium-core"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/keysarium-core"
+      ],
+      "rationale": "keysarium-core README describes COW delta exports and memory lifecycle protocols.",
+      "sourceEvidence": [
+        "packages/keysarium-core/README.md",
+        "packages/keysarium-core/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/keysarium-core/README.md": "7844e3c6a518463e9cf21726efcc1c5101ea4553965a388f98ac12b4a40bc2ac",
+        "packages/keysarium-core/package.json": "7248771a3eba34cc5e68bea799346146da53a49a9c63a727409ba1ea30f9db61"
+      }
+    },
+    {
+      "id": "H022",
+      "query": "Есть trace завершившегося fanout/join цикла. Хочу понять по записям, какие ветки реально выполнялись и почему join не завершился.",
+      "source": "packages/loop-designer-plugin/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/loop-designer-plugin"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/loop-designer-plugin"
+        ],
+        [
+          "@dzhechkov/skills-meta"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/loop-designer-plugin"
+      ],
+      "rationale": "Loop Plan Author explicitly supports reading finished run traces and diagnosing hanging workflows.",
+      "sourceEvidence": [
+        "packages/loop-designer-plugin/README.md",
+        "packages/loop-designer-plugin/package.json",
+        "packages/loop-designer-plugin/skills/loop-plan-author/SKILL.md",
+        "packages/skills-meta/loop-plan-author/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/loop-designer-plugin/README.md": "291e69394cc25676b28b041322295aa0426f4919d6eaed9945aa76a476cdb9e9",
+        "packages/loop-designer-plugin/package.json": "7b167f7af7a7af84e8acaa05d840ad74b25cc7c610084bc215d41c1b032b96ec",
+        "packages/loop-designer-plugin/skills/loop-plan-author/SKILL.md": "044ee382bc14d922ae86e246a95de3bd00953dce2ffd0a3e3742e61a83976458",
+        "packages/skills-meta/loop-plan-author/SKILL.md": "044ee382bc14d922ae86e246a95de3bd00953dce2ffd0a3e3742e61a83976458"
+      }
+    },
+    {
+      "id": "H023",
+      "query": "Через stdio MCP хочу проверить черновик абзаца на неподтверждённые числовые утверждения до записи файла; пустая строка должна считаться ошибкой.",
+      "source": "packages/mcp-server-tools/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/mcp-server-tools"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/mcp-server-tools"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/mcp-server-tools"
+      ],
+      "rationale": "mcp-server-tools claim_check_text checks raw text and fails closed on empty input; clean is not fact verification.",
+      "sourceEvidence": [
+        "packages/mcp-server-tools/README.md",
+        "packages/mcp-server-tools/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/mcp-server-tools/README.md": "5da23ae4e650cb7595058b006a7b3e70cbe24c55a0a42f97395bd2d84a40ae9b",
+        "packages/mcp-server-tools/package.json": "4db48b6b20c0703e1ebcc33e5f089e47ebbe5236eacbd01a6fd8e56bad652ec6"
+      }
+    },
+    {
+      "id": "H024",
+      "query": "Нужно читать SQLite из каталога, куда процессу нельзя писать, с режимом copyFirst и сохранением первоначальной причины ошибки.",
+      "source": "packages/memory/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/memory"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/memory"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/memory"
+      ],
+      "rationale": "Memory read-only SQLite helper supports temporary copies and Error.cause preservation.",
+      "sourceEvidence": [
+        "packages/memory/README.md",
+        "packages/memory/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/memory/README.md": "af4b81a9609aca255c33679aed6e3305503d3dae589cd409f007aecb9bdedb1a",
+        "packages/memory/package.json": "7e1b7c920c57370a74499ef75535d8ce58a4151e15463188081d528e564b7ac8"
+      }
+    },
+    {
+      "id": "H025",
+      "query": "Проверь user story по INVEST и критерии приёмки по SMART, затем выдай Gherkin для happy path и ошибок.",
+      "source": "packages/p-replicator/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/p-replicator"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/p-replicator"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/p-replicator"
+      ],
+      "rationale": "Requirements Validator explicitly supports INVEST/SMART scoring and BDD generation.",
+      "sourceEvidence": [
+        "packages/p-replicator/README.md",
+        "packages/p-replicator/package.json",
+        "packages/p-replicator/templates/.claude/skills/requirements-validator/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/p-replicator/README.md": "117fa72b28c5d4378fafb0273b4ca8d4a5139e0bd2c7f1a16588e35e95f6b503",
+        "packages/p-replicator/package.json": "7cece593876bc85fa764859e2bf2eec9e3e4c95a17602b76c474c933f4138ed3",
+        "packages/p-replicator/templates/.claude/skills/requirements-validator/SKILL.md": "b4b394adf08feee552f39c83331398f119e0d4abf21e683fe4706da438b4a426"
+      }
+    },
+    {
+      "id": "H026",
+      "query": "После двух сканирований экосистемы хочу увидеть только новые, исчезнувшие и изменившие score репозитории, пользуясь сохранённой историей.",
+      "source": "packages/scout/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/scout"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/scout"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/scout"
+      ],
+      "rationale": "Scout README documents persistent history and --diff for new/gone/score-changed repositories.",
+      "sourceEvidence": [
+        "packages/scout/README.md",
+        "packages/scout/package.json"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/scout/README.md": "22ebb1bad38d1bbdcc173cc2eee51a99a35ed521d8843f22341f1d88a810734e",
+        "packages/scout/package.json": "021dca1c87bc04b6ee6f30a6e0ffc6f8a76de2a15859e9ef9bce9a0eeb9fd65f"
+      }
+    },
+    {
+      "id": "H027",
+      "query": "Воркер теряет текущую задачу после SIGTERM. Помоги спроектировать возврат задания в очередь и корректное завершение процесса по Twelve-Factor.",
+      "source": "packages/skills-12factor/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-12factor"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-12factor"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-12factor"
+      ],
+      "rationale": "Disposability source covers SIGTERM draining and returning jobs to queues.",
+      "sourceEvidence": [
+        "packages/skills-12factor/README.md",
+        "packages/skills-12factor/package.json",
+        "packages/skills-12factor/12factor-disposability-fast-startup/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-12factor/README.md": "42fa0033987e5ca638b8aeb2897f5e9f6aa956462e3794353c08b6b76f5e11f2",
+        "packages/skills-12factor/package.json": "6579de92ea6013e5bf4ad06b37bee4563a6a52861d31ec88144c14e84bb16cb4",
+        "packages/skills-12factor/12factor-disposability-fast-startup/SKILL.md": "466ea402acba3acbede74b2b4abe5c7c05aae5fee8d15fd5440c37cd54429ea7"
+      }
+    },
+    {
+      "id": "H028",
+      "query": "Проверь только комплектность пакета к защите ВКР и совпадение темы в документах, без оценки текста и исправлений оформления.",
+      "source": "packages/skills-academic/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-academic"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-academic"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-academic"
+      ],
+      "rationale": "Document Checker is limited to completeness, formatting consistency and topic alignment.",
+      "sourceEvidence": [
+        "packages/skills-academic/README.md",
+        "packages/skills-academic/package.json",
+        "packages/skills-academic/document-checker/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-academic/README.md": "a8b32d687c6c1bbcdfd3c24fe4fb644d45c8ee11a20cb62277805cd21c4c021f",
+        "packages/skills-academic/package.json": "b7098829d84e2cefeafd519bbf6686e536764354d17edb4b4f9c592e56985eed",
+        "packages/skills-academic/document-checker/SKILL.md": "5fd36011feaeb2a4138d84997da575a89db22d4113f583b505e1d0a5a98cad76"
+      }
+    },
+    {
+      "id": "H029",
+      "query": "В стратегии продукта столкнулись несовместимые требования двух заинтересованных сторон. Разбери противоречие через ТРИЗ и найди варианты без простого компромисса.",
+      "source": "packages/skills-analyst-manual/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-analyst-manual"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-analyst-manual"
+        ],
+        [
+          "@dzhechkov/skills-feature-adr"
+        ],
+        [
+          "@dzhechkov/health-advisor"
+        ],
+        [
+          "@dzhechkov/skills-meta"
+        ],
+        [
+          "@dzhechkov/skills-idea2prd"
+        ],
+        [
+          "@dzhechkov/skills-reverse-engineering"
+        ],
+        [
+          "@dzhechkov/keysarium"
+        ],
+        [
+          "@dzhechkov/design-thinking"
+        ],
+        [
+          "@dzhechkov/p-replicator"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-analyst-manual"
+      ],
+      "rationale": "Problem Solver supports stakeholder strategy and TRIZ contradiction resolution.",
+      "sourceEvidence": [
+        "packages/skills-analyst-manual/README.md",
+        "packages/skills-analyst-manual/package.json",
+        "packages/skills-analyst-manual/templates/.claude/skills/problem-solver-enhanced/SKILL.md",
+        "packages/skills-feature-adr/templates/.claude/skills/problem-solver-enhanced/SKILL.md",
+        "packages/health-advisor/base/skills/base/problem-solver-enhanced/SKILL.md",
+        "packages/skills-meta/problem-solver-enhanced/SKILL.md",
+        "packages/skills-idea2prd/templates/.claude/skills/problem-solver-enhanced/SKILL.md",
+        "packages/skills-reverse-engineering/templates/.claude/skills/problem-solver-enhanced/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/problem-solver-enhanced/SKILL.md",
+        "packages/design-thinking/templates/.claude/skills/problem-solver-enhanced/SKILL.md",
+        "packages/p-replicator/templates/.claude/skills/problem-solver-enhanced/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-analyst-manual/README.md": "5aa704cc34e24b21e0cdd3dbf5c1fb0ec2b661080bf5a52e382a90a2a57dbc91",
+        "packages/skills-analyst-manual/package.json": "f19ee966a07a22c820f281af4257e53d90efd569ac93e9fa89293886abed1692",
+        "packages/skills-analyst-manual/templates/.claude/skills/problem-solver-enhanced/SKILL.md": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f",
+        "packages/skills-feature-adr/templates/.claude/skills/problem-solver-enhanced/SKILL.md": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f",
+        "packages/health-advisor/base/skills/base/problem-solver-enhanced/SKILL.md": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f",
+        "packages/skills-meta/problem-solver-enhanced/SKILL.md": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f",
+        "packages/skills-idea2prd/templates/.claude/skills/problem-solver-enhanced/SKILL.md": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f",
+        "packages/skills-reverse-engineering/templates/.claude/skills/problem-solver-enhanced/SKILL.md": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f",
+        "packages/keysarium/templates/.claude/skills/problem-solver-enhanced/SKILL.md": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f",
+        "packages/design-thinking/templates/.claude/skills/problem-solver-enhanced/SKILL.md": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f",
+        "packages/p-replicator/templates/.claude/skills/problem-solver-enhanced/SKILL.md": "031378aa2e10c98928e35de07d454135e73550cd0c49f0cd886d53e4208d6b9f"
+      }
+    },
+    {
+      "id": "H030",
+      "query": "Для агента поддержки задай условия передачи кейса человеку и состав handoff-пакета, учитывая неопределённость и перегрузку ревьюеров.",
+      "source": "packages/skills-book-ai-apps/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-book-ai-apps"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-ai-apps"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-ai-apps"
+      ],
+      "rationale": "Human-in-the-loop skill defines escalation conditions, budget and handoff packet.",
+      "sourceEvidence": [
+        "packages/skills-book-ai-apps/README.md",
+        "packages/skills-book-ai-apps/package.json",
+        "packages/skills-book-ai-apps/aiagents-human-in-the-loop/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-book-ai-apps/README.md": "699691847a6b1d0d67135a03c8d77371fbb6286cf39ca4ed16b5e5c75147dd9a",
+        "packages/skills-book-ai-apps/package.json": "94cd98d4a8a9d0e53f1810290ff9371818b0ac722b6f4c98d92d5737eb8a32c2",
+        "packages/skills-book-ai-apps/aiagents-human-in-the-loop/SKILL.md": "5699ff45ad751fb5f5fef2f849b07e825a73c5490968cd465a8f20e6a2d62445"
+      }
+    },
+    {
+      "id": "H031",
+      "query": "Внешний SDK возвращает то null, то exception. Спроектируй локальную обёртку и диагностический контекст ошибок по принципам Clean Code.",
+      "source": "packages/skills-book-clean-code/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-book-clean-code"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-clean-code"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-clean-code"
+      ],
+      "rationale": "Error/boundary skill covers null/exception contracts, local foreign-API wrappers and diagnostic catches.",
+      "sourceEvidence": [
+        "packages/skills-book-clean-code/README.md",
+        "packages/skills-book-clean-code/package.json",
+        "packages/skills-book-clean-code/clean-code-error-and-boundary-handling/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-book-clean-code/README.md": "b34c6987471e4b8fb6dc09b47eed416123eceb61ca593162805230dc65b1d227",
+        "packages/skills-book-clean-code/package.json": "53d522a2e4c5a51fe90cf5aa3a1cfcfddcf7cc11eb042c8421228d8e6b7bd089",
+        "packages/skills-book-clean-code/clean-code-error-and-boundary-handling/SKILL.md": "bb8991ae7b830f2dcdbd81253cc2f29254eed02ab5b0ba5c900a91b858da4b6e"
+      }
+    },
+    {
+      "id": "H032",
+      "query": "В одной PostgreSQL базе возникает write skew. Сравни snapshot и serializable и выбери минимальный уровень изоляции, сохраняющий наш инвариант.",
+      "source": "packages/skills-book-ddia/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-book-ddia"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-ddia"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-ddia"
+      ],
+      "rationale": "Transaction isolation source explicitly covers write skew and snapshot versus serializable in one database.",
+      "sourceEvidence": [
+        "packages/skills-book-ddia/README.md",
+        "packages/skills-book-ddia/package.json",
+        "packages/skills-book-ddia/ddia-transaction-isolation-choice/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-book-ddia/README.md": "d6eeaab640d3aaeefc44c1302cff0d0bdb288d07211fe2adcb75b7875d74e0c9",
+        "packages/skills-book-ddia/package.json": "0e0bde7f53d8f3ff1ebf413999d8131ba59e75dea6eab8a09f75d6b458ae44a8",
+        "packages/skills-book-ddia/ddia-transaction-isolation-choice/SKILL.md": "43e7d4877fe188df54c9a57077b2ed462a3f988d7c1ba9a793cba24ed8555396"
+      }
+    },
+    {
+      "id": "H033",
+      "query": "Уже есть проверенные Knowledge Units книги. Загрузи их с upsert по версии корпуса в books.sqlite и agentdb, чтобы работал лексический и семантический recall.",
+      "source": "packages/skills-book-digitizer/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-book-digitizer"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-digitizer"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-digitizer"
+      ],
+      "rationale": "Book KB Index is a bounded indexing stage for verified KUs with two stores and versioned upsert.",
+      "sourceEvidence": [
+        "packages/skills-book-digitizer/README.md",
+        "packages/skills-book-digitizer/package.json",
+        "packages/skills-book-digitizer/book-kb-index/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-book-digitizer/README.md": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af",
+        "packages/skills-book-digitizer/package.json": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba",
+        "packages/skills-book-digitizer/book-kb-index/SKILL.md": "36386990c7307f86c4ccc62b12b9bb1c6508c05d371ddf8b7d41a9172ec40521"
+      }
+    },
+    {
+      "id": "H034",
+      "query": "Перед реализацией событийной обработки заказа сравни orchestration и choreography: зафиксируй принятый недостаток и условие пересмотра архитектурного выбора.",
+      "source": "packages/skills-book-fundamental-software-architecture/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-book-fundamental-software-architecture"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-fundamental-software-architecture"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-fundamental-software-architecture"
+      ],
+      "rationale": "Architecture guide covers event-driven application orchestration/choreography and reconsideration conditions.",
+      "sourceEvidence": [
+        "packages/skills-book-fundamental-software-architecture/README.md",
+        "packages/skills-book-fundamental-software-architecture/package.json",
+        "packages/skills-book-fundamental-software-architecture/fundamental-software-architecture-guide/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-book-fundamental-software-architecture/README.md": "b807507acc2a7fd7e953fe5225a1e0db34ea1dfd07ad7ab2000b4b58010239ae",
+        "packages/skills-book-fundamental-software-architecture/package.json": "274b778afe88cd89593ff4ac76a1da9269db90ef7f7fc06b93d1ec0aa65359c6",
+        "packages/skills-book-fundamental-software-architecture/fundamental-software-architecture-guide/SKILL.md": "a16b354407a7f080144cc8a1460b1ded3f1d5c2e056d0a8d2a4d6ba0c4fc1bd9"
+      }
+    },
+    {
+      "id": "H035",
+      "query": "Есть эталонный артефакт Claude Code и новый вариант команды. Выполни B0 Golden Sample Comparison и покажи структурные расхождения.",
+      "source": "packages/skills-bto/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-bto"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-bto"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-bto"
+      ],
+      "rationale": "BTO includes B0 Golden Sample Comparison against known-good artifacts.",
+      "sourceEvidence": [
+        "packages/skills-bto/README.md",
+        "packages/skills-bto/package.json",
+        "packages/skills-bto/templates/.claude/skills/bto/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-bto/README.md": "418b01d2dd1391d4bb7d2d93580fd0f58346f7828f039e95023088f83132f491",
+        "packages/skills-bto/package.json": "8deefed20a66b5f8025a217c28adc789004b7691b7214d157342e13fd0094d3b",
+        "packages/skills-bto/templates/.claude/skills/bto/SKILL.md": "cc15a07922126226776d4c48446b3d75fa8caaf16949389f448f42c9787207cb"
+      }
+    },
+    {
+      "id": "H036",
+      "query": "В странице решения владельца часть вопросов пока отложена. Настрой экспорт так, чтобы он сохранял эти состояния и не считал их выбранными ответами.",
+      "source": "packages/skills-decision-mockups/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-decision-mockups"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-decision-mockups"
+        ],
+        [
+          "@dzhechkov/skills-meta"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-decision-mockups"
+      ],
+      "rationale": "Decision mockups counts selected only and supports exporting deferred questions/data requests.",
+      "sourceEvidence": [
+        "packages/skills-decision-mockups/README.md",
+        "packages/skills-decision-mockups/package.json",
+        "packages/skills-decision-mockups/decision-mockups/SKILL.md",
+        "packages/skills-meta/decision-mockups/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-decision-mockups/README.md": "22b8b94df8cafc17bb98f005ac8cc77f1675ad3b216835fdd938df48cff74d8b",
+        "packages/skills-decision-mockups/package.json": "a39e82b21dbbc800afc2f0fca0d23a6032727e93ad5e23c585c76688df98316f",
+        "packages/skills-decision-mockups/decision-mockups/SKILL.md": "6af149dcfcc60d55157de11117922f0714ad040c26d517e5eaf4d4e2cfa7c6e7",
+        "packages/skills-meta/decision-mockups/SKILL.md": "6af149dcfcc60d55157de11117922f0714ad040c26d517e5eaf4d4e2cfa7c6e7"
+      }
+    },
+    {
+      "id": "H037",
+      "query": "Перед записью уже подготовленного JSON-демо выполни проверку доступности медиа-инструментов и пустоты рабочего каталога; к публикации пока не переходи.",
+      "source": "packages/skills-demo-publisher/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-demo-publisher"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-demo-publisher"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-demo-publisher"
+      ],
+      "rationale": "Demo publisher workflow runs preflight and records into an empty work directory before any publishing step.",
+      "sourceEvidence": [
+        "packages/skills-demo-publisher/README.md",
+        "packages/skills-demo-publisher/package.json",
+        "packages/skills-demo-publisher/demo-site-publisher/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-demo-publisher/README.md": "48ecb93d32aa3f5e2f34b219f118746dd3b75f058558fbfe8b12d55e5d9a120a",
+        "packages/skills-demo-publisher/package.json": "3a85ff7c360b7c77764f2d625a75d1b31c5a7500282f25031dfb1b5ddf2591d0",
+        "packages/skills-demo-publisher/demo-site-publisher/SKILL.md": "8616bc48a830b32612c55f204cb70c096150a92c921e89ac9282d18927d744bb"
+      }
+    },
+    {
+      "id": "H038",
+      "query": "Нужно ограничить частоту запросов API через Redis sliding window. Помоги выбрать структуру данных и проверить реализацию rate limiting.",
+      "source": "packages/skills-devops/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-devops"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-devops"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-devops"
+      ],
+      "rationale": "Redis patterns explicitly covers sliding-window rate limiting and data structure choices.",
+      "sourceEvidence": [
+        "packages/skills-devops/README.md",
+        "packages/skills-devops/package.json",
+        "packages/skills-devops/redis-patterns/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-devops/README.md": "0c4c83af4d66488cdc6822661c9e02c39eea924d243e4b680a4fe0942a83218e",
+        "packages/skills-devops/package.json": "3a6d66b689bcbeb15f8b69b6673a30fb5293b1f73666fe1722be831219b0c0cb",
+        "packages/skills-devops/redis-patterns/SKILL.md": "4cf4611ee8f1189784a65ffd557a4d6d404717bc17cad99e0a3c88a5f96d99a7"
+      }
+    },
+    {
+      "id": "H039",
+      "query": "После релиза проверь deployed URL в течение окна наблюдения: HTTP, загрузку CSS/JS и первый heartbeat SSE; сравни ошибки с baseline.",
+      "source": "packages/skills-ecc/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-ecc"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-ecc"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-ecc"
+      ],
+      "rationale": "Canary Watch documents post-deploy URL checks including assets, SSE and baseline regressions.",
+      "sourceEvidence": [
+        "packages/skills-ecc/README.md",
+        "packages/skills-ecc/package.json",
+        "packages/skills-ecc/canary-watch/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-ecc/README.md": "612b756ba2c5c81b35951f4fb5de8ae27235ebef3f85273d485be5fc005b61cf",
+        "packages/skills-ecc/package.json": "d5ce4586464973c494a9559aa1bc1016caa91b683360da7a69bf6c809708b9a7",
+        "packages/skills-ecc/canary-watch/SKILL.md": "8dbfb5c487755b92c45f9a3254ac8622fd3645f54eb26dd98848361a423636fe"
+      }
+    },
+    {
+      "id": "H040",
+      "query": "Для документации CLI создай учебный модуль с упражнением Command Builder и Drag-to-Order, сохраняя прогресс учащегося локально.",
+      "source": "packages/skills-edu-site/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-edu-site"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-edu-site"
+        ],
+        [
+          "@dzhechkov/keysarium"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-edu-site"
+      ],
+      "rationale": "Edu-site source explicitly includes Command Builder, Drag-to-Order and localStorage progress.",
+      "sourceEvidence": [
+        "packages/skills-edu-site/README.md",
+        "packages/skills-edu-site/package.json",
+        "packages/skills-edu-site/templates/.claude/skills/edu-site-generator/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/edu-site-generator/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-edu-site/README.md": "7ebefa0978f04fad5a60ccbc6e4f2287df7bf4a982ebe7ba5ff397fbf3455e58",
+        "packages/skills-edu-site/package.json": "3db8eca273ce644d0290d8f3b78b48472d4c9f903a995e2ca416aa1ca8f4b4c5",
+        "packages/skills-edu-site/templates/.claude/skills/edu-site-generator/SKILL.md": "c999b07ed76c289e1433cfea0b59abd8723d9c36455f76dc2fd8a3c6cf064bcf",
+        "packages/keysarium/templates/.claude/skills/edu-site-generator/SKILL.md": "c999b07ed76c289e1433cfea0b59abd8723d9c36455f76dc2fd8a3c6cf064bcf"
+      }
+    },
+    {
+      "id": "H041",
+      "query": "По нашей architecture/map.json проверь моё понимание границ подсистем вопросами с прогнозом ответа; исходники Python и TS открывать не нужно.",
+      "source": "packages/skills-feature-adr/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-feature-adr"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-feature-adr"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-feature-adr"
+      ],
+      "rationale": "System Grill uses architecture documents and prediction-before-revelation, excluding code browsing and implementation.",
+      "sourceEvidence": [
+        "packages/skills-feature-adr/README.md",
+        "packages/skills-feature-adr/package.json",
+        "packages/skills-feature-adr/templates/.claude/skills/system-grill/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-feature-adr/README.md": "7f1345504f2b6fed333b492750a389c9fa6d0e377a9906bfbff7697ed6daf00f",
+        "packages/skills-feature-adr/package.json": "7f2a304680da475a961f87df93702dcc6764543bc9b145ef1b40a42a97d2be3d",
+        "packages/skills-feature-adr/templates/.claude/skills/system-grill/SKILL.md": "aa0877a2104edb039a6cab00ff30b47520d913d0d4490769c5e115a9f161e61e"
+      }
+    },
+    {
+      "id": "H042",
+      "query": "PRD уже согласован. На стадии подготовки реализации зафиксируй псевдокод до генерации кода и остановись на контрольной точке для его проверки.",
+      "source": "packages/skills-idea2prd/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-idea2prd"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-idea2prd"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-idea2prd"
+      ],
+      "rationale": "Idea2PRD phase 4.5 fixes pseudocode before coding with checkpoints.",
+      "sourceEvidence": [
+        "packages/skills-idea2prd/README.md",
+        "packages/skills-idea2prd/package.json",
+        "packages/skills-idea2prd/templates/.claude/skills/idea2prd-manual/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-idea2prd/README.md": "82f025872787656f1c91ded17a293d34bc37b6f12f208252f5a0e9d6d5a429d6",
+        "packages/skills-idea2prd/package.json": "f1a21d913d5791859a6975f140a682ea37ca978a5f1e0f9484b08da5a0156332",
+        "packages/skills-idea2prd/templates/.claude/skills/idea2prd-manual/SKILL.md": "64780d15549e8c2c20a83fbb7afa6856cecbb6d7b940b72ea7d57dca83675786"
+      }
+    },
+    {
+      "id": "H043",
+      "query": "Через Context7 найди API reference выбранной библиотеки: сначала разреши её идентификатор, затем запроси документацию нужной темы.",
+      "source": "packages/skills-mcp/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-mcp"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-mcp"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-mcp"
+      ],
+      "rationale": "Context7 SKILL describes resolve_library followed by get_library_docs.",
+      "sourceEvidence": [
+        "packages/skills-mcp/README.md",
+        "packages/skills-mcp/package.json",
+        "packages/skills-mcp/context7/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-mcp/README.md": "a5e625ee532b998980c47f41a46bb474fbe575c51202834c24d569d4578115e9",
+        "packages/skills-mcp/package.json": "5567fb0737e7b32acec213646fdcdfe792e3393a1d59a616049b66f9799ad86d",
+        "packages/skills-mcp/context7/SKILL.md": "ee821f0386bac755cac30b4bbe4a9b041e000d6916b5b18985197c1e83c08585"
+      }
+    },
+    {
+      "id": "H044",
+      "query": "Посреди текущей работы дай свежий статус ровно по четырём пунктам после проверки состояния, не начиная новых задач и не делая месячный отчёт.",
+      "source": "packages/skills-meta/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-meta"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-meta"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-meta"
+      ],
+      "rationale": "Session Recap requires refreshing live state and exactly four status points, excluding calendar retrospectives.",
+      "sourceEvidence": [
+        "packages/skills-meta/README.md",
+        "packages/skills-meta/package.json",
+        "packages/skills-meta/session-recap/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-meta/README.md": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc",
+        "packages/skills-meta/package.json": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229",
+        "packages/skills-meta/session-recap/SKILL.md": "034ea8329399faec054bb17457314e2f442abbe5c873b4967fa882c4a7deb504"
+      }
+    },
+    {
+      "id": "H045",
+      "query": "Для сохранённого news profile проверь изменения после watermark и верни только ещё не виденные релизы, без полного дайджеста.",
+      "source": "packages/skills-news/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-news"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-news"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-news"
+      ],
+      "rationale": "News Monitor reads profiles, compares watermark and returns deduplicated deltas.",
+      "sourceEvidence": [
+        "packages/skills-news/README.md",
+        "packages/skills-news/package.json",
+        "packages/skills-news/news-monitor/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-news/README.md": "bd69537ee87ca9aad423439f6a01ddaa2832f8de0617d847250bd43fbd77d349",
+        "packages/skills-news/package.json": "de0c3cda9439b89c9cfeccf9d522a1671571f9eca9ec1de15756db32441267e8",
+        "packages/skills-news/news-monitor/SKILL.md": "30351d38770bf74d1a68fca196cd1c3a34347cf53e67bb175fba278f04e5cb78"
+      }
+    },
+    {
+      "id": "H046",
+      "query": "Для story page пакета проверь, что каждое фактическое утверждение brief связано с локальным источником по SHA и диапазоном не более 40 строк.",
+      "source": "packages/skills-package-story-page/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-package-story-page"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-package-story-page"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-package-story-page"
+      ],
+      "rationale": "Story page source requires evidence IDs, paths, SHA and at most 40 supporting lines per local claim.",
+      "sourceEvidence": [
+        "packages/skills-package-story-page/README.md",
+        "packages/skills-package-story-page/package.json",
+        "packages/skills-package-story-page/package-story-page/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-package-story-page/README.md": "ed9b5762acdf9519f33228a3f5d1b9bdc3f49cf967038d8eae46b31acc2b477c",
+        "packages/skills-package-story-page/package.json": "ec4f0f03e626719a57fd93cb91faa414f6b0249b9cdf855e5ccaeef5f0ebf628",
+        "packages/skills-package-story-page/package-story-page/SKILL.md": "65cd2059c6d4cea79faa995f2d9968c845bbba91f8235ce27af9de5ac6cd5e24"
+      }
+    },
+    {
+      "id": "H047",
+      "query": "Для SaaS сравни оплату за пользователя и за использование, опираясь на ценность и готовность клиентов платить; нужен обоснованный выбор модели цены.",
+      "source": "packages/skills-pm/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-pm"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-pm"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-pm"
+      ],
+      "rationale": "Pricing strategy covers per-seat/usage-based models, value and willingness to pay.",
+      "sourceEvidence": [
+        "packages/skills-pm/README.md",
+        "packages/skills-pm/package.json",
+        "packages/skills-pm/pricing-strategy/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-pm/README.md": "c7d1d71dcd51a11c75abcc34cbcd5527ad815dc82edc7d00a66822a94ee51368",
+        "packages/skills-pm/package.json": "030b78a847d0c8a67a16dffc1d7e3421e23a0335ff20938ae7f048ff0d0e14cf",
+        "packages/skills-pm/pricing-strategy/SKILL.md": "7352fa9be01d7efb4085a00d48a02f9d774c997d8bc91d44d9793ce76d1d782f"
+      }
+    },
+    {
+      "id": "H048",
+      "query": "У нас есть проверенные материалы sales deck. Подготовь подстрочник «как рассказывать» для каждого слайда в связной истории Problem-Solution.",
+      "source": "packages/skills-presentation-storyteller/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-presentation-storyteller"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-presentation-storyteller"
+        ],
+        [
+          "@dzhechkov/keysarium"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-presentation-storyteller"
+      ],
+      "rationale": "Presentation Storyteller explicitly generates slide speaker scripts using Problem-Solution narrative.",
+      "sourceEvidence": [
+        "packages/skills-presentation-storyteller/README.md",
+        "packages/skills-presentation-storyteller/package.json",
+        "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/presentation-storyteller/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-presentation-storyteller/README.md": "48cd9e7499f0f5082e10956c8feba57372ff1195f4eb6f5628ba771217d1e131",
+        "packages/skills-presentation-storyteller/package.json": "2da98ce1bd43126dc923051b72febbe2db0e8979475abb7137c5314a1151dd0b",
+        "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md": "f6ad6e6020280f17ccc4e7b71b28551310805aa99999b4056ec0ccfead1193d5",
+        "packages/keysarium/templates/.claude/skills/presentation-storyteller/SKILL.md": "f6ad6e6020280f17ccc4e7b71b28551310805aa99999b4056ec0ccfead1193d5"
+      }
+    },
+    {
+      "id": "H049",
+      "query": "В тестовом окружении спланируй контролируемую инъекцию сетевой задержки и проверку срабатывания circuit breaker с измерением восстановления.",
+      "source": "packages/skills-qe/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-qe"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-qe"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-qe"
+      ],
+      "rationale": "QE Chaos Resilience covers controlled latency faults, circuit-breaker checks and recovery measurement.",
+      "sourceEvidence": [
+        "packages/skills-qe/README.md",
+        "packages/skills-qe/package.json",
+        "packages/skills-qe/qe-chaos-resilience/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-qe/README.md": "ec9adc6f0cb372e75b13aa26d69f44a8cef61cdb213ab1f815661de08e49eb10",
+        "packages/skills-qe/package.json": "77c3f9fb3cab6c4ad6f8cf38085b50923872d2268e673c1c38a503f26986f5e1",
+        "packages/skills-qe/qe-chaos-resilience/SKILL.md": "5835fe7e2d0139f75205f86e1d3f5c08abfef650a44264ebd6eb3ef4d1926204"
+      }
+    },
+    {
+      "id": "H050",
+      "query": "Для трёх репозиториев подготовь отдельные AGENTS.md с границами ответственности и направлением зависимостей, связав их родительским индексом.",
+      "source": "packages/skills-reasoning/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-reasoning"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-reasoning"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-reasoning"
+      ],
+      "rationale": "Agents MD Creator produces per-repo architectural skeletons plus parent index.",
+      "sourceEvidence": [
+        "packages/skills-reasoning/README.md",
+        "packages/skills-reasoning/package.json",
+        "packages/skills-reasoning/agents-md-creator/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-reasoning/README.md": "c45bc6916772b6cb94ed86812fc64e8873efa3622ced01c33a3d48e81d38a883",
+        "packages/skills-reasoning/package.json": "5991fca16c6b4bd12cbe0472d20020ec5e65a7d4b15416ec186568c9587d7f93",
+        "packages/skills-reasoning/agents-md-creator/SKILL.md": "dbcb63c2f678966b2de30c1fa5e186c3312f59df71c01fa20481afacdbc89a1f"
+      }
+    },
+    {
+      "id": "H051",
+      "query": "В исследовании компании сосредоточься на модуле business-finance: составь unit economics, P&L и sensitivity analysis для гипотезы аналога.",
+      "source": "packages/skills-reverse-engineering/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-reverse-engineering"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-reverse-engineering"
+        ],
+        [
+          "@dzhechkov/keysarium"
+        ],
+        [
+          "@dzhechkov/p-replicator"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-reverse-engineering"
+      ],
+      "rationale": "Reverse Engineering Unicorn module 04 explicitly covers unit economics, P&L and sensitivity.",
+      "sourceEvidence": [
+        "packages/skills-reverse-engineering/README.md",
+        "packages/skills-reverse-engineering/package.json",
+        "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+        "packages/p-replicator/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-reverse-engineering/README.md": "6de618926683204046fc49debe98c02a3546218a3115b50c63f76bccce7f4daa",
+        "packages/skills-reverse-engineering/package.json": "9bf4f896f231c8eb8aa30afa8e289aa4c63dc51f42f8e838e8fad2ea07be6d29",
+        "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md": "20d6b667971f9749d091c1d47e2f75df957f259647cbb861ac54174280096c71",
+        "packages/keysarium/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md": "20d6b667971f9749d091c1d47e2f75df957f259647cbb861ac54174280096c71",
+        "packages/p-replicator/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md": "20d6b667971f9749d091c1d47e2f75df957f259647cbb861ac54174280096c71"
+      }
+    },
+    {
+      "id": "H052",
+      "query": "Перед редизайном портфолио проведи audit-first разбор существующего визуального языка и выбери, какие решения сохранять по брифу.",
+      "source": "packages/skills-taste/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-taste"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-taste"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-taste"
+      ],
+      "rationale": "Taste frontend explicitly targets audit-first portfolio redesign with contextual brief inference.",
+      "sourceEvidence": [
+        "packages/skills-taste/README.md",
+        "packages/skills-taste/package.json",
+        "packages/skills-taste/design-taste-frontend/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-taste/README.md": "0aed4bfc73d2bcb5ca35de0a81988d914dba68da56ac3b0b8dbeea79ef5cecd0",
+        "packages/skills-taste/package.json": "941e947b381ac831e4bf2a5b82006d9accafe30e4ca67a3730a7404cf9282cce",
+        "packages/skills-taste/design-taste-frontend/SKILL.md": "e07f7259db1ad3a7a9d59419e22e6b4946f781fe3d741e7a757b26f2ab26d784"
+      }
+    },
+    {
+      "id": "H053",
+      "query": "В статической странице из YouTube-транскрипта нужны кликабельные таймкоды, синхронизирующие переход к фрагменту встроенного видео.",
+      "source": "packages/skills-transcript-site/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-transcript-site"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-transcript-site"
+        ],
+        [
+          "@dzhechkov/keysarium"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-transcript-site"
+      ],
+      "rationale": "Transcript-site source explicitly supports YouTube embed and clickable synchronized timestamps.",
+      "sourceEvidence": [
+        "packages/skills-transcript-site/README.md",
+        "packages/skills-transcript-site/package.json",
+        "packages/skills-transcript-site/templates/.claude/skills/transcript-site-generator/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/transcript-site-generator/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-transcript-site/README.md": "77589b619854442d5e8e4e087e122926f2432a659cdc81c77788308c213b0d62",
+        "packages/skills-transcript-site/package.json": "3d10526429541ec5d84594461a404ed2c47d0322caa008f8114bf78ed87ab3ca",
+        "packages/skills-transcript-site/templates/.claude/skills/transcript-site-generator/SKILL.md": "7527d236cc90934b52975089f86f392b36edf2977cb7323c94921ce6c34678b6",
+        "packages/keysarium/templates/.claude/skills/transcript-site-generator/SKILL.md": "7527d236cc90934b52975089f86f392b36edf2977cb7323c94921ce6c34678b6"
+      }
+    },
+    {
+      "id": "H054",
+      "query": "Есть Step-0 course data по одному harness-пакету. Отрендери стандартный single-file SPA штатным renderer и прогони исполняемую проверку сайта.",
+      "source": "packages/skills-tutorial-factory/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-tutorial-factory"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-tutorial-factory"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-tutorial-factory"
+      ],
+      "rationale": "Tutorial factory default uses render-site.mjs and verify-site.mjs for deterministic single-file SPA.",
+      "sourceEvidence": [
+        "packages/skills-tutorial-factory/README.md",
+        "packages/skills-tutorial-factory/package.json",
+        "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-tutorial-factory/README.md": "ffd76fe42b06557209655ab98c727d7068fa4b5b07909d1d3dd300c607ddfd98",
+        "packages/skills-tutorial-factory/package.json": "c49f4fec0afcb5eb3e07474ec7c7c36e69ef86a547e39f29d88423f06a8f3685",
+        "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md": "f655c9899d6b9dd722a6c46287ca71f7d377e1c7fb2e920eb5334a6a0aa20a18"
+      }
+    },
+    {
+      "id": "H055",
+      "query": "Для принадлежащего мне адреса в Base проверь reverse ENS name и настрой primary name через Reverse Registrar; новое имя регистрировать не надо.",
+      "source": "packages/skills-web3/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-web3"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-web3"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-web3"
+      ],
+      "rationale": "ENS primary-name skill covers Base reverse records and excludes new name/forward registration.",
+      "sourceEvidence": [
+        "packages/skills-web3/README.md",
+        "packages/skills-web3/package.json",
+        "packages/skills-web3/ens-primary-name/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-web3/README.md": "3e10ea3a9033d2f2a8157b85588a144eabe9ce3309ba096d3aeb6739979d5a01",
+        "packages/skills-web3/package.json": "4bd5b75dd9c4a76508ded8fb876227f008ffc35cfda6b05c131442e18be2b775",
+        "packages/skills-web3/ens-primary-name/SKILL.md": "676290c4676b9544df3c670f14b5d1b95e7013f53563236263e82df62f95d150"
+      }
+    },
+    {
+      "id": "H056",
+      "query": "При клонировании публичной страницы сначала составь спецификацию компонентов по секциям и извлеки её CSS и assets; бэкенд и авторизация не нужны.",
+      "source": "packages/skills-website-cloner/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-website-cloner"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-website-cloner"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-website-cloner"
+      ],
+      "rationale": "Clone Website includes reconnaissance, asset/style extraction and component specification, excluding real backend/auth.",
+      "sourceEvidence": [
+        "packages/skills-website-cloner/README.md",
+        "packages/skills-website-cloner/package.json",
+        "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/skills-website-cloner/README.md": "b74d14fb391e9a4f1381405f912775dc598dfa94f22fc59cc11cacaed33cf303",
+        "packages/skills-website-cloner/package.json": "be4cb7087df0402db97e672d9c19250d73f37ad67e1aebff6fe6fc384356a26c",
+        "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md": "b3b4bac20854e18c3d34d6660652a2758c083065818dc00c9c33d1ea8647c00c"
+      }
+    },
+    {
+      "id": "H057",
+      "query": "Для уже заданных дат и жилья в Казани составь маршрут с вегетарианскими ресторанами и одноручными дневными картами, учитывая дневной бюджет.",
+      "source": "packages/trip-planner/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/trip-planner"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/trip-planner"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/trip-planner"
+      ],
+      "rationale": "Trip Planner filters venues by vegetarian/budget constraints and provides one-handed daily mobile itineraries.",
+      "sourceEvidence": [
+        "packages/trip-planner/README.md",
+        "packages/trip-planner/package.json",
+        "packages/trip-planner/templates/.claude/skills/trip-planner/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "labelNotes": "New bounded task instance, authored from source before second-trial outcomes. Additional relevant packages do not invalidate a correct minimal useful set.",
+      "boundaryCriteria": "Recommendation is methodology/component relevance, not a claim that external tools, credentials or runtime are already installed.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "requiredTargetInterpretation": "Canonical target is diagnostic; success accepts any whole acceptablePackageSets entry, never their union.",
+      "sourceDigests": {
+        "packages/trip-planner/README.md": "b2ab1a8d383696661216cf6693d039c65d304a3312e3c58b032ad7f2c4ad495b",
+        "packages/trip-planner/package.json": "3cc67650d1c5197615b86217255120775e37ae84f5bfd5441acce873c44e9b69",
+        "packages/trip-planner/templates/.claude/skills/trip-planner/SKILL.md": "eb13a3e7a642e1ee1ac076d5dd9dc216114ae67ed23b281116a3b9b4ee6cf21e"
+      }
+    },
+    {
+      "id": "N01",
+      "query": "Проверь физический уровень воды в моём домашнем аквариуме прямо сейчас.",
+      "source": "independent new control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No source-backed catalog capability can fulfill the inaccessible physical/legal/unobservable outcome.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation. Related planning/research suggestions cannot count as fulfillment. An empty set does not constitute retrieval success.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N02",
+      "query": "Включи отопление в моей квартире через термостат, доступов к устройству нет.",
+      "source": "independent new control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No source-backed catalog capability can fulfill the inaccessible physical/legal/unobservable outcome.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation. Related planning/research suggestions cannot count as fulfillment. An empty set does not constitute retrieval success.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N03",
+      "query": "Отправь бумажную посылку из моего дома в другой город.",
+      "source": "independent new control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No source-backed catalog capability can fulfill the inaccessible physical/legal/unobservable outcome.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation. Related planning/research suggestions cannot count as fulfillment. An empty set does not constitute retrieval success.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N04",
+      "query": "Запиши сигнал с моего микрофона за прошедшую ночь, записи не существует.",
+      "source": "independent new control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No source-backed catalog capability can fulfill the inaccessible physical/legal/unobservable outcome.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation. Related planning/research suggestions cannot count as fulfillment. An empty set does not constitute retrieval success.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N05",
+      "query": "Восстанови стёртые фотографии с отключённого телефона, который находится у меня.",
+      "source": "independent new control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No source-backed catalog capability can fulfill the inaccessible physical/legal/unobservable outcome.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation. Related planning/research suggestions cannot count as fulfillment. An empty set does not constitute retrieval success.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N06",
+      "query": "Назови точный результат следующего броска честного кубика.",
+      "source": "independent new control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No source-backed catalog capability can fulfill the inaccessible physical/legal/unobservable outcome.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation. Related planning/research suggestions cannot count as fulfillment. An empty set does not constitute retrieval success.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N07",
+      "query": "Оформи за меня нотариальную доверенность с юридически действующей подписью.",
+      "source": "independent new control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No source-backed catalog capability can fulfill the inaccessible physical/legal/unobservable outcome.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation. Related planning/research suggestions cannot count as fulfillment. An empty set does not constitute retrieval success.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N08",
+      "query": "Определи содержимое запечатанного конверта, не имея его изображения или доступа к нему.",
+      "source": "independent new control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No source-backed catalog capability can fulfill the inaccessible physical/legal/unobservable outcome.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation. Related planning/research suggestions cannot count as fulfillment. An empty set does not constitute retrieval success.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N09",
+      "query": "Мне посоветовали автоматизацию, но я пока не выбрал ни процесс, ни результат.",
+      "source": "independent new control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "clarify",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "clarify"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "Task lacks a domain-specific actionable outcome; clarification is needed before a package commitment.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation. Related planning/research suggestions cannot count as fulfillment. An empty set does not constitute retrieval success.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N10",
+      "query": "Хочу подобрать пакет для данных: больше никаких требований пока нет.",
+      "source": "independent new control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "clarify",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "clarify"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "Task lacks a domain-specific actionable outcome; clarification is needed before a package commitment.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation. Related planning/research suggestions cannot count as fulfillment. An empty set does not constitute retrieval success.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N11",
+      "query": "Нужна помощь с текстом: ещё не решил, написать, проверить или опубликовать.",
+      "source": "independent new control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "clarify",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "clarify"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "Task lacks a domain-specific actionable outcome; clarification is needed before a package commitment.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation. Related planning/research suggestions cannot count as fulfillment. An empty set does not constitute retrieval success.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N12",
+      "query": "Есть некий сбой, но я не знаю ни системы, ни симптомов. Подбери инструмент.",
+      "source": "independent new control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "clarify",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "clarify"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "Task lacks a domain-specific actionable outcome; clarification is needed before a package commitment.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation. Related planning/research suggestions cannot count as fulfillment. An empty set does not constitute retrieval success.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "C01",
+      "query": "Спроектируй Redis rate limiting для API и затем лично замени сетевой кабель в нашем офисе.",
+      "source": "packages/skills-devops/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-devops"
+      ],
+      "originalExpectedDecision": "partial",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-devops"
+        ]
+      ],
+      "acceptableDecisions": [
+        "partial"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-devops"
+      ],
+      "rationale": "Redis patterns explicitly covers sliding-window rate limiting and data structure choices. The second action has no supported catalog execution path.",
+      "sourceEvidence": [
+        "packages/skills-devops/README.md",
+        "packages/skills-devops/package.json",
+        "packages/skills-devops/redis-patterns/SKILL.md"
+      ],
+      "boundaryCriteria": "Require supported method recommendation and explicit unsupported-action disclosure; never full recommend.",
+      "intentCoverage": [
+        {
+          "intent": "bounded supported method",
+          "requiredAnyCompletePackageSet": [
+            [
+              "@dzhechkov/skills-devops"
+            ]
+          ],
+          "status": "supported"
+        },
+        {
+          "intent": "Physical replacement of office network cable",
+          "requiredPackages": [],
+          "status": "unsupported",
+          "mustDisclose": true
+        }
+      ],
+      "sourceDigests": {
+        "packages/skills-devops/README.md": "0c4c83af4d66488cdc6822661c9e02c39eea924d243e4b680a4fe0942a83218e",
+        "packages/skills-devops/package.json": "3a6d66b689bcbeb15f8b69b6673a30fb5293b1f73666fe1722be831219b0c0cb",
+        "packages/skills-devops/redis-patterns/SKILL.md": "4cf4611ee8f1189784a65ffd557a4d6d404717bc17cad99e0a3c88a5f96d99a7"
+      }
+    },
+    {
+      "id": "C02",
+      "query": "Проверь комплектность документов ВКР и поставь за меня настоящую подпись научного руководителя.",
+      "source": "packages/skills-academic/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-academic"
+      ],
+      "originalExpectedDecision": "partial",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-academic"
+        ]
+      ],
+      "acceptableDecisions": [
+        "partial"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-academic"
+      ],
+      "rationale": "Document Checker is limited to completeness, formatting consistency and topic alignment. The second action has no supported catalog execution path.",
+      "sourceEvidence": [
+        "packages/skills-academic/README.md",
+        "packages/skills-academic/package.json",
+        "packages/skills-academic/document-checker/SKILL.md"
+      ],
+      "boundaryCriteria": "Require supported method recommendation and explicit unsupported-action disclosure; never full recommend.",
+      "intentCoverage": [
+        {
+          "intent": "bounded supported method",
+          "requiredAnyCompletePackageSet": [
+            [
+              "@dzhechkov/skills-academic"
+            ]
+          ],
+          "status": "supported"
+        },
+        {
+          "intent": "Impersonating supervisor signature",
+          "requiredPackages": [],
+          "status": "unsupported",
+          "mustDisclose": true
+        }
+      ],
+      "sourceDigests": {
+        "packages/skills-academic/README.md": "a8b32d687c6c1bbcdfd3c24fe4fb644d45c8ee11a20cb62277805cd21c4c021f",
+        "packages/skills-academic/package.json": "b7098829d84e2cefeafd519bbf6686e536764354d17edb4b4f9c592e56985eed",
+        "packages/skills-academic/document-checker/SKILL.md": "5fd36011feaeb2a4138d84997da575a89db22d4113f583b505e1d0a5a98cad76"
+      }
+    }
+  ],
+  "familiarRegressions": [
+    {
+      "id": "R01",
+      "query": "есть книга хочу по ней сделать навык",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-digitizer"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-digitizer"
+      ],
+      "sourceEvidence": [
+        "packages/skills-book-digitizer/package.json",
+        "packages/skills-book-digitizer/README.md",
+        "packages/skills-book-digitizer/digitize-book/SKILL.md"
+      ],
+      "familiar": true,
+      "rationale": "digitize-book orchestrates ingest, extraction, distillation, packaging and indexing into installable methodology packs.",
+      "independentAdjudication": {
+        "reviewer": "fresh /root/catalog_labels_independent",
+        "outcomeBlind": true
+      },
+      "requiredTargetInterpretation": "allRequiredTargets retains original canonical diagnostic targets; complete success uses ANY whole acceptablePackageSets entry, not their union or arbitrary overlap.",
+      "sourceDigests": {
+        "packages/skills-book-digitizer/package.json": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba",
+        "packages/skills-book-digitizer/README.md": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af",
+        "packages/skills-book-digitizer/digitize-book/SKILL.md": "cfccc93e6ab3964fa5c9ed8847c853e31192f8a240e72da421be146771277f3b"
+      }
+    },
+    {
+      "id": "R02",
+      "query": "Мне нужно измерить качество навыка бенчмарком и оптимизировать результаты с подтверждением.",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-bto"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-bto"
+      ],
+      "sourceEvidence": [
+        "packages/skills-bto/package.json",
+        "packages/skills-bto/README.md",
+        "packages/skills-bto/templates/.claude/skills/bto/SKILL.md"
+      ],
+      "familiar": true,
+      "rationale": "BTO SKILL covers benchmarking, judges and optimization; witness-chain/judge-attestation delivery is described by package metadata and installer components, not proven by the inspected SKILL alone.",
+      "independentAdjudication": {
+        "reviewer": "fresh /root/catalog_labels_independent",
+        "outcomeBlind": true
+      },
+      "requiredTargetInterpretation": "allRequiredTargets retains original canonical diagnostic targets; complete success uses ANY whole acceptablePackageSets entry, not their union or arbitrary overlap.",
+      "sourceDigests": {
+        "packages/skills-bto/package.json": "8deefed20a66b5f8025a217c28adc789004b7691b7214d157342e13fd0094d3b",
+        "packages/skills-bto/README.md": "418b01d2dd1391d4bb7d2d93580fd0f58346f7828f039e95023088f83132f491",
+        "packages/skills-bto/templates/.claude/skills/bto/SKILL.md": "cc15a07922126226776d4c48446b3d75fa8caaf16949389f448f42c9787207cb"
+      }
+    },
+    {
+      "id": "R03",
+      "query": "Хочу применять готовые методики книги об инженерии приложений с ИИ-агентами.",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-ai-apps"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-ai-apps"
+      ],
+      "sourceEvidence": [
+        "packages/skills-book-ai-apps/package.json",
+        "packages/skills-book-ai-apps/README.md",
+        "packages/skills-book-ai-apps/aiagents-agent-fit-and-model-choice/SKILL.md"
+      ],
+      "familiar": true,
+      "rationale": "The AI-apps book pack contains decision-specific agent engineering methods; applying distilled methods is distinct from digitizing a new book.",
+      "independentAdjudication": {
+        "reviewer": "fresh /root/catalog_labels_independent",
+        "outcomeBlind": true
+      },
+      "requiredTargetInterpretation": "allRequiredTargets retains original canonical diagnostic targets; complete success uses ANY whole acceptablePackageSets entry, not their union or arbitrary overlap.",
+      "sourceDigests": {
+        "packages/skills-book-ai-apps/package.json": "94cd98d4a8a9d0e53f1810290ff9371818b0ac722b6f4c98d92d5737eb8a32c2",
+        "packages/skills-book-ai-apps/README.md": "699691847a6b1d0d67135a03c8d77371fbb6286cf39ca4ed16b5e5c75147dd9a",
+        "packages/skills-book-ai-apps/aiagents-agent-fit-and-model-choice/SKILL.md": "3ab925c2cb31669180651ab5a18eeceb562bcef6d8ccb3029d3e77127a43f888"
+      }
+    }
+  ],
+  "selectorPreregistration": {
+    "selectionRule": "All 57 positives authored first; deterministic frozen exclusion list removes six redundant adapter cases, six library/engine cases, and two broad-overlap cases. Remaining 43 span all later specialist domains. All 12 controls, both compounds and three unchanged familiar regressions. No substitutions after outcomes.",
+    "excludedPositiveIds": [
+      "H002",
+      "H003",
+      "H007",
+      "H008",
+      "H009",
+      "H010",
+      "H012",
+      "H013",
+      "H017",
+      "H018",
+      "H021",
+      "H024",
+      "H029",
+      "H052"
+    ],
+    "caseIds": [
+      "R01",
+      "R02",
+      "R03",
+      "H001",
+      "H004",
+      "H005",
+      "H006",
+      "H011",
+      "H014",
+      "H015",
+      "H016",
+      "H019",
+      "H020",
+      "H022",
+      "H023",
+      "H025",
+      "H026",
+      "H027",
+      "H028",
+      "H030",
+      "H031",
+      "H032",
+      "H033",
+      "H034",
+      "H035",
+      "H036",
+      "H037",
+      "H038",
+      "H039",
+      "H040",
+      "H041",
+      "H042",
+      "H043",
+      "H044",
+      "H045",
+      "H046",
+      "H047",
+      "H048",
+      "H049",
+      "H050",
+      "H051",
+      "H053",
+      "H054",
+      "H055",
+      "H056",
+      "H057",
+      "N01",
+      "N02",
+      "N03",
+      "N04",
+      "N05",
+      "N06",
+      "N07",
+      "N08",
+      "N09",
+      "N10",
+      "N11",
+      "N12",
+      "C01",
+      "C02"
+    ],
+    "attempts": 60,
+    "positiveDistinctPackageCount": 43,
+    "retrievalRule": "Report per-original-target recall diagnostically and alternative-aware complete-set@5. Equivalent acceptable carriers may satisfy a case; no union requirement. Controls excluded from retrieval denominator.",
+    "selectorRule": "Allowed decision plus one complete source-backed acceptable set and honest boundaries. Additional relevant packages are not an error. Penalize irrelevant generic additions and invented capability, not useful complementary shortlists.",
+    "strata": {
+      "platform adapters": [
+        "H001",
+        "H004",
+        "H005",
+        "H006"
+      ],
+      "cloud infrastructure": [
+        "H011"
+      ],
+      "testing methodology": [
+        "H014"
+      ],
+      "evidence knowledge": [
+        "H015"
+      ],
+      "harness tools": [
+        "H016",
+        "H023"
+      ],
+      "health": [
+        "H019"
+      ],
+      "business mapping": [
+        "H020"
+      ],
+      "orchestration": [
+        "H022"
+      ],
+      "requirements": [
+        "H025",
+        "H042"
+      ],
+      "ecosystem intelligence": [
+        "H026"
+      ],
+      "application architecture": [
+        "H027"
+      ],
+      "academic": [
+        "H028"
+      ],
+      "book-derived agent engineering": [
+        "H030"
+      ],
+      "book-derived coding": [
+        "H031"
+      ],
+      "book-derived data architecture": [
+        "H032"
+      ],
+      "book indexing": [
+        "H033"
+      ],
+      "book-derived software architecture": [
+        "H034"
+      ],
+      "artifact benchmarking": [
+        "H035"
+      ],
+      "decision UI": [
+        "H036"
+      ],
+      "media": [
+        "H037"
+      ],
+      "operations": [
+        "H038"
+      ],
+      "deployment verification": [
+        "H039"
+      ],
+      "education": [
+        "H040"
+      ],
+      "architecture education": [
+        "H041"
+      ],
+      "tool integrations": [
+        "H043"
+      ],
+      "agent context": [
+        "H044"
+      ],
+      "news": [
+        "H045"
+      ],
+      "package communication": [
+        "H046"
+      ],
+      "product pricing": [
+        "H047"
+      ],
+      "presentations": [
+        "H048"
+      ],
+      "quality engineering": [
+        "H049"
+      ],
+      "repository instructions": [
+        "H050"
+      ],
+      "business research": [
+        "H051"
+      ],
+      "transcript publishing": [
+        "H053"
+      ],
+      "package education": [
+        "H054"
+      ],
+      "web3": [
+        "H055"
+      ],
+      "website reconstruction": [
+        "H056"
+      ],
+      "travel": [
+        "H057"
+      ]
+    }
+  },
+  "scoringContract": {
+    "unit": "one frozen case",
+    "completePackageMatch": "ANY full acceptable set, allowing additional genuinely relevant packages; original canonical identity is diagnostic only",
+    "minimalUsefulShortlist": "One capable carrier is sufficient. More than one relevant carrier or complement is allowed when it has a stated useful role. No arbitrary exact-list equality. Generic unrelated additions count against relevance separately.",
+    "controls": "Allowed decision and boundary; empty package set is not a vacuous retrieval success. Clarification may name a tentative area without asserting fulfillment.",
+    "compounds": "All supported intents covered, unsupported intent explicitly disclosed, partial decision mandatory.",
+    "denominators": "All 60 preregistered attempts retained including technical errors; separately report 3 familiar,43 positive,12 control,2 compound.",
+    "frozenBeforeSecondTrial": true
+  }
+}

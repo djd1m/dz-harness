@@ -1,0 +1,451 @@
+{
+  "reviewerModel": "gpt-6.1-terra",
+  "rows": [
+    {
+      "id": "H035",
+      "rowHash": "0aa5498be4d1be0d28df494deda642637c8960d2332d2e285d8654f2e892e6d9",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-bto/package.json",
+        "packages/skills-bto/README.md",
+        "packages/skills-bto/templates/.claude/skills/bto/SKILL.md"
+      ]
+    },
+    {
+      "id": "H036",
+      "rowHash": "f471efb8f5beb37197804a3d71dcc56d74ef985e5724d297d8cef8292b89530e",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-decision-mockups/package.json",
+        "packages/skills-decision-mockups/README.md",
+        "packages/skills-decision-mockups/decision-mockups/SKILL.md",
+        "packages/skills-meta/decision-mockups/SKILL.md"
+      ]
+    },
+    {
+      "id": "H037",
+      "rowHash": "2d83202af553c256bbba17911b18e64d8a93cc2feba795043667955620466136",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-demo-publisher/package.json",
+        "packages/skills-demo-publisher/README.md",
+        "packages/skills-demo-publisher/demo-site-publisher/SKILL.md"
+      ]
+    },
+    {
+      "id": "H038",
+      "rowHash": "89fb6ef98aaf29d59724f5e4c0882eb801c9fd9ac70361a9c097d98922608f4a",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-devops/package.json",
+        "packages/skills-devops/README.md",
+        "packages/skills-devops/nginx-config/SKILL.md"
+      ]
+    },
+    {
+      "id": "H039",
+      "rowHash": "e7695e15545dbe71c71e9a4acf6d4ff714d4b1f225d0a3c8df9ec6f7c589365d",
+      "semanticCorrect": false,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Указанные отсутствующими branching strategy, commit conventions и совместная работа охвачены git-workflow из выбранного пакета ECC (SKILL.md:4,16); partial не называет фактически неподдержанный остаток.",
+      "sourcePaths": [
+        "packages/skills-ecc/package.json",
+        "packages/skills-ecc/README.md",
+        "packages/skills-ecc/git-workflow/SKILL.md"
+      ]
+    },
+    {
+      "id": "H040",
+      "rowHash": "d9c269d64e6497cdf373a2ee80326a9207503a08a75503b2d261c56f596510d9",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-edu-site/package.json",
+        "packages/skills-edu-site/README.md",
+        "packages/skills-edu-site/templates/.claude/skills/edu-site-generator/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/edu-site-generator/SKILL.md"
+      ]
+    },
+    {
+      "id": "H041",
+      "rowHash": "75578c2dbb2c962a5aeb43e7c08435c62fa25fac3c88fa2b798eb6e802c79faf",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-feature-adr/package.json",
+        "packages/skills-feature-adr/README.md",
+        "packages/skills-feature-adr/templates/.claude/skills/code-skills-creator/SKILL.md"
+      ]
+    },
+    {
+      "id": "H042",
+      "rowHash": "27e6ea9c705d115c78afc78900ea8d153840873995775a53e7d80354fe3dca91",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-idea2prd/package.json",
+        "packages/skills-idea2prd/README.md",
+        "packages/skills-idea2prd/templates/.claude/skills/idea2prd-manual/SKILL.md"
+      ]
+    },
+    {
+      "id": "H043",
+      "rowHash": "3a1107eba168d35560e41e0ffcc5165a03fcdb1e9e487bc73663dca5f5d01019",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-mcp/package.json",
+        "packages/skills-mcp/README.md",
+        "packages/skills-mcp/google-calendar/SKILL.md"
+      ]
+    },
+    {
+      "id": "H044",
+      "rowHash": "6bb73b1a6d0e07fd1c08b303e74172ddfb43abb12d0d5ea5079fee6c1a8eb2eb",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-meta/package.json",
+        "packages/skills-meta/README.md",
+        "packages/skills-meta/context-window-management/SKILL.md"
+      ]
+    },
+    {
+      "id": "H045",
+      "rowHash": "e7b64ef43edc2447eea3a7c54b2334c74a9acd9b7f54356de6fe9fa9b81c4996",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-news/package.json",
+        "packages/skills-news/README.md",
+        "packages/skills-news/news-digest/SKILL.md"
+      ]
+    },
+    {
+      "id": "H046",
+      "rowHash": "153f26b9dc28b6710e7a84611328ac9858b7a36e6a9d0278be6867febb41afff",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-package-story-page/package.json",
+        "packages/skills-package-story-page/README.md",
+        "packages/skills-package-story-page/package-story-page/SKILL.md"
+      ]
+    },
+    {
+      "id": "H047",
+      "rowHash": "9ac96050378353c05a0b11c0dc147fd9a7619a0a1429dd746c935ab648277b28",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-pm/package.json",
+        "packages/skills-pm/README.md",
+        "packages/skills-pm/opportunity-solution-tree/SKILL.md"
+      ]
+    },
+    {
+      "id": "H048",
+      "rowHash": "6b52f28af4f1386a9a4035d518f3aa7ca1cf471f39dfc691ade5a2879ab0a9a8",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-presentation-storyteller/package.json",
+        "packages/skills-presentation-storyteller/README.md",
+        "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/presentation-storyteller/SKILL.md",
+        "packages/skills-presentation-storyteller/templates/.claude/skills/goap-research-ed25519/SKILL.md"
+      ]
+    },
+    {
+      "id": "H049",
+      "rowHash": "31f7009da91a5e48eae9f855db60d749718cfab1d4145c901e79149d827397b6",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-qe/package.json",
+        "packages/skills-qe/README.md",
+        "packages/skills-qe/qe-test-generation/SKILL.md"
+      ]
+    },
+    {
+      "id": "H050",
+      "rowHash": "886d54f93051a831d3bf877034b84868852c3e7ede33041d5f283f333356e01c",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-reasoning/package.json",
+        "packages/skills-reasoning/README.md",
+        "packages/skills-reasoning/investigate/SKILL.md"
+      ]
+    },
+    {
+      "id": "H051",
+      "rowHash": "076e680c32d74c10d72f4285f2361305b682a054582ad3bb34abac1843945bbe",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-reverse-engineering/package.json",
+        "packages/skills-reverse-engineering/README.md",
+        "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+        "packages/p-replicator/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md"
+      ]
+    },
+    {
+      "id": "H052",
+      "rowHash": "14edd76898f797b5e67402df9768823c6a435b19aaed7436dd550bf08a7eb875",
+      "semanticCorrect": false,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный design-taste-frontend прямо задаёт loading, empty и error states (SKILL.md:222–226); объявление UI states отсутствующими необоснованно.",
+      "sourcePaths": [
+        "packages/skills-taste/package.json",
+        "packages/skills-taste/README.md",
+        "packages/skills-taste/design-taste-frontend/SKILL.md"
+      ]
+    },
+    {
+      "id": "H053",
+      "rowHash": "5ff64a75d637ac343b411234a563d9b43bdcc34da543119641168bd1a0427d45",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-transcript-site/package.json",
+        "packages/skills-transcript-site/README.md",
+        "packages/skills-transcript-site/templates/.claude/skills/transcript-site-generator/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/transcript-site-generator/SKILL.md"
+      ]
+    },
+    {
+      "id": "H054",
+      "rowHash": "e35215da5464b2c11e74c3be79a50da59249a97275c6792c741a0a2535bae105",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-tutorial-factory/package.json",
+        "packages/skills-tutorial-factory/README.md",
+        "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+        "packages/skills-edu-site/templates/.claude/skills/edu-site-generator/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/edu-site-generator/SKILL.md"
+      ]
+    },
+    {
+      "id": "H055",
+      "rowHash": "ff3a73ca5247526791d76d092d6743ba7bc518b68e9af0f8fd67a97b5f6f7374",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-web3/package.json",
+        "packages/skills-web3/README.md",
+        "packages/skills-web3/siwa/SKILL.md"
+      ]
+    },
+    {
+      "id": "H056",
+      "rowHash": "4dc1d028c72b4f080a582ee720d56df07ea2339fd2707d8f14d57817a422f7bd",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/skills-website-cloner/package.json",
+        "packages/skills-website-cloner/README.md",
+        "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md"
+      ]
+    },
+    {
+      "id": "H057",
+      "rowHash": "2db7235b3eb53c01561f7fd7265ae0bcbcca0e2b1c7f7865d56a89316be77db3",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Выбранный сценарий соответствует запрошенной задаче и исходным инструкциям, а границы его применения отражены.",
+      "sourcePaths": [
+        "packages/trip-planner/package.json",
+        "packages/trip-planner/README.md",
+        "packages/trip-planner/templates/.claude/skills/trip-planner/SKILL.md"
+      ]
+    },
+    {
+      "id": "N01",
+      "rowHash": "ce4ffd9526c1ce7da547dc9440ccabd3a7e91e769b4c3cf5637f53159c142e20",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не выдаёт неопределённую либо физически недоступную задачу за выполненную.",
+      "sourcePaths": []
+    },
+    {
+      "id": "N02",
+      "rowHash": "3313a113616692528fb30ba80da39e67c60cfb43d1eefe33c051c1f2c88268e8",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не выдаёт неопределённую либо физически недоступную задачу за выполненную.",
+      "sourcePaths": []
+    },
+    {
+      "id": "N03",
+      "rowHash": "f35880cc9bc279e1ea57db196ecc02c002667709d46454546a9bc1fdf95a8bbc",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не выдаёт неопределённую либо физически недоступную задачу за выполненную.",
+      "sourcePaths": []
+    },
+    {
+      "id": "N04",
+      "rowHash": "a6107f5befc6fc8b6918ce802f9e6b48cb3b54263ba6c953bdbd6ce02eb1e4eb",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не выдаёт неопределённую либо физически недоступную задачу за выполненную.",
+      "sourcePaths": []
+    },
+    {
+      "id": "N05",
+      "rowHash": "770ef4a63e7dfc8858b7207c92aa5ff4f16229a8ade3833a5391ab518b705a60",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не выдаёт неопределённую либо физически недоступную задачу за выполненную.",
+      "sourcePaths": []
+    },
+    {
+      "id": "N06",
+      "rowHash": "170416d11102ec4e4ba80dc96c51c13db53a8298c3d60bec056d9371577c51a9",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не выдаёт неопределённую либо физически недоступную задачу за выполненную.",
+      "sourcePaths": []
+    },
+    {
+      "id": "N07",
+      "rowHash": "7c42c0caeaa4bf3633023e35cf8c973a8b07ec86be255cd50ebe29f2f4f36cb3",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не выдаёт неопределённую либо физически недоступную задачу за выполненную.",
+      "sourcePaths": []
+    },
+    {
+      "id": "N08",
+      "rowHash": "deac29876d5f15e44db3bba87874ef967c89d0bbf4083d46e726ee52e8cf430c",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не выдаёт неопределённую либо физически недоступную задачу за выполненную.",
+      "sourcePaths": []
+    },
+    {
+      "id": "N09",
+      "rowHash": "772087b851c656f6d5873a80185e42b6172b3b139a8e7de8bdc94077e6cfa8a5",
+      "semanticCorrect": false,
+      "falseFull": true,
+      "fabricated": false,
+      "reason": "По замороженному контракту требуется сначала уточнить неопределённую цель; полная рекомендация problem-solver преждевременна.",
+      "sourcePaths": [
+        "packages/keysarium/templates/.claude/skills/problem-solver-enhanced/SKILL.md"
+      ]
+    },
+    {
+      "id": "N10",
+      "rowHash": "a5b46096705f6b24f1ff4c829a5663995a28ec5269c481f689fdcf21ab34b563",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не выдаёт неопределённую либо физически недоступную задачу за выполненную.",
+      "sourcePaths": []
+    },
+    {
+      "id": "N11",
+      "rowHash": "be5f2230b38333c3daca6c7ce7c3ac72d09c7b4b5411edee8ecd22ffa050e440",
+      "semanticCorrect": false,
+      "falseFull": true,
+      "fabricated": false,
+      "reason": "По замороженному контракту требуется сначала уточнение, а не полная рекомендация; при этом исходный design-thinking применим к discovery неизвестной потребности аудитории, поэтому это пограничный случай политики, а не выдуманная capability.",
+      "sourcePaths": [
+        "packages/design-thinking/README.md"
+      ]
+    },
+    {
+      "id": "N12",
+      "rowHash": "fa4bf276947aafc82fd5715d986fed0458e4fcbca6ad62d30ac5b594b0f975e7",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Ответ не выдаёт неопределённую либо физически недоступную задачу за выполненную.",
+      "sourcePaths": []
+    },
+    {
+      "id": "C01",
+      "rowHash": "034469f121e165b4140c92605dc29b308de06bb70c7f7bb8301e09800483b4be",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Поддержанная часть соответствует исходному навыку, а неподдержанное физическое действие явно названо.",
+      "sourcePaths": [
+        "packages/skills-qe/package.json",
+        "packages/skills-qe/README.md",
+        "packages/skills-qe/qe-test-generation/SKILL.md"
+      ]
+    },
+    {
+      "id": "C02",
+      "rowHash": "b8f2d9628c6c8e4333c7b539fbc324b497b190e2ebeb418b70747247b703cfb1",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Поддержанная часть соответствует исходному навыку, а неподдержанное физическое действие явно названо.",
+      "sourcePaths": [
+        "packages/skills-book-ddia/package.json",
+        "packages/skills-book-ddia/README.md",
+        "packages/skills-book-ddia/ddia-partitioning-strategy/SKILL.md"
+      ]
+    }
+  ]
+}

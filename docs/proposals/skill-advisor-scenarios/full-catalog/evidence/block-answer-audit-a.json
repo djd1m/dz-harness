@@ -1,0 +1,308 @@
+{
+  "reviewerModel": "gpt-6.1-terra",
+  "cases": [
+    {
+      "id": "R01",
+      "rowHash": "f0918ad3b90509153e60570244e54ae890ea20215eb79d5f10348a33c9783e88",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Digitize-book описывает полный путь от PDF к навыкам и контрольные точки, включая ограничение OCR."
+    },
+    {
+      "id": "R02",
+      "rowHash": "d267cdec6c51ed6801bb32467e52f53e01564121d5c7c72ffc0679f7ba079b4b",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "BTO покрывает benchmark и оптимизацию; ссылка курса присутствует в сохранённой проверке."
+    },
+    {
+      "id": "R03",
+      "rowHash": "8c5d10196a1d6e39d987c9493a7e78d06ec2872fd591cd9e9bbbd21bb2a1a74b",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Набор методик соответствует задаче; ограничение машинной дистилляции и отсутствия проверки человеком названо."
+    },
+    {
+      "id": "H001",
+      "rowHash": "7a46d8af214febb17ac120f5512d299dfce96738e114b72f888f840770c62520",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "AGENTS.md adapter source explicitly defines lossy aggregation and loss of frontmatter/progressive disclosure. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H002",
+      "rowHash": "5529110e5265997327b8eb2a49fcdb49c7b258a67b186542c82d092935947b84",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Claude adapter README exposes compile returning EmitResult files and pure separation from filesystem application. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H003",
+      "rowHash": "0af4c5b1990c85d0d85cfaff447ca6cf62d352a8f00b5c5085a4453d004af0a7",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Codex adapter README defines exact native tree and bundled file emission. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H004",
+      "rowHash": "4f8b85589ac0252844bafec64d52ce0b252f4e0a5da340f8272496c051cb9f89",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Copilot README specifies applyTo **, no per-skill activation and reference-only scripts. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H005",
+      "rowHash": "a3b1025472545cb1c09a1240ce049cddd66477063f56a923b356c47b90f40ba6",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Cursor source explicitly defines agent-requested .mdc rules with alwaysApply false. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H006",
+      "rowHash": "135aca4dd8e8b9f499b7967ffc034bd2e535ae161b1276bf93d8d2d53213ec01",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Gemini source emits workspace-root managed file; hierarchical loading belongs to host, not multi-level generation. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H007",
+      "rowHash": "c97282cafd77827542fcd2f233ff7adf8473182f672b2c021831f5a8487a2d51",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Hermes README provides Adapter implementation with lossless tree and pure compile/verify. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H008",
+      "rowHash": "5f0ad646759c77e533e994b182296e0dcc84ac0ae22fd94efdf41410f1ee18a1",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "OpenClaude README distinguishes project adapter path and user-level global path. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H009",
+      "rowHash": "ac4320e052410641acc3ad220de573047606d5d6febc4cae222a37d2765c0083",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "OpenCode README states native agentskills.io format and lossless core emitSkillTree wrapper. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H010",
+      "rowHash": "8d47ad4e1592ade8b8cca835e4c97c1662099d11192eb37efcb83cccdd8875c4",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Windsurf README defines transformed frontmatter and omitted assets. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H011",
+      "rowHash": "7fe9199c2efea930ef6c290de4d5bdf4d11ce126b619e1259e6fc17785aae026",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Cloudru hub README defines thin launcher, exact optional platform engine and runtime SHA verification. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H012",
+      "rowHash": "f18d6218c26190ca285ec2170ddee3847153763c562b97c9f6bc495ab5d0cc41",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Linux engine README describes separate platform package and binary verification before packing/mirroring. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H013",
+      "rowHash": "5b63e310dd067980f06aaf19b55674393cde82e73d40a7fbfd57a797c16e3e63",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Core README exposes ModRuntimeIntentV1Schema and ModRuntimeObservationV1Schema, explicitly without plugin-loading claims. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H014",
+      "rowHash": "adb60b7cf0721178cc2dd67cd31eca72800e10aad7eea5f49ee5048c96335f02",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Design Thinking source chains JTBD analysis, HADI hypothesis cycles, prototypes and pilot validation. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H015",
+      "rowHash": "bb9be54125d3f5b9d4c406212153d40f231137159c68110ee5b5247f9254aae1",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Concept Wiki source specifies atomic self-contained pages, TL;DR, Three Pillars and related concepts. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H016",
+      "rowHash": "7d105d7e69fb878ea2595f6815fe30ccd8a6ddf599b642e5ed564866ab440240",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Harness CLI README defines main dz entry point with setup/init selections and doctor. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H017",
+      "rowHash": "bb3fee45dce4bd62d85442186cdf055591138f7db7fb89b238c54df54db678c5",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Harness-core registration gate README distinguishes inconclusive missing observations from failed registration; runtime proof is bounded. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H018",
+      "rowHash": "c539f2b668acecc725f8ee8dbbc67136455b451e2f5f47fab98e44af87433b94",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Presets README documents optional health provider local installation and rerunning setup/init; no automatic provider install. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H019",
+      "rowHash": "4763bfc587c93895608cbb3bd22ea0fc986ada182595e6d85e30e5094f04a032",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Sleep Analyzer source covers duration/regularity trends and correlations with activity; no guaranteed diagnosis. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H020",
+      "rowHash": "829b0164d6c4dfacff73625c394353bfb316fd3f90da8f622f5140a1c9aaffb4",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Keysarium bundles Transcript Site Generator with static mobile transcript navigation and zero-build default. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H021",
+      "rowHash": "77f38961c0b52f8a68ed7be817f81de90b65814e4362f2023e9261b58af3ba0f",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Keysarium-core README documents governance constitution, shard protocol and checkpoint protocols. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H022",
+      "rowHash": "f5ba1438ef6d9b3acd7dd899901a3f275f67dbd2e3255ff62d3e8a1f346b8e61",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Loop Plan Author source covers structured concurrency, joins, retries/pause/resume, plan invariants and separate execution paths. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H023",
+      "rowHash": "78eb20f9cedf1d70cb1058f73b3384ee418c76470bfdca2b8d1c9dc65a68c7e3",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "MCP server README specifies DZ_SKILLS_DIR configuration, stdio and skill_get/list tools. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H024",
+      "rowHash": "ae89d7e013be64345bd6c8e9b48ffe23e0cc4ee8e0bcd06742bdc65d0b85a0b1",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Memory README provides zero-dependency JsonFileBackend and shared backend contract. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H025",
+      "rowHash": "263286eb67db4600d4757712dbee99df48c19e7edfd9048a1e26abd22745aeae",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "SPARC PRD Mini accepts prefilled parent context, AUTO/MANUAL and external skill composition for documentation. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H026",
+      "rowHash": "8f1c61c7d97eedad1891602defcd74f33f285bc0f3bfa635835188879eca23b4",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Scout README exposes these public programmatic APIs in addition to CLI workflows. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H027",
+      "rowHash": "655d5a73342fd448e1c6a4b85ef2d7515808c3f48920f90786a540bf00f513d3",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Twelve-Factor build/release/run source defines one-way stages, immutable releases and rollback. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H028",
+      "rowHash": "dced1aa4d13d67ab52c66da03bfd728c9490f32c8e9db118b0c51d431f3d75cd",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Academic Question Generator supplies defense questions; answer assessment is a separate skill. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H029",
+      "rowHash": "48eb81d1de57a130778aa826cf82b8f035f04191d070544e671b6b450ea2119c",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Analyst Manual source chains explore/research/solve, manual confirmations and source-supported conclusions. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H030",
+      "rowHash": "ddb315c314ad4b961aa0581761877ab68a7399ac8ae3a1eae150277974d9cb55",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Single-vs-Multi-Agent source prioritizes scaling single agent first and assesses coordination costs and parsimony. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H031",
+      "rowHash": "2ed68e0d4b30f30b482a74400ba0211f13bba7e4921ca51f56d666b61ea24d69",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Test Suite Feedback source covers readability, FIRST, independence and fixtures in existing tests, excluding new test authoring. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H032",
+      "rowHash": "6825293fc2d4dd229b9896e4f49a9ebc82739dfa40b4277562f1e97bbd03783f",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Replication Topology source covers copies/write propagation, leader models, lag and read-your-writes. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H033",
+      "rowHash": "d5d0232932a04ae1aa63e0cd88c28c7bd72f96f3883feeb6f433fd9981987ab5",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Book Pack Assemble packages already-distilled/gated skills with references, collision gate and install smoke. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    },
+    {
+      "id": "H034",
+      "rowHash": "0188cbe56d2d216b5c559a079bc947443abbd957e0643182ec60557a43209b00",
+      "semanticCorrect": true,
+      "falseFull": false,
+      "fabricated": false,
+      "reason": "Architecture Guide output explicitly includes context/options, accepted downside, verification and reconsideration trigger. Выбранная рекомендация применима, её граница не обещает выполненного результата."
+    }
+  ],
+  "summary": {
+    "rows": 37,
+    "semanticCorrect": 37,
+    "failed": 0,
+    "falseFull": 0,
+    "fabricated": 0
+  }
+}

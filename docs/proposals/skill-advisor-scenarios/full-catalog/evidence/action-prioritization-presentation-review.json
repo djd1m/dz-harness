@@ -1,0 +1,9 @@
+{
+  "id": "skills-pm-prioritization-frameworks-f35079cc",
+  "recordHash": "a184dc8aac27738882e7721bcf19b88fc679f0c72f3d22182665c389ad9fdf59",
+  "presentationHash": "4528c1a1d1e909f1789d9f8c9efcc539a91bb39ad064fb9b3f3a333bebb74c4e",
+  "verdict": "approved",
+  "reviewer": "independent editorial reviewer /root/advisor_repair_critic",
+  "reason": "Summary and boundary match the pinned guide and approved record. The source recommends collecting importance and satisfaction for each customer need and defines RICE using reach, impact, confidence and effort; the conditional next action accurately reflects both. Recomputed record and presentation hashes match, and the source SHA-256 matches the record.",
+  "sourcePath": "packages/skills-pm/prioritization-frameworks/SKILL.md"
+}

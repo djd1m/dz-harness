@@ -1,0 +1,131 @@
+{
+  "reviewerModel": "gpt-6.1-terra",
+  "changes": [
+    {
+      "id": "design-thinking-design-thinking-cbb2e523",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "Оркестратор выполняет этапы discovery, прототипирования, usability-тестирования и пилотной проверки; результат не ограничен планом.",
+      "sources": [
+        "packages/design-thinking/templates/.claude/skills/design-thinking/SKILL.md"
+      ]
+    },
+    {
+      "id": "skills-meta-design-thinking-08d3fa8b",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "Оркестратор выполняет этапы discovery, прототипирования, usability-тестирования и пилотной проверки; результат не ограничен планом.",
+      "sources": [
+        "packages/skills-meta/design-thinking/SKILL.md"
+      ]
+    },
+    {
+      "id": "loop-designer-plugin-loop-plan-author-b31427c3",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "Создаёт, проверяет и рендерит plan в исполняемый script; для исполнения указан host или portable runner.",
+      "sources": [
+        "packages/loop-designer-plugin/.codex-plugin/skills/loop-plan-author/SKILL.md"
+      ]
+    },
+    {
+      "id": "loop-designer-plugin-loop-plan-author-ea9841b8",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "Создаёт, проверяет и рендерит plan в исполняемый script; для исполнения указан host или portable runner.",
+      "sources": [
+        "packages/loop-designer-plugin/skills/loop-plan-author/SKILL.md"
+      ]
+    },
+    {
+      "id": "skills-meta-loop-plan-author-5da91697",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "Создаёт, проверяет и рендерит plan в исполняемый script; для исполнения указан host или portable runner.",
+      "sources": [
+        "packages/skills-meta/loop-plan-author/SKILL.md"
+      ]
+    },
+    {
+      "id": "skills-book-digitizer-digitize-book-8af847ed",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "Оркестрирует реальное извлечение, сборку и установочный smoke пакета с базой знаний; есть контрольные точки.",
+      "sources": [
+        "packages/skills-book-digitizer/digitize-book/SKILL.md"
+      ]
+    },
+    {
+      "id": "skills-ecc-agentic-engineering-c5d80a46",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "Eval-first loop включает выполнение реализации и повторный прогон проверок, не только декомпозицию.",
+      "sources": [
+        "packages/skills-ecc/agentic-engineering/SKILL.md"
+      ]
+    },
+    {
+      "id": "skills-ecc-benchmark-optimization-loop-624a5715",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "Цикл создаёт и исполняет варианты, проверяет корректность и продвигает лучший безопасный вариант.",
+      "sources": [
+        "packages/skills-ecc/benchmark-optimization-loop/SKILL.md"
+      ]
+    },
+    {
+      "id": "skills-idea2prd-idea2prd-manual-94bc3792",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "Оркестратор создаёт конкретный пакет PRD, архитектурных документов, псевдокода и тестовых сценариев с подтверждениями.",
+      "sources": [
+        "packages/skills-idea2prd/templates/.claude/skills/idea2prd-manual/SKILL.md"
+      ]
+    },
+    {
+      "id": "skills-meta-feature-adr-d4d61401",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "Процесс включает шаг реализации кода и проверки, а не только планирование; режимы и зависимости ограничивают исполнение.",
+      "sources": [
+        "packages/skills-meta/feature-adr/SKILL.md"
+      ]
+    },
+    {
+      "id": "skills-devops-database-migration-74c0ac9f",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "SKILL прямо описывает планирование и выполнение миграций и создание файлов миграции; фактический доступ и условия по-прежнему необходимы.",
+      "sources": [
+        "packages/skills-devops/database-migration/SKILL.md"
+      ]
+    },
+    {
+      "id": "skills-devops-monorepo-management-a8928099",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "SKILL охватывает настройку workspace, создание пакетов, CI и публикацию, а не только проектирование; внешняя публикация требует прав.",
+      "sources": [
+        "packages/skills-devops/monorepo-management/SKILL.md"
+      ]
+    },
+    {
+      "id": "skills-devops-observability-338720b5",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "SKILL предписывает проектировать и реализовывать наблюдаемость, создавая конфигурации, dashboard, правила alert и SLO.",
+      "sources": [
+        "packages/skills-devops/observability/SKILL.md"
+      ]
+    },
+    {
+      "id": "skills-devops-redis-patterns-db46b4ad",
+      "currentRole": "plan",
+      "proposedRole": "artifact",
+      "reason": "SKILL охватывает проектирование и реализацию Redis patterns с кодом, а не только выбор структур.",
+      "sources": [
+        "packages/skills-devops/redis-patterns/SKILL.md"
+      ]
+    }
+  ]
+}

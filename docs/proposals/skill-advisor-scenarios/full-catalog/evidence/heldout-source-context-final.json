@@ -1,0 +1,2960 @@
+{
+  "schema": "advisor-heldout-labels-final-v2",
+  "provenance": {
+    "sourceCommit": "a2af2732b01d516966e076db77c35902f5e72ac1",
+    "corpusOrdinal": 4,
+    "adjudicator": "Same independent reviewer/author as corpora two and three and independent adjudicator of corpus one; NOT a fresh author",
+    "method": "Direct actual source README/SKILL inspection only; no execution reports/results, candidate drafts, source-context implementation or catalog data consulted. New task instances and six unsupported/six uncertain-goal controls. Exact primary SKILL duplicates admitted as alternative carriers. No outcome-driven label changes.",
+    "limitations": "Single-purpose packages and adapter roles have exhausted much of their small source surface. Several newly worded bounded task instances semantically overlap previous capabilities; these are NOT 71 independent new capabilities, nor an independent author sample. Raw fresh-instance metrics must retain this limitation. No source-level claim establishes live dependency access or successful task execution.",
+    "noveltyDefinition": "71 query instances not previously executed, not 71 mutually independent capability tests. Newly sampled atomic skills are mixed with normal package-purpose/navigation tasks.",
+    "feedbackExposure": "Only parent aggregate trial/remediation notices and required acceptance thresholds; no per-case outcomes or scores.",
+    "priorCorpusSha256": "6f0a8f009cb34934b0b333cef8d14d40cc628a11d5eec477ba8436f7fff13ce3"
+  },
+  "cases": [
+    {
+      "id": "H001",
+      "query": "В монорепозитории хотят общий AGENTS.md вместо множества skill-файлов. Подбери адаптер для такой доставки и предупреди, что ссылки на scripts/references не означают перенос самих ресурсов.",
+      "source": "packages/adapter-agents-md/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-agents-md"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-agents-md"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-agents-md"
+      ],
+      "rationale": "AGENTS.md README documents one root file and loss of assets; no runtime or preservation of resource files is implied.",
+      "sourceEvidence": [
+        "packages/adapter-agents-md/package.json",
+        "packages/adapter-agents-md/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/adapter-agents-md/package.json": "b2918069ec00953997de5e75d420fc188ef75bc379ec92117a657004cb48580e",
+        "packages/adapter-agents-md/README.md": "152259e19bbbe2665959774eb0672765e0bb084300ff6bd0af57c159ba06581f"
+      }
+    },
+    {
+      "id": "H002",
+      "query": "Для Claude Code отделяем планирование интеграции от применения: нужен адаптер, возвращающий project .mcp.json fragment без записи, запуска процессов и обращения к URL манифеста.",
+      "source": "packages/adapter-claude/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-claude"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-claude"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-claude"
+      ],
+      "rationale": "Claude README states claudeIntegrationAdapter.plan is pure and bounded to supported project MCP fragment.",
+      "sourceEvidence": [
+        "packages/adapter-claude/package.json",
+        "packages/adapter-claude/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/adapter-claude/package.json": "780384726a099a107533b453a7052e7238926355aae6e7d0538e86aaaeee9347",
+        "packages/adapter-claude/README.md": "76ba17c22b08c1b87cfa294df5b1591b353c36f72e06699b91e7fcd88b2d75f6"
+      }
+    },
+    {
+      "id": "H003",
+      "query": "В модуле сборки навыков для Codex нужно реализовать Adapter-контракт из общего core. Ищу уже готовую тонкую обёртку emitSkillTree с корнем Codex.",
+      "source": "packages/adapter-codex/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-codex"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-codex"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-codex"
+      ],
+      "rationale": "Codex README names core Adapter contract and thin emitSkillTree wrapper pinned to Codex root.",
+      "sourceEvidence": [
+        "packages/adapter-codex/package.json",
+        "packages/adapter-codex/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/adapter-codex/package.json": "c8400f670a012484847751bbe589d7d1a62271d6399ab325165caca5ebdf3f30",
+        "packages/adapter-codex/README.md": "67104fe9609aa8a4bcbf58ec9bc073b1e36c1b9d31453059c5b1bc4cac6999ac"
+      }
+    },
+    {
+      "id": "H004",
+      "query": "Аудит доставки в Copilot показал два каталога: instructions и copilot-skills. Нужен пакет, который генерирует активные правила отдельно от справочных ресурсов и объясняет их разные роли.",
+      "source": "packages/adapter-copilot/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-copilot"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-copilot"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-copilot"
+      ],
+      "rationale": "Copilot README separates .github/instructions active files and reference-only .github/copilot-skills assets.",
+      "sourceEvidence": [
+        "packages/adapter-copilot/package.json",
+        "packages/adapter-copilot/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/adapter-copilot/package.json": "a3a2c8ea391175dd727205daed61bcaf26bf26379c953a74b59b8195d0087c7e",
+        "packages/adapter-copilot/README.md": "c297ee10aa12955b7e68bf77ed3e111317244e31bf34e749df58b51d94787a76"
+      }
+    },
+    {
+      "id": "H005",
+      "query": "Интегратор Cursor должен из исходного description и optional globs сформировать frontmatter проектного правила, не копируя произвольные поля SKILL.md. Какой адаптер выбрать?",
+      "source": "packages/adapter-cursor/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-cursor"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-cursor"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-cursor"
+      ],
+      "rationale": "Cursor README specifies replacement by Cursor keys and conditional globs, rather than arbitrary original frontmatter preservation.",
+      "sourceEvidence": [
+        "packages/adapter-cursor/package.json",
+        "packages/adapter-cursor/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/adapter-cursor/package.json": "dc078d92bafcf708f0dc4d63ed8d7d8f237e0510a55ed9032f86f1c0b28b285a",
+        "packages/adapter-cursor/README.md": "7ae4ec642c185c0726a072107ebc0d8923ccaa4e435b9aa197fa92b6a7ce59b7"
+      }
+    },
+    {
+      "id": "H006",
+      "query": "Сравниваю способы подключения навыков к Gemini CLI: выбираю агрегатор в GEMINI.md с предупреждением о потерях при strict-режиме, а не самостоятельный установщик навыков.",
+      "source": "packages/adapter-gemini/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-gemini"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-gemini"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-gemini"
+      ],
+      "rationale": "Gemini README identifies lossy aggregator with strict throw; application of returned content belongs to operations layer.",
+      "sourceEvidence": [
+        "packages/adapter-gemini/package.json",
+        "packages/adapter-gemini/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/adapter-gemini/package.json": "6055ee0a3eeaf8046462ee4eb1e8d736ca4a72c21c2d621e0b45b7382ee292a7",
+        "packages/adapter-gemini/README.md": "eeeedd6e8e7872bd17dc4b56e4592f7a6b607ac11f7990c84a31565bf6d171bf"
+      }
+    },
+    {
+      "id": "H007",
+      "query": "Проверяем совместимость открытого формата Agent Skills с Hermes. Нужен платформенный emitter, сохраняющий progressive-disclosure дерево и относительное размещение файлов.",
+      "source": "packages/adapter-hermes/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-hermes"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-hermes"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-hermes"
+      ],
+      "rationale": "Hermes README states agentskills compatibility, progressive disclosure and relative emitted tree.",
+      "sourceEvidence": [
+        "packages/adapter-hermes/package.json",
+        "packages/adapter-hermes/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/adapter-hermes/package.json": "04be2a3996b34195c5aeb0606152e343f153247c95037c3d66582015763121b7",
+        "packages/adapter-hermes/README.md": "0b4994ec8afc37e2cb6cd49afbbd3e54c38ac7fdd987d4ee05b814110e922c9c"
+      }
+    },
+    {
+      "id": "H008",
+      "query": "В кросс-платформенной сборке требуется target openclaude: из общего определения получить проектную структуру, которую читает этот CLI. Нужен именно target-адаптер для интегратора.",
+      "source": "packages/adapter-openclaude/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-openclaude"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-openclaude"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-openclaude"
+      ],
+      "rationale": "OpenClaude README defines canonical-skills compiler into project .openclaude/skills tree.",
+      "sourceEvidence": [
+        "packages/adapter-openclaude/package.json",
+        "packages/adapter-openclaude/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/adapter-openclaude/package.json": "9d128a27c6423b8027c22109f61adbbead58ac9025f727607c56c8b24ead0dc7",
+        "packages/adapter-openclaude/README.md": "ef9b2dd3c6813c8123b648b59eb0c4101531c4cc700866ae3a813d1218f856bf"
+      }
+    },
+    {
+      "id": "H009",
+      "query": "Для автоматической проверки доставки под OpenCode нужен адаптер с compile и verify, который возвращает данные для harness вместо самостоятельного изменения рабочей папки.",
+      "source": "packages/adapter-opencode/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-opencode"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-opencode"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-opencode"
+      ],
+      "rationale": "OpenCode README explicitly identifies pure compile and verify functions returning data without filesystem writes.",
+      "sourceEvidence": [
+        "packages/adapter-opencode/package.json",
+        "packages/adapter-opencode/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/adapter-opencode/package.json": "9ad996237b5eeeaf71772c38402670047dee748cb8f5247050661b42e93b966f",
+        "packages/adapter-opencode/README.md": "ff7abd62fe720c85454836025d3c3ec83f700f36df0c29ff6bfb7e358789ec1f"
+      }
+    },
+    {
+      "id": "H010",
+      "query": "В совместимой сборке Windsurf нельзя выпускать Cursor .mdc или будущие .devin/rules. Нужен адаптер, закреплённый на .windsurf/rules/*.md и предупреждающий о преобразовании.",
+      "source": "packages/adapter-windsurf/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/adapter-windsurf"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/adapter-windsurf"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/adapter-windsurf"
+      ],
+      "rationale": "Windsurf README pins .windsurf/rules/*.md and explicitly leaves .devin/rules support out of scope.",
+      "sourceEvidence": [
+        "packages/adapter-windsurf/package.json",
+        "packages/adapter-windsurf/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/adapter-windsurf/package.json": "5ec0edc4dd780e001b51d6f404fa766692aba8df577bd79b168ba784dd6a5373",
+        "packages/adapter-windsurf/README.md": "07b1f47b193ba205eb755e9fe502b5d204e0151e85319fa7e98f3d55a6e12cce"
+      }
+    },
+    {
+      "id": "H011",
+      "query": "Подключаем неофициальный Cloud.ru MCP к Codex в проекте. Нужен launcher с target integration через pinned proxy, а не предложение запускать сырой engine без защитного слоя.",
+      "source": "packages/cloudru-hub/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/cloudru-hub"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/cloudru-hub"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/cloudru-hub"
+      ],
+      "rationale": "Cloudru hub README documents project MCP configurations with pinned proxy; raw engine access is a different boundary.",
+      "sourceEvidence": [
+        "packages/cloudru-hub/package.json",
+        "packages/cloudru-hub/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/cloudru-hub/package.json": "dba9080e2deb35d6ba68e563f46ae95edd01357046260dc25881ae6c6d361d6b",
+        "packages/cloudru-hub/README.md": "ed7ebc1b48b65ef7eff23fab1ef048dc3144e61cb931a6e965d360bd84c041a0"
+      }
+    },
+    {
+      "id": "H012",
+      "query": "Ищу Linux/x64 engine companion для Cloud.ru launcher с receipt-based recovery после неопределённого удаления Kubernetes-кластера; нужен пакет движка, а не методический skill.",
+      "source": "packages/cloudru-vm-linux-x64/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/cloudru-vm-linux-x64"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/cloudru-vm-linux-x64"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/cloudru-vm-linux-x64"
+      ],
+      "rationale": "Linux engine README explicitly documents configured-project/exact-cluster deletion intent and uncertainty recovery without replaying DELETE.",
+      "sourceEvidence": [
+        "packages/cloudru-vm-linux-x64/package.json",
+        "packages/cloudru-vm-linux-x64/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/cloudru-vm-linux-x64/package.json": "647c713867b0e5f50e2968e110067a238f90581c1484b493f0e14233f1e5a425",
+        "packages/cloudru-vm-linux-x64/README.md": "acd6f92980e36939229f0003f262480528212817d43594eaedc0522c345745b0"
+      }
+    },
+    {
+      "id": "H013",
+      "query": "Парсим INTEGRATIONS.json в стороннем инструменте. Нужна общая schema и canonical manifest digest с vocabulary результатов, без утверждения, что парсинг уже зарегистрировал MCP.",
+      "source": "packages/core/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/core"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/core"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/core"
+      ],
+      "rationale": "Core README exposes HarnessIntegrationManifestV1Schema, integrationManifestDigest and result vocabulary; parsing is not runtime registration.",
+      "sourceEvidence": [
+        "packages/core/package.json",
+        "packages/core/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/core/package.json": "5ff7b78f0faf77020bd21cff29dfc9e43708838920d9bfa591086e5fee562328",
+        "packages/core/README.md": "043c86fb24960ec16553fddc1a4c0b632b25be8186aa27b05342278afd025ab9"
+      }
+    },
+    {
+      "id": "H014",
+      "query": "Нужен повторяемый critique-revise workflow для черновика: найти существенные дефекты, исправить, проверить и остановиться, не уходя в бесконечную косметическую полировку.",
+      "source": "packages/design-thinking/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/design-thinking"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/design-thinking"
+        ],
+        [
+          "@dzhechkov/skills-meta"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/design-thinking"
+      ],
+      "rationale": "Reflection Loop implements draft/critique/revise/verify with maximum rounds and anti-loop/cosmetic-change discipline.",
+      "sourceEvidence": [
+        "packages/design-thinking/package.json",
+        "packages/design-thinking/README.md",
+        "packages/design-thinking/templates/.claude/skills/reflection-loop/SKILL.md",
+        "packages/skills-meta/reflection-loop/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/design-thinking/package.json": "0909652bbee00cf3d687cc0f022ffe13c677bc09938da0f095ceabe43e6493f9",
+        "packages/design-thinking/README.md": "3e2098939fccbadd583744b0fcc7d7ea390ae167fd8167297afef79709985af3",
+        "packages/design-thinking/templates/.claude/skills/reflection-loop/SKILL.md": "32aec11844192aa0d7c9f3726f055d896d8a9c9984699d4f9b3d9f6d06a27303",
+        "packages/skills-meta/reflection-loop/SKILL.md": "32aec11844192aa0d7c9f3726f055d896d8a9c9984699d4f9b3d9f6d06a27303"
+      }
+    },
+    {
+      "id": "H015",
+      "query": "Проектная вики разрослась. Хочу привести страницы концептов к атомарному self-contained формату с TL;DR, pillars и related links, не превращая каждую мелкую feature ADR в отдельный концепт.",
+      "source": "packages/evidence-wiki/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/evidence-wiki"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/evidence-wiki"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/evidence-wiki"
+      ],
+      "rationale": "Concept Wiki source defines atomic self-contained concept pages, pillars and exclusions for small feature ADRs.",
+      "sourceEvidence": [
+        "packages/evidence-wiki/package.json",
+        "packages/evidence-wiki/README.md",
+        "packages/evidence-wiki/skills/concept-wiki-generator/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/evidence-wiki/package.json": "02157f891166ee308d6b8bd430dddfa396d7d9c95a12eeca3858944d2a2ac4bf",
+        "packages/evidence-wiki/README.md": "7dca354af818d4a1b2f5a10a352e7f1f4d9986844b597d0c55139d5544d40fad",
+        "packages/evidence-wiki/skills/concept-wiki-generator/SKILL.md": "21fd7688234576e3b70a992001093b0ddd83ab444d61078b7eba54c18550fcd2"
+      }
+    },
+    {
+      "id": "H016",
+      "query": "Нужно прочитать durable native QE history через командную строку без записи и отдельно различать чтение отчёта и явные mutating actions.",
+      "source": "packages/harness-cli/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/harness-cli"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/harness-cli"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/harness-cli"
+      ],
+      "rationale": "CLI README states dz qe-rounds --source native is read-only by default and explicit --action performs mutations.",
+      "sourceEvidence": [
+        "packages/harness-cli/package.json",
+        "packages/harness-cli/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/harness-cli/package.json": "155010cdbe6483d4b79d7c86e1582687ee4f3cf40502cea0fcf51a78afc676c4",
+        "packages/harness-cli/README.md": "94eb694d96b611182b7b11ba6557300d1b54daa37fc2c707c039d7e42d7fbcf7"
+      }
+    },
+    {
+      "id": "H017",
+      "query": "Проверяю, действительно ли Claude зарегистрировал skills из установленного набора. Нужен библиотечный registration gate, который умеет вернуть inconclusive при недоступном наблюдении.",
+      "source": "packages/harness-core/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/harness-core"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/harness-core"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/harness-core"
+      ],
+      "rationale": "Harness-core README describes skills-verify registration evidence gate and inconclusive for unobservable registration.",
+      "sourceEvidence": [
+        "packages/harness-core/package.json",
+        "packages/harness-core/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/harness-core/package.json": "ec72f9dbe5193c1d3dd5b358c39addf0e16ce3e88389bc468c4c83b4de219e55",
+        "packages/harness-core/README.md": "9c618c50f75430a719abcab1fd4c6fb551f4b76395c970cfcedbd24ff6099f51"
+      }
+    },
+    {
+      "id": "H018",
+      "query": "Одинаковый skill ID найден в проекте и в package provider. Нужен набор preset/discovery правил, объясняющий, почему ранний источник выигрывает даже при --force и откуда берётся integration manifest.",
+      "source": "packages/harness-presets/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/harness-presets"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/harness-presets"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/harness-presets"
+      ],
+      "rationale": "Presets README states earlier roots win duplicate IDs even with force and integration manifest comes from same winner.",
+      "sourceEvidence": [
+        "packages/harness-presets/package.json",
+        "packages/harness-presets/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/harness-presets/package.json": "0857330669a7948868e2f7d33f2d279435df19465ecc819a1dc7f9c7fbc6ea49",
+        "packages/harness-presets/README.md": "c2431f6e6903ce1efe79759817c9571cf19f9a285c541c6ba05c274fd37888e1"
+      }
+    },
+    {
+      "id": "H019",
+      "query": "Есть список лекарств для обсуждения с врачом. Нужен навык проверки потенциальных парных drug-drug interactions с классификацией серьёзности, без обещания безопасно назначить лечение.",
+      "source": "packages/health-advisor/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/health-advisor"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/health-advisor"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/health-advisor"
+      ],
+      "rationale": "Drug Interaction Checker supports pairwise medication interaction reports and severity grading; source cannot guarantee medical safety.",
+      "sourceEvidence": [
+        "packages/health-advisor/package.json",
+        "packages/health-advisor/README.md",
+        "packages/health-advisor/skills/drug-interaction-checker/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/health-advisor/package.json": "054710e33fcbc3f9c8a75206a8e731a8a0202c107573b9fa622904dec9646ae6",
+        "packages/health-advisor/README.md": "369d641b06ed0a7c420812bb20bffe3ce251be6f74c0736e86828b05c121b90b",
+        "packages/health-advisor/skills/drug-interaction-checker/SKILL.md": "1f2a55f2a15d0cb96fe589728764e578b7b5304deb6a73eb154e3ecc0c95a111"
+      }
+    },
+    {
+      "id": "H020",
+      "query": "В toolkit для исследования кейсов нужно подготовить клиентский pitch: согласовать brief, собрать подтверждённые тезисы и выпустить outline, полную презентацию и sources index.",
+      "source": "packages/keysarium/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/keysarium"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/keysarium"
+        ],
+        [
+          "@dzhechkov/skills-presentation-storyteller"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/keysarium"
+      ],
+      "rationale": "Keysarium ships Presentation Storyteller with these artifacts and phased brief/research/structure workflow; identical standalone carrier also valid.",
+      "sourceEvidence": [
+        "packages/keysarium/package.json",
+        "packages/keysarium/README.md",
+        "packages/keysarium/templates/.claude/skills/presentation-storyteller/SKILL.md",
+        "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/keysarium/package.json": "35b623270c0e3b2a510455550f04b1bb51a48b16fa9f323891f930d4b674a99d",
+        "packages/keysarium/README.md": "748bcfec4d7e98ca87b124bcb688342130bdd8fffe7cf9cf1a2291a5479a783d",
+        "packages/keysarium/templates/.claude/skills/presentation-storyteller/SKILL.md": "f6ad6e6020280f17ccc4e7b71b28551310805aa99999b4056ec0ccfead1193d5",
+        "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md": "f6ad6e6020280f17ccc4e7b71b28551310805aa99999b4056ec0ccfead1193d5"
+      }
+    },
+    {
+      "id": "H021",
+      "query": "Для собственных skill-артефактов нужна единая классификация Advisory/Structured/Validated/Verified и протокол продвижения между уровнями.",
+      "source": "packages/keysarium-core/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/keysarium-core"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/keysarium-core"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/keysarium-core"
+      ],
+      "rationale": "Keysarium-core README defines four trust tiers and promotion protocol, not automatically proven quality.",
+      "sourceEvidence": [
+        "packages/keysarium-core/package.json",
+        "packages/keysarium-core/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/keysarium-core/package.json": "7248771a3eba34cc5e68bea799346146da53a49a9c63a727409ba1ea30f9db61",
+        "packages/keysarium-core/README.md": "7844e3c6a518463e9cf21726efcc1c5101ea4553965a388f98ac12b4a40bc2ac"
+      }
+    },
+    {
+      "id": "H022",
+      "query": "После ручных изменений workflow-script нужно сохранить USER regions при повторном render плана. Подбери пакет авторинга loop-plan с этим контрактом и выбором host runtime.",
+      "source": "packages/loop-designer-plugin/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/loop-designer-plugin"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/loop-designer-plugin"
+        ],
+        [
+          "@dzhechkov/skills-meta"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/loop-designer-plugin"
+      ],
+      "rationale": "Loop Plan Author explicitly specifies USER regions surviving re-render and host path for handwritten script customizations.",
+      "sourceEvidence": [
+        "packages/loop-designer-plugin/package.json",
+        "packages/loop-designer-plugin/README.md",
+        "packages/loop-designer-plugin/skills/loop-plan-author/SKILL.md",
+        "packages/skills-meta/loop-plan-author/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/loop-designer-plugin/package.json": "7b167f7af7a7af84e8acaa05d840ad74b25cc7c610084bc215d41c1b032b96ec",
+        "packages/loop-designer-plugin/README.md": "291e69394cc25676b28b041322295aa0426f4919d6eaed9945aa76a476cdb9e9",
+        "packages/loop-designer-plugin/skills/loop-plan-author/SKILL.md": "044ee382bc14d922ae86e246a95de3bd00953dce2ffd0a3e3742e61a83976458",
+        "packages/skills-meta/loop-plan-author/SKILL.md": "044ee382bc14d922ae86e246a95de3bd00953dce2ffd0a3e3742e61a83976458"
+      }
+    },
+    {
+      "id": "H023",
+      "query": "Встраиваем harness MCP server в приложение для тестов, а не запускаем CLI. Нужен экспорт фабрики настроенного McpServer с локальным чтением навыков.",
+      "source": "packages/mcp-server-tools/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/mcp-server-tools"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/mcp-server-tools"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/mcp-server-tools"
+      ],
+      "rationale": "mcp-server-tools README documents createDzMcpServer returning configured server for embedding/testing and local skills directory.",
+      "sourceEvidence": [
+        "packages/mcp-server-tools/package.json",
+        "packages/mcp-server-tools/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/mcp-server-tools/package.json": "4db48b6b20c0703e1ebcc33e5f089e47ebbe5236eacbd01a6fd8e56bad652ec6",
+        "packages/mcp-server-tools/README.md": "5da23ae4e650cb7595058b006a7b3e70cbe24c55a0a42f97395bd2d84a40ae9b"
+      }
+    },
+    {
+      "id": "H024",
+      "query": "У агента уже есть markdown-файл памяти. Нужна библиотека, импортирующая его в MemoryRecord для общего слоя хранения, без обязательной SQLite зависимости при импорте модуля.",
+      "source": "packages/memory/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/memory"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/memory"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/memory"
+      ],
+      "rationale": "Memory README documents MemoryBridge/importMemoryMarkdown and lazy optional SQLite dependency.",
+      "sourceEvidence": [
+        "packages/memory/package.json",
+        "packages/memory/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/memory/package.json": "7e1b7c920c57370a74499ef75535d8ce58a4151e15463188081d528e564b7ac8",
+        "packages/memory/README.md": "af4b81a9609aca255c33679aed6e3305503d3dae589cd409f007aecb9bdedb1a"
+      }
+    },
+    {
+      "id": "H025",
+      "query": "После PRD и SPARC-документации хочу сгенерировать Claude Code toolkit: CLAUDE.md, специализированные агенты, команды, правила и hooks для дальнейшей работы.",
+      "source": "packages/p-replicator/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/p-replicator"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/p-replicator"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/p-replicator"
+      ],
+      "rationale": "Toolkit Generator explicitly accepts PRD/SPARC documentation and creates Claude toolkit artifacts.",
+      "sourceEvidence": [
+        "packages/p-replicator/package.json",
+        "packages/p-replicator/README.md",
+        "packages/p-replicator/templates/.claude/skills/cc-toolkit-generator-enhanced/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/p-replicator/package.json": "7cece593876bc85fa764859e2bf2eec9e3e4c95a17602b76c474c933f4138ed3",
+        "packages/p-replicator/README.md": "117fa72b28c5d4378fafb0273b4ca8d4a5139e0bd2c7f1a16588e35e95f6b503",
+        "packages/p-replicator/templates/.claude/skills/cc-toolkit-generator-enhanced/SKILL.md": "ef4f8901f49f7fbb7db0c2994973c42840e3e909f1585c70a4f7442752b41265"
+      }
+    },
+    {
+      "id": "H026",
+      "query": "Найденные agent-skill проекты надо изучить глубже: загрузить SKILL.md, сравнить с имеющимся инвентарём и предложить canonicalize, merge, new-preset либо skip.",
+      "source": "packages/scout/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/scout"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/scout"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/scout"
+      ],
+      "rationale": "Scout deep mode documents fetched SKILL analysis, closest match and canonicalize/merge/new-preset/skip recommendations.",
+      "sourceEvidence": [
+        "packages/scout/package.json",
+        "packages/scout/README.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/scout/package.json": "021dca1c87bc04b6ee6f30a6e0ffc6f8a76de2a15859e9ef9bce9a0eeb9fd65f",
+        "packages/scout/README.md": "22ebb1bad38d1bbdcc173cc2eee51a99a35ed521d8843f22341f1d88a810734e"
+      }
+    },
+    {
+      "id": "H027",
+      "query": "Хотим заменить локальный SMTP внешним провайдером без правки кода приложения. Нужен Twelve-Factor подход к network dependencies как attached resources.",
+      "source": "packages/skills-12factor/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-12factor"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-12factor"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-12factor"
+      ],
+      "rationale": "Backing Services source explicitly covers swapping local SMTP/provider via locator/config without code coupling.",
+      "sourceEvidence": [
+        "packages/skills-12factor/package.json",
+        "packages/skills-12factor/README.md",
+        "packages/skills-12factor/12factor-backing-services-as-resources/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-12factor/package.json": "6579de92ea6013e5bf4ad06b37bee4563a6a52861d31ec88144c14e84bb16cb4",
+        "packages/skills-12factor/README.md": "42fa0033987e5ca638b8aeb2897f5e9f6aa956462e3794353c08b6b76f5e11f2",
+        "packages/skills-12factor/12factor-backing-services-as-resources/SKILL.md": "b85a1917b8f877842100499b7c54fc832566d3b50e365604da74e75038b662b1"
+      }
+    },
+    {
+      "id": "H028",
+      "query": "По транскрипту устного доклада на защите ВКР оцени структуру и раскрытие темы и сопоставь содержание с текстом работы; ответы комиссии будут разобраны отдельно.",
+      "source": "packages/skills-academic/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-academic"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-academic"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-academic"
+      ],
+      "rationale": "Defense Evaluator handles talk transcript structure/topic alignment with thesis, distinct from answer assessment.",
+      "sourceEvidence": [
+        "packages/skills-academic/package.json",
+        "packages/skills-academic/README.md",
+        "packages/skills-academic/defense-evaluator/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-academic/package.json": "b7098829d84e2cefeafd519bbf6686e536764354d17edb4b4f9c592e56985eed",
+        "packages/skills-academic/README.md": "a8b32d687c6c1bbcdfd3c24fe4fb644d45c8ee11a20cb62277805cd21c4c021f",
+        "packages/skills-academic/defense-evaluator/SKILL.md": "eba3d09cae83e368672263454caa866c1714267c69d4997fec31d52b68befdea"
+      }
+    },
+    {
+      "id": "H029",
+      "query": "Исследовательский отчёт содержит ссылки, но издатели не отдают подписанных данных. Нужен процесс provenance, который различает FETCH_VERIFIED, SELF_ATTESTED и отсутствие issuer verification.",
+      "source": "packages/skills-analyst-manual/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-analyst-manual"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-analyst-manual"
+        ],
+        [
+          "@dzhechkov/skills-presentation-storyteller"
+        ],
+        [
+          "@dzhechkov/health-advisor"
+        ],
+        [
+          "@dzhechkov/skills-news"
+        ],
+        [
+          "@dzhechkov/skills-meta"
+        ],
+        [
+          "@dzhechkov/skills-idea2prd"
+        ],
+        [
+          "@dzhechkov/skills-reverse-engineering"
+        ],
+        [
+          "@dzhechkov/trip-planner"
+        ],
+        [
+          "@dzhechkov/keysarium"
+        ],
+        [
+          "@dzhechkov/design-thinking"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-analyst-manual"
+      ],
+      "rationale": "GOAP research source separates fetched evidence and signer provenance; self-attestation does not prove source truth or trusted issuer identity.",
+      "sourceEvidence": [
+        "packages/skills-analyst-manual/package.json",
+        "packages/skills-analyst-manual/README.md",
+        "packages/skills-analyst-manual/templates/.claude/skills/goap-research-ed25519/SKILL.md",
+        "packages/skills-presentation-storyteller/templates/.claude/skills/goap-research-ed25519/SKILL.md",
+        "packages/health-advisor/base/skills/base/goap-research-ed25519/SKILL.md",
+        "packages/skills-news/goap-research-ed25519/SKILL.md",
+        "packages/skills-meta/goap-research-ed25519/SKILL.md",
+        "packages/skills-idea2prd/templates/.claude/skills/goap-research-ed25519/SKILL.md",
+        "packages/skills-reverse-engineering/templates/.claude/skills/goap-research-ed25519/SKILL.md",
+        "packages/trip-planner/templates/.claude/skills/goap-research-ed25519/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/goap-research-ed25519/SKILL.md",
+        "packages/design-thinking/templates/.claude/skills/goap-research-ed25519/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-analyst-manual/package.json": "f19ee966a07a22c820f281af4257e53d90efd569ac93e9fa89293886abed1692",
+        "packages/skills-analyst-manual/README.md": "5aa704cc34e24b21e0cdd3dbf5c1fb0ec2b661080bf5a52e382a90a2a57dbc91",
+        "packages/skills-analyst-manual/templates/.claude/skills/goap-research-ed25519/SKILL.md": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8",
+        "packages/skills-presentation-storyteller/templates/.claude/skills/goap-research-ed25519/SKILL.md": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8",
+        "packages/health-advisor/base/skills/base/goap-research-ed25519/SKILL.md": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8",
+        "packages/skills-news/goap-research-ed25519/SKILL.md": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8",
+        "packages/skills-meta/goap-research-ed25519/SKILL.md": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8",
+        "packages/skills-idea2prd/templates/.claude/skills/goap-research-ed25519/SKILL.md": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8",
+        "packages/skills-reverse-engineering/templates/.claude/skills/goap-research-ed25519/SKILL.md": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8",
+        "packages/trip-planner/templates/.claude/skills/goap-research-ed25519/SKILL.md": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8",
+        "packages/keysarium/templates/.claude/skills/goap-research-ed25519/SKILL.md": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8",
+        "packages/design-thinking/templates/.claude/skills/goap-research-ed25519/SKILL.md": "404cb696d537d29585ec35f97a86173a582cd6fcf8d5f172a4f5bbd75ec971a8"
+      }
+    },
+    {
+      "id": "H030",
+      "query": "У агента вырос toolbox. Нужно улучшить названия, схемы и error contracts инструментов и выбрать между обычным, семантическим и иерархическим выбором.",
+      "source": "packages/skills-book-ai-apps/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-book-ai-apps"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-ai-apps"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-ai-apps"
+      ],
+      "rationale": "Tool Design and Selection covers tool metadata/schemas/errors and standard/semantic/hierarchical selection ladder.",
+      "sourceEvidence": [
+        "packages/skills-book-ai-apps/package.json",
+        "packages/skills-book-ai-apps/README.md",
+        "packages/skills-book-ai-apps/aiagents-tool-design-and-selection/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-book-ai-apps/package.json": "94cd98d4a8a9d0e53f1810290ff9371818b0ac722b6f4c98d92d5737eb8a32c2",
+        "packages/skills-book-ai-apps/README.md": "699691847a6b1d0d67135a03c8d77371fbb6286cf39ca4ed16b5e5c75147dd9a",
+        "packages/skills-book-ai-apps/aiagents-tool-design-and-selection/SKILL.md": "20c8a1589f8046ab271c02dd75dbae90e743449da676e94126826239c90876de"
+      }
+    },
+    {
+      "id": "H031",
+      "query": "Функция одновременно читает значение и меняет состояние через скрытый эффект. Нужен Clean Code протокол одной операции, command/query разделения и узкой сигнатуры.",
+      "source": "packages/skills-book-clean-code/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-book-clean-code"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-clean-code"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-clean-code"
+      ],
+      "rationale": "Function Contracts source covers single operation, narrow signature, command/query and visible effects.",
+      "sourceEvidence": [
+        "packages/skills-book-clean-code/package.json",
+        "packages/skills-book-clean-code/README.md",
+        "packages/skills-book-clean-code/clean-code-function-contracts/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-book-clean-code/package.json": "53d522a2e4c5a51fe90cf5aa3a1cfcfddcf7cc11eb042c8421228d8e6b7bd089",
+        "packages/skills-book-clean-code/README.md": "b34c6987471e4b8fb6dc09b47eed416123eceb61ca593162805230dc65b1d227",
+        "packages/skills-book-clean-code/clean-code-function-contracts/SKILL.md": "15f17d1f8e025d57de81e2d0f1954a5922bd615bcb8cfbf0c973359e4b417fe4"
+      }
+    },
+    {
+      "id": "H032",
+      "query": "Данные перестали помещаться на одном узле. Выбери range или hash partition key, учитывая hot spots, вторичные индексы и дальнейшую ребалансировку.",
+      "source": "packages/skills-book-ddia/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-book-ddia"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-ddia"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-ddia"
+      ],
+      "rationale": "Partitioning Strategy explicitly covers range/hash keys, secondary indexes, hot spots and rebalancing across nodes.",
+      "sourceEvidence": [
+        "packages/skills-book-ddia/package.json",
+        "packages/skills-book-ddia/README.md",
+        "packages/skills-book-ddia/ddia-partitioning-strategy/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-book-ddia/package.json": "0e0bde7f53d8f3ff1ebf413999d8131ba59e75dea6eab8a09f75d6b458ae44a8",
+        "packages/skills-book-ddia/README.md": "d6eeaab640d3aaeefc44c1302cff0d0bdb288d07211fe2adcb75b7875d74e0c9",
+        "packages/skills-book-ddia/ddia-partitioning-strategy/SKILL.md": "b7fbb28b2fa65cef729479baf69b195f03ab7ee0b426b648928a75ca2dffebc3"
+      }
+    },
+    {
+      "id": "H033",
+      "query": "После верификации Knowledge Units нужно превратить их в decision-moment навыки с KU→skill traceability и проверкой активации; упаковка будет отдельным этапом.",
+      "source": "packages/skills-book-digitizer/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-book-digitizer"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-digitizer"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-digitizer"
+      ],
+      "rationale": "Book Skill Distill authors decision-moment skills from verified KUs with traceability and activation gate; excludes extraction/packaging.",
+      "sourceEvidence": [
+        "packages/skills-book-digitizer/package.json",
+        "packages/skills-book-digitizer/README.md",
+        "packages/skills-book-digitizer/book-skill-distill/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-book-digitizer/package.json": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba",
+        "packages/skills-book-digitizer/README.md": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af",
+        "packages/skills-book-digitizer/book-skill-distill/SKILL.md": "36400891f0f2b05fc4fe638ff32bd6e3abc1252b19b1d0314aed80455d95da53"
+      }
+    },
+    {
+      "id": "H034",
+      "query": "Для дорогого архитектурного решения нужно выбрать доминирующую семью протоколов из Fundamentals of Software Architecture, назвать fitness condition и trigger пересмотра, затем передать реализацию профильному навыку.",
+      "source": "packages/skills-book-fundamental-software-architecture/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-book-fundamental-software-architecture"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-fundamental-software-architecture"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-fundamental-software-architecture"
+      ],
+      "rationale": "Architecture Guide selects routing family/protocol, records verification/reconsideration conditions and hands artifact/implementation to owner.",
+      "sourceEvidence": [
+        "packages/skills-book-fundamental-software-architecture/package.json",
+        "packages/skills-book-fundamental-software-architecture/README.md",
+        "packages/skills-book-fundamental-software-architecture/fundamental-software-architecture-guide/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-book-fundamental-software-architecture/package.json": "274b778afe88cd89593ff4ac76a1da9269db90ef7f7fc06b93d1ec0aa65359c6",
+        "packages/skills-book-fundamental-software-architecture/README.md": "b807507acc2a7fd7e953fe5225a1e0db34ea1dfd07ad7ab2000b4b58010239ae",
+        "packages/skills-book-fundamental-software-architecture/fundamental-software-architecture-guide/SKILL.md": "a16b354407a7f080144cc8a1460b1ded3f1d5c2e056d0a8d2a4d6ba0c4fc1bd9"
+      }
+    },
+    {
+      "id": "H035",
+      "query": "Инструкции навыка трактуются неодинаково. Нужен B2 consistency probe: несколько независимых исполнителей интерпретируют одинаковый prompt, после чего сравнивается согласованность выходов.",
+      "source": "packages/skills-bto/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-bto"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-bto"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-bto"
+      ],
+      "rationale": "BTO B2 explicitly sends same artifact-derived prompt to independent probes and compares output consistency.",
+      "sourceEvidence": [
+        "packages/skills-bto/package.json",
+        "packages/skills-bto/README.md",
+        "packages/skills-bto/templates/.claude/skills/bto/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-bto/package.json": "8deefed20a66b5f8025a217c28adc789004b7691b7214d157342e13fd0094d3b",
+        "packages/skills-bto/README.md": "418b01d2dd1391d4bb7d2d93580fd0f58346f7828f039e95023088f83132f491",
+        "packages/skills-bto/templates/.claude/skills/bto/SKILL.md": "cc15a07922126226776d4c48446b3d75fa8caaf16949389f448f42c9787207cb"
+      }
+    },
+    {
+      "id": "H036",
+      "query": "После изменения стоимости вариантов прежнее согласие владельца не должно автоматически действовать. Нужна страница решений с revision и повторным подтверждением актуальных условий.",
+      "source": "packages/skills-decision-mockups/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-decision-mockups"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-decision-mockups"
+        ],
+        [
+          "@dzhechkov/skills-meta"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-decision-mockups"
+      ],
+      "rationale": "Decision Mockups v2 changes revision with material terms and requires whole-page reconfirmation for stale answers.",
+      "sourceEvidence": [
+        "packages/skills-decision-mockups/package.json",
+        "packages/skills-decision-mockups/README.md",
+        "packages/skills-decision-mockups/decision-mockups/SKILL.md",
+        "packages/skills-meta/decision-mockups/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-decision-mockups/package.json": "a39e82b21dbbc800afc2f0fca0d23a6032727e93ad5e23c585c76688df98316f",
+        "packages/skills-decision-mockups/README.md": "22b8b94df8cafc17bb98f005ac8cc77f1675ad3b216835fdd938df48cff74d8b",
+        "packages/skills-decision-mockups/decision-mockups/SKILL.md": "6af149dcfcc60d55157de11117922f0714ad040c26d517e5eaf4d4e2cfa7c6e7",
+        "packages/skills-meta/decision-mockups/SKILL.md": "6af149dcfcc60d55157de11117922f0714ad040c26d517e5eaf4d4e2cfa7c6e7"
+      }
+    },
+    {
+      "id": "H037",
+      "query": "Демо-сайт подготовлен к публикации в GitHub Pages. Нужен штатный процесс clean-room smoke и size gates с требованием отдельной санкции владельца на публичный выпуск.",
+      "source": "packages/skills-demo-publisher/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-demo-publisher"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-demo-publisher"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-demo-publisher"
+      ],
+      "rationale": "Demo Publisher workflow checks size/clean-room gates and requires explicit owner sanction before publishing.",
+      "sourceEvidence": [
+        "packages/skills-demo-publisher/package.json",
+        "packages/skills-demo-publisher/README.md",
+        "packages/skills-demo-publisher/demo-site-publisher/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-demo-publisher/package.json": "3a85ff7c360b7c77764f2d625a75d1b31c5a7500282f25031dfb1b5ddf2591d0",
+        "packages/skills-demo-publisher/README.md": "48ecb93d32aa3f5e2f34b219f118746dd3b75f058558fbfe8b12d55e5d9a120a",
+        "packages/skills-demo-publisher/demo-site-publisher/SKILL.md": "8616bc48a830b32612c55f204cb70c096150a92c921e89ac9282d18927d744bb"
+      }
+    },
+    {
+      "id": "H038",
+      "query": "Нужно настроить Nginx перед несколькими экземплярами приложения: reverse proxy, upstream balancing и TLS termination, затем проверить конфигурацию.",
+      "source": "packages/skills-devops/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-devops"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-devops"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-devops"
+      ],
+      "rationale": "Nginx Config covers reverse proxy, upstream balancing, TLS and configuration review.",
+      "sourceEvidence": [
+        "packages/skills-devops/package.json",
+        "packages/skills-devops/README.md",
+        "packages/skills-devops/nginx-config/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-devops/package.json": "3a6d66b689bcbeb15f8b69b6673a30fb5293b1f73666fe1722be831219b0c0cb",
+        "packages/skills-devops/README.md": "0c4c83af4d66488cdc6822661c9e02c39eea924d243e4b680a4fe0942a83218e",
+        "packages/skills-devops/nginx-config/SKILL.md": "19c9ea567f6cd554c7bbd5d1e12a33571f36914ea1543fb0e0400b587eb795e6"
+      }
+    },
+    {
+      "id": "H039",
+      "query": "Новая команда выбирает GitFlow, trunk-based или GitHub Flow. Нужна методика branching strategy вместе с commit conventions и правилами командной работы.",
+      "source": "packages/skills-ecc/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-ecc"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-ecc"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-ecc"
+      ],
+      "rationale": "ECC Git Workflow covers branching strategies, commit conventions and collaborative development.",
+      "sourceEvidence": [
+        "packages/skills-ecc/package.json",
+        "packages/skills-ecc/README.md",
+        "packages/skills-ecc/git-workflow/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-ecc/package.json": "d5ce4586464973c494a9559aa1bc1016caa91b683360da7a69bf6c809708b9a7",
+        "packages/skills-ecc/README.md": "612b756ba2c5c81b35951f4fb5de8ae27235ebef3f85273d485be5fc005b61cf",
+        "packages/skills-ecc/git-workflow/SKILL.md": "2f2210d4e7d21195ee1193722a4e02ecb46a50e25626645f96d9a4b77cef56dd"
+      }
+    },
+    {
+      "id": "H040",
+      "query": "Для учебного сайта нужно осмысленно назначить разные упражнения разделам, добавить объяснения неверных ответов и итоговую проверку, чтобы курс не был набором одинаковых простых quiz.",
+      "source": "packages/skills-edu-site/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-edu-site"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-edu-site"
+        ],
+        [
+          "@dzhechkov/keysarium"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-edu-site"
+      ],
+      "rationale": "Edu-site source specifies varied exercise types, wrong-answer explanations and final assessment.",
+      "sourceEvidence": [
+        "packages/skills-edu-site/package.json",
+        "packages/skills-edu-site/README.md",
+        "packages/skills-edu-site/templates/.claude/skills/edu-site-generator/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/edu-site-generator/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-edu-site/package.json": "3db8eca273ce644d0290d8f3b78b48472d4c9f903a995e2ca416aa1ca8f4b4c5",
+        "packages/skills-edu-site/README.md": "7ebefa0978f04fad5a60ccbc6e4f2287df7bf4a982ebe7ba5ff397fbf3455e58",
+        "packages/skills-edu-site/templates/.claude/skills/edu-site-generator/SKILL.md": "c999b07ed76c289e1433cfea0b59abd8723d9c36455f76dc2fd8a3c6cf064bcf",
+        "packages/keysarium/templates/.claude/skills/edu-site-generator/SKILL.md": "c999b07ed76c289e1433cfea0b59abd8723d9c36455f76dc2fd8a3c6cf064bcf"
+      }
+    },
+    {
+      "id": "H041",
+      "query": "В проекте повторяются одни и те же дефекты после агентной разработки. Нужен workflow аудита, извлекающий причины в проектную пару implementer/critic skills и wiring в architecture/project-skills.json.",
+      "source": "packages/skills-feature-adr/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-feature-adr"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-feature-adr"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-feature-adr"
+      ],
+      "rationale": "Code Skills Creator grounds project-specific implementer/critic pair in recurring code/history mistakes and wires role scaffold.",
+      "sourceEvidence": [
+        "packages/skills-feature-adr/package.json",
+        "packages/skills-feature-adr/README.md",
+        "packages/skills-feature-adr/templates/.claude/skills/code-skills-creator/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-feature-adr/package.json": "7f2a304680da475a961f87df93702dcc6764543bc9b145ef1b40a42a97d2be3d",
+        "packages/skills-feature-adr/README.md": "7f1345504f2b6fed333b492750a389c9fa6d0e377a9906bfbff7697ed6daf00f",
+        "packages/skills-feature-adr/templates/.claude/skills/code-skills-creator/SKILL.md": "2c47426a0637a8d120d132021a5319db991441d6b15a5f62d909f12bf8eafb53"
+      }
+    },
+    {
+      "id": "H042",
+      "query": "Готовим PRD/ADR пакет и хотим отделить наблюдаемые метрики от vendor claims и прогнозных targets: каждому числу нужен MEASURED, CLAIMED или ESTIMATED с основанием.",
+      "source": "packages/skills-idea2prd/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-idea2prd"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-idea2prd"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-idea2prd"
+      ],
+      "rationale": "Idea2PRD Claim Discipline applies honest tags and source/basis to quantitative emitted-doc claims including targets.",
+      "sourceEvidence": [
+        "packages/skills-idea2prd/package.json",
+        "packages/skills-idea2prd/README.md",
+        "packages/skills-idea2prd/templates/.claude/skills/idea2prd-manual/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-idea2prd/package.json": "f1a21d913d5791859a6975f140a682ea37ca978a5f1e0f9484b08da5a0156332",
+        "packages/skills-idea2prd/README.md": "82f025872787656f1c91ded17a293d34bc37b6f12f208252f5a0e9d6d5a429d6",
+        "packages/skills-idea2prd/templates/.claude/skills/idea2prd-manual/SKILL.md": "64780d15549e8c2c20a83fbb7afa6856cecbb6d7b940b72ea7d57dca83675786"
+      }
+    },
+    {
+      "id": "H043",
+      "query": "Нужно через Google Calendar MCP найти свободное время между календарями и создать событие после OAuth-настройки. Подбери пакет с соответствующим integration workflow.",
+      "source": "packages/skills-mcp/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-mcp"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-mcp"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-mcp"
+      ],
+      "rationale": "Calendar SKILL covers availability and event creation through external MCP server with OAuth prerequisite.",
+      "sourceEvidence": [
+        "packages/skills-mcp/package.json",
+        "packages/skills-mcp/README.md",
+        "packages/skills-mcp/google-calendar/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-mcp/package.json": "5567fb0737e7b32acec213646fdcdfe792e3393a1d59a616049b66f9799ad86d",
+        "packages/skills-mcp/README.md": "a5e625ee532b998980c47f41a46bb474fbe575c51202834c24d569d4578115e9",
+        "packages/skills-mcp/google-calendar/SKILL.md": "94a4281bdbcbf06b2c64be55362839cb7b997c6649d4e627cdc19d9eafb51c28"
+      }
+    },
+    {
+      "id": "H044",
+      "query": "Контекст рабочей сессии почти заполнен. Нужен протокол приоритетного сокращения и checkpoint-restore, чтобы продолжить задачу с сохранёнными решениями.",
+      "source": "packages/skills-meta/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-meta"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-meta"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-meta"
+      ],
+      "rationale": "Context Window Management explicitly covers priority pruning, checkpoint-restore, summarization and continuation.",
+      "sourceEvidence": [
+        "packages/skills-meta/package.json",
+        "packages/skills-meta/README.md",
+        "packages/skills-meta/context-window-management/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-meta/package.json": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229",
+        "packages/skills-meta/README.md": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc",
+        "packages/skills-meta/context-window-management/SKILL.md": "605264e1e29f99e9215185d60589804675fd93f9d82d27138ec5e4d70c00b2a9"
+      }
+    },
+    {
+      "id": "H045",
+      "query": "Для нового тематического newsletter нужен собственный news profile: собирать разные потоки источников в один source-cited обзор за выбранный период.",
+      "source": "packages/skills-news/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-news"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-news"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-news"
+      ],
+      "rationale": "News Digest is topic-agnostic through swappable/custom profiles and supports source-cited period reports/newsletters.",
+      "sourceEvidence": [
+        "packages/skills-news/package.json",
+        "packages/skills-news/README.md",
+        "packages/skills-news/news-digest/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-news/package.json": "de0c3cda9439b89c9cfeccf9d522a1671571f9eca9ec1de15756db32441267e8",
+        "packages/skills-news/README.md": "bd69537ee87ca9aad423439f6a01ddaa2832f8de0617d847250bd43fbd77d349",
+        "packages/skills-news/news-digest/SKILL.md": "323fe7246946b4754e70258be365d8f5610f9ac40babb9121849e527e614d7a5"
+      }
+    },
+    {
+      "id": "H046",
+      "query": "Нужен воспроизводимый handoff короткой страницы о пакете: evidence artifact, brief, HTML, результат verifier и команды повторной сборки вместе с перечнем неподтверждённых claims.",
+      "source": "packages/skills-package-story-page/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-package-story-page"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-package-story-page"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-package-story-page"
+      ],
+      "rationale": "Package Story Page Handoff explicitly lists these artifacts, regeneration commands and unsupported/unknown claims.",
+      "sourceEvidence": [
+        "packages/skills-package-story-page/package.json",
+        "packages/skills-package-story-page/README.md",
+        "packages/skills-package-story-page/package-story-page/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-package-story-page/package.json": "ec4f0f03e626719a57fd93cb91faa414f6b0249b9cdf855e5ccaeef5f0ebf628",
+        "packages/skills-package-story-page/README.md": "ed9b5762acdf9519f33228a3f5d1b9bdc3f49cf967038d8eae46b31acc2b477c",
+        "packages/skills-package-story-page/package-story-page/SKILL.md": "65cd2059c6d4cea79faa995f2d9968c845bbba91f8235ce27af9de5ac6cd5e24"
+      }
+    },
+    {
+      "id": "H047",
+      "query": "Чтобы выбрать, что строить дальше, свяжи целевую продуктовую метрику с возможностями клиентов, вариантами решения и экспериментами в Opportunity Solution Tree.",
+      "source": "packages/skills-pm/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-pm"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-pm"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-pm"
+      ],
+      "rationale": "OST skill defines four levels outcome/opportunities/solutions/experiments for discovery.",
+      "sourceEvidence": [
+        "packages/skills-pm/package.json",
+        "packages/skills-pm/README.md",
+        "packages/skills-pm/opportunity-solution-tree/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-pm/package.json": "030b78a847d0c8a67a16dffc1d7e3421e23a0335ff20938ae7f048ff0d0e14cf",
+        "packages/skills-pm/README.md": "c7d1d71dcd51a11c75abcc34cbcd5527ad815dc82edc7d00a66822a94ee51368",
+        "packages/skills-pm/opportunity-solution-tree/SKILL.md": "79d272d7bc2421b3132f5702ddb5526055b6c505ed02337a56ab930af2d1e937"
+      }
+    },
+    {
+      "id": "H048",
+      "query": "Для sales presentation надо сначала исследовать факты и статистику, составить sources index и отделить неподтверждённые тезисы до перехода к структуре слайдов.",
+      "source": "packages/skills-presentation-storyteller/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-presentation-storyteller"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-presentation-storyteller"
+        ],
+        [
+          "@dzhechkov/keysarium"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-presentation-storyteller"
+      ],
+      "rationale": "Presentation Storyteller research phase builds verified facts/statistics and source index before structure checkpoint.",
+      "sourceEvidence": [
+        "packages/skills-presentation-storyteller/package.json",
+        "packages/skills-presentation-storyteller/README.md",
+        "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/presentation-storyteller/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-presentation-storyteller/package.json": "2da98ce1bd43126dc923051b72febbe2db0e8979475abb7137c5314a1151dd0b",
+        "packages/skills-presentation-storyteller/README.md": "48cd9e7499f0f5082e10956c8feba57372ff1195f4eb6f5628ba771217d1e131",
+        "packages/skills-presentation-storyteller/templates/.claude/skills/presentation-storyteller/SKILL.md": "f6ad6e6020280f17ccc4e7b71b28551310805aa99999b4056ec0ccfead1193d5",
+        "packages/keysarium/templates/.claude/skills/presentation-storyteller/SKILL.md": "f6ad6e6020280f17ccc4e7b71b28551310805aa99999b4056ec0ccfead1193d5"
+      }
+    },
+    {
+      "id": "H049",
+      "query": "После изменения кода нужны unit и integration tests с error paths и edge cases; подбери профильный workflow генерации тестов для Vitest.",
+      "source": "packages/skills-qe/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-qe"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-qe"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-qe"
+      ],
+      "rationale": "QE Test Generation covers tests from code, error/edge paths and Jest/Vitest/Playwright support; dependencies required.",
+      "sourceEvidence": [
+        "packages/skills-qe/package.json",
+        "packages/skills-qe/README.md",
+        "packages/skills-qe/qe-test-generation/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-qe/package.json": "77c3f9fb3cab6c4ad6f8cf38085b50923872d2268e673c1c38a503f26986f5e1",
+        "packages/skills-qe/README.md": "ec9adc6f0cb372e75b13aa26d69f44a8cef61cdb213ab1f815661de08e49eb10",
+        "packages/skills-qe/qe-test-generation/SKILL.md": "f95c7d82355d42db37f7c5dda2e17a8ddb8b27082df2bb8ce95007622237f686"
+      }
+    },
+    {
+      "id": "H050",
+      "query": "При разборе дефекта нужен только диагноз: воспроизвести симптом, собрать свидетельства и описать причину, не выдавая patch и не меняя исходники.",
+      "source": "packages/skills-reasoning/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-reasoning"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-reasoning"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-reasoning"
+      ],
+      "rationale": "Investigate source explicitly requires diagnosis without modifying code or proposing fixes.",
+      "sourceEvidence": [
+        "packages/skills-reasoning/package.json",
+        "packages/skills-reasoning/README.md",
+        "packages/skills-reasoning/investigate/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-reasoning/package.json": "5991fca16c6b4bd12cbe0472d20020ec5e65a7d4b15416ec186568c9587d7f93",
+        "packages/skills-reasoning/README.md": "c45bc6916772b6cb94ed86812fc64e8873efa3622ced01c33a3d48e81d38a883",
+        "packages/skills-reasoning/investigate/SKILL.md": "db7432a23ba94a34056844043c0255ccb22e3e16eabfc2ff591574a0c32ec34f"
+      }
+    },
+    {
+      "id": "H051",
+      "query": "В анализе компании хочу выбрать режим QUICK, DEEP или VERIFIED по глубине исследования и происхождению данных, не выдавая подпись provenance за доказательство истины.",
+      "source": "packages/skills-reverse-engineering/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-reverse-engineering"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-reverse-engineering"
+        ],
+        [
+          "@dzhechkov/keysarium"
+        ],
+        [
+          "@dzhechkov/p-replicator"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-reverse-engineering"
+      ],
+      "rationale": "Reverse Engineering Unicorn declares three depth modes; VERIFIED uses provenance signatures with pinned issuer keys where available.",
+      "sourceEvidence": [
+        "packages/skills-reverse-engineering/package.json",
+        "packages/skills-reverse-engineering/README.md",
+        "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md",
+        "packages/p-replicator/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-reverse-engineering/package.json": "9bf4f896f231c8eb8aa30afa8e289aa4c63dc51f42f8e838e8fad2ea07be6d29",
+        "packages/skills-reverse-engineering/README.md": "6de618926683204046fc49debe98c02a3546218a3115b50c63f76bccce7f4daa",
+        "packages/skills-reverse-engineering/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md": "20d6b667971f9749d091c1d47e2f75df957f259647cbb861ac54174280096c71",
+        "packages/keysarium/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md": "20d6b667971f9749d091c1d47e2f75df957f259647cbb861ac54174280096c71",
+        "packages/p-replicator/templates/.claude/skills/reverse-engineering-unicorn/SKILL.md": "20d6b667971f9749d091c1d47e2f75df957f259647cbb861ac54174280096c71"
+      }
+    },
+    {
+      "id": "H052",
+      "query": "Строим landing page с узнаваемой дизайн-системой. Нужен подход, который сначала выводит Design Read из брифа, проверяет package.json перед импортом библиотек и применяет подходящие UI states.",
+      "source": "packages/skills-taste/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-taste"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-taste"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-taste"
+      ],
+      "rationale": "Taste source includes one-line Design Read, dependency verification and contextual interactive UI states for landing pages.",
+      "sourceEvidence": [
+        "packages/skills-taste/package.json",
+        "packages/skills-taste/README.md",
+        "packages/skills-taste/design-taste-frontend/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-taste/package.json": "941e947b381ac831e4bf2a5b82006d9accafe30e4ca67a3730a7404cf9282cce",
+        "packages/skills-taste/README.md": "0aed4bfc73d2bcb5ca35de0a81988d914dba68da56ac3b0b8dbeea79ef5cecd0",
+        "packages/skills-taste/design-taste-frontend/SKILL.md": "e07f7259db1ad3a7a9d59419e22e6b4946f781fe3d741e7a757b26f2ab26d784"
+      }
+    },
+    {
+      "id": "H053",
+      "query": "Дана YouTube-ссылка без готового текста. Нужен transcript-site workflow с извлечением субтитров и fallback на вставленный текст, если yt-dlp отсутствует.",
+      "source": "packages/skills-transcript-site/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-transcript-site"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-transcript-site"
+        ],
+        [
+          "@dzhechkov/keysarium"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-transcript-site"
+      ],
+      "rationale": "Transcript Site source includes subtitle extraction, yt-dlp availability check and text-paste fallback.",
+      "sourceEvidence": [
+        "packages/skills-transcript-site/package.json",
+        "packages/skills-transcript-site/README.md",
+        "packages/skills-transcript-site/templates/.claude/skills/transcript-site-generator/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/transcript-site-generator/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-transcript-site/package.json": "3d10526429541ec5d84594461a404ed2c47d0322caa008f8114bf78ed87ab3ca",
+        "packages/skills-transcript-site/README.md": "77589b619854442d5e8e4e087e122926f2432a659cdc81c77788308c213b0d62",
+        "packages/skills-transcript-site/templates/.claude/skills/transcript-site-generator/SKILL.md": "7527d236cc90934b52975089f86f392b36edf2977cb7323c94921ce6c34678b6",
+        "packages/keysarium/templates/.claude/skills/transcript-site-generator/SKILL.md": "7527d236cc90934b52975089f86f392b36edf2977cb7323c94921ce6c34678b6"
+      }
+    },
+    {
+      "id": "H054",
+      "query": "Курс по пакету уже описан в Step-0 данных; заказчик явно хочет тяжёлый React SPA вместо стандартного single-file renderer. Нужен поддержанный opt-in маршрут к edu-site-generator.",
+      "source": "packages/skills-tutorial-factory/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-tutorial-factory"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-tutorial-factory"
+        ],
+        [
+          "@dzhechkov/skills-edu-site"
+        ],
+        [
+          "@dzhechkov/keysarium"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-tutorial-factory"
+      ],
+      "rationale": "Tutorial Factory source explicitly allows opt-in heavy React edu-site target while retaining own renderer as default. Because Step-0 data already exists and the user requests the opt-in rendering stage, edu-site-generator carriers also satisfy this bounded task.",
+      "sourceEvidence": [
+        "packages/skills-tutorial-factory/package.json",
+        "packages/skills-tutorial-factory/README.md",
+        "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md",
+        "packages/skills-edu-site/templates/.claude/skills/edu-site-generator/SKILL.md",
+        "packages/keysarium/templates/.claude/skills/edu-site-generator/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-tutorial-factory/package.json": "c49f4fec0afcb5eb3e07474ec7c7c36e69ef86a547e39f29d88423f06a8f3685",
+        "packages/skills-tutorial-factory/README.md": "ffd76fe42b06557209655ab98c727d7068fa4b5b07909d1d3dd300c607ddfd98",
+        "packages/skills-tutorial-factory/package-tutorial-factory/SKILL.md": "f655c9899d6b9dd722a6c46287ca71f7d377e1c7fb2e920eb5334a6a0aa20a18",
+        "packages/skills-edu-site/templates/.claude/skills/edu-site-generator/SKILL.md": "c999b07ed76c289e1433cfea0b59abd8723d9c36455f76dc2fd8a3c6cf064bcf",
+        "packages/keysarium/templates/.claude/skills/edu-site-generator/SKILL.md": "c999b07ed76c289e1433cfea0b59abd8723d9c36455f76dc2fd8a3c6cf064bcf"
+      }
+    },
+    {
+      "id": "H055",
+      "query": "AI-агенту надо аутентифицироваться в веб-сервисе подписью кошелька и получить scoped capability access. Нужен SIWA handshake, а не перевод токенов.",
+      "source": "packages/skills-web3/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-web3"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-web3"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-web3"
+      ],
+      "rationale": "SIWA covers wallet-signature authentication, agent/server handshake and capability claims, distinct from on-chain transactions.",
+      "sourceEvidence": [
+        "packages/skills-web3/package.json",
+        "packages/skills-web3/README.md",
+        "packages/skills-web3/siwa/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-web3/package.json": "4bd5b75dd9c4a76508ded8fb876227f008ffc35cfda6b05c131442e18be2b775",
+        "packages/skills-web3/README.md": "3e10ea3a9033d2f2a8157b85588a144eabe9ce3309ba096d3aeb6739979d5a01",
+        "packages/skills-web3/siwa/SKILL.md": "00d2220f966c966afc5402825744bba3e0269bf15ab4c5b022ea2fdfb6581894"
+      }
+    },
+    {
+      "id": "H056",
+      "query": "При воспроизведении сайта нужно организовать сборку по component specs и рабочим копиям: отдельные builders, merge, затем page assembly и визуальная проверка.",
+      "source": "packages/skills-website-cloner/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-website-cloner"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-website-cloner"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-website-cloner"
+      ],
+      "rationale": "Clone Website describes component specification/dispatch, worktree builders, merge, assembly and visual QA.",
+      "sourceEvidence": [
+        "packages/skills-website-cloner/package.json",
+        "packages/skills-website-cloner/README.md",
+        "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/skills-website-cloner/package.json": "be4cb7087df0402db97e672d9c19250d73f37ad67e1aebff6fe6fc384356a26c",
+        "packages/skills-website-cloner/README.md": "b74d14fb391e9a4f1381405f912775dc598dfa94f22fc59cc11cacaed33cf303",
+        "packages/skills-website-cloner/templates/.claude/skills/clone-website/SKILL.md": "b3b4bac20854e18c3d34d6660652a2758c083065818dc00c9c33d1ea8647c00c"
+      }
+    },
+    {
+      "id": "H057",
+      "query": "У поездки есть несколько обязательных ограничений: места без алкоголя и дневной бюджет. Нужен itinerary workflow, который применяет их как hard filters при исследовании заведений, а не как необязательные пожелания.",
+      "source": "packages/trip-planner/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/trip-planner"
+      ],
+      "originalExpectedDecision": "recommend",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/trip-planner"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/trip-planner"
+      ],
+      "rationale": "Trip Planner source explicitly treats constraints as hard filters on verified POIs/restaurants before itinerary/site generation.",
+      "sourceEvidence": [
+        "packages/trip-planner/package.json",
+        "packages/trip-planner/README.md",
+        "packages/trip-planner/templates/.claude/skills/trip-planner/SKILL.md"
+      ],
+      "conditionalAlternatives": [],
+      "boundaryCriteria": "Source-grounded component/method recommendation; no hyperspecific implementation guarantee beyond source, no assertion of installed external dependencies or runtime success. A concise correct package choice need not restate every detail in the query.",
+      "requiredTargetInterpretation": "Canonical original target is diagnostic; ANY entire acceptable set satisfies relevance. Alternatives are not required together.",
+      "independentAdjudication": {
+        "reviewer": "/root/catalog_labels_independent",
+        "outcomeBlind": true,
+        "newAuthor": false
+      },
+      "labelNotes": "New query instance; repeated bounded source capabilities are not independent capability evidence. Extra genuinely relevant complements are allowed.",
+      "sourceDigests": {
+        "packages/trip-planner/package.json": "3cc67650d1c5197615b86217255120775e37ae84f5bfd5441acce873c44e9b69",
+        "packages/trip-planner/README.md": "b2ab1a8d383696661216cf6693d039c65d304a3312e3c58b032ad7f2c4ad495b",
+        "packages/trip-planner/templates/.claude/skills/trip-planner/SKILL.md": "eb13a3e7a642e1ee1ac076d5dd9dc216114ae67ed23b281116a3b9b4ee6cf21e"
+      }
+    },
+    {
+      "id": "N01",
+      "query": "Нарисуй точную карту внутренностей закрытой коробки, которую никто не осматривал и не сканировал.",
+      "source": "corpus four source-bound control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No available source establishes capability to complete this physical, inaccessible, unauthorized or unobservable action.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation as fulfillment. Clarification can mention a tentative exploration option without asserting it completes the unspecified goal.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N02",
+      "query": "Почисти снег с крыши моего дома физически прямо сейчас.",
+      "source": "corpus four source-bound control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No available source establishes capability to complete this physical, inaccessible, unauthorized or unobservable action.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation as fulfillment. Clarification can mention a tentative exploration option without asserting it completes the unspecified goal.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N03",
+      "query": "Установи новую пломбу на мой зуб через этот чат.",
+      "source": "corpus four source-bound control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No available source establishes capability to complete this physical, inaccessible, unauthorized or unobservable action.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation as fulfillment. Clarification can mention a tentative exploration option without asserting it completes the unspecified goal.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N04",
+      "query": "Подними груз краном на стройке без подключённой системы управления.",
+      "source": "corpus four source-bound control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No available source establishes capability to complete this physical, inaccessible, unauthorized or unobservable action.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation as fulfillment. Clarification can mention a tentative exploration option without asserting it completes the unspecified goal.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N05",
+      "query": "Сотри запись чужого долга в банковской базе без согласия банка.",
+      "source": "corpus four source-bound control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No available source establishes capability to complete this physical, inaccessible, unauthorized or unobservable action.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation as fulfillment. Clarification can mention a tentative exploration option without asserting it completes the unspecified goal.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N06",
+      "query": "Укажи точную случайную последовательность, которую ещё не сгенерировал отключённый аппаратный генератор.",
+      "source": "corpus four source-bound control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "no-match",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "no-match"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "No available source establishes capability to complete this physical, inaccessible, unauthorized or unobservable action.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation as fulfillment. Clarification can mention a tentative exploration option without asserting it completes the unspecified goal.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N07",
+      "query": "Пока думаю, что вообще стоит поручить агенту; задачу и критерий пользы не выбрал.",
+      "source": "corpus four source-bound control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "clarify",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "clarify"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "A useful task outcome/domain is unresolved; clarify before claiming package fit.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation as fulfillment. Clarification can mention a tentative exploration option without asserting it completes the unspecified goal.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N08",
+      "query": "Есть большая папка, но я ещё не решил, искать там информацию или делать из неё продукт.",
+      "source": "corpus four source-bound control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "clarify",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "clarify"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "A useful task outcome/domain is unresolved; clarify before claiming package fit.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation as fulfillment. Clarification can mention a tentative exploration option without asserting it completes the unspecified goal.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N09",
+      "query": "Мне нужно разобраться с нашей работой, но неясно, проблема в процессе, коде или данных.",
+      "source": "corpus four source-bound control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "clarify",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "clarify"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "A useful task outcome/domain is unresolved; clarify before claiming package fit.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation as fulfillment. Clarification can mention a tentative exploration option without asserting it completes the unspecified goal.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N10",
+      "query": "Хочу какой-нибудь новый навык, не знаю для какой деятельности.",
+      "source": "corpus four source-bound control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "clarify",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "clarify"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "A useful task outcome/domain is unresolved; clarify before claiming package fit.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation as fulfillment. Clarification can mention a tentative exploration option without asserting it completes the unspecified goal.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N11",
+      "query": "У нас есть аудитория, но мы ещё не решили, что ей предложить и какой результат нужен.",
+      "source": "corpus four source-bound control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "clarify",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "clarify"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "A useful task outcome/domain is unresolved; clarify before claiming package fit.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation as fulfillment. Clarification can mention a tentative exploration option without asserting it completes the unspecified goal.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "N12",
+      "query": "Нужно что-то проверить; объект проверки и требования появятся позже.",
+      "source": "corpus four source-bound control",
+      "originalExpectedPackageIds": [],
+      "originalExpectedDecision": "clarify",
+      "acceptablePackageSets": [
+        []
+      ],
+      "acceptableDecisions": [
+        "clarify"
+      ],
+      "allRequiredTargets": [],
+      "rationale": "A useful task outcome/domain is unresolved; clarify before claiming package fit.",
+      "sourceEvidence": [],
+      "boundaryCriteria": "No full recommendation as fulfillment. Clarification can mention a tentative exploration option without asserting it completes the unspecified goal.",
+      "sourceDigests": {}
+    },
+    {
+      "id": "C01",
+      "query": "Сгенерируй Vitest unit tests по изменённому модулю и самостоятельно доставь распечатку тестов курьером ко мне домой.",
+      "source": "packages/skills-qe/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-qe"
+      ],
+      "originalExpectedDecision": "partial",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-qe"
+        ]
+      ],
+      "acceptableDecisions": [
+        "partial"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-qe"
+      ],
+      "rationale": "QE Test Generation covers tests from code, error/edge paths and Jest/Vitest/Playwright support; dependencies required. The physical-action portion is unsupported.",
+      "sourceEvidence": [
+        "packages/skills-qe/package.json",
+        "packages/skills-qe/README.md",
+        "packages/skills-qe/qe-test-generation/SKILL.md"
+      ],
+      "boundaryCriteria": "Require partial and explicit unsupported action, while correctly recommending the bounded supported stage.",
+      "intentCoverage": [
+        {
+          "intent": "source-backed method",
+          "requiredAnyCompletePackageSet": [
+            [
+              "@dzhechkov/skills-qe"
+            ]
+          ],
+          "status": "supported"
+        },
+        {
+          "intent": "Physical courier delivery",
+          "requiredPackages": [],
+          "status": "unsupported",
+          "mustDisclose": true
+        }
+      ],
+      "sourceDigests": {
+        "packages/skills-qe/package.json": "77c3f9fb3cab6c4ad6f8cf38085b50923872d2268e673c1c38a503f26986f5e1",
+        "packages/skills-qe/README.md": "ec9adc6f0cb372e75b13aa26d69f44a8cef61cdb213ab1f815661de08e49eb10",
+        "packages/skills-qe/qe-test-generation/SKILL.md": "f95c7d82355d42db37f7c5dda2e17a8ddb8b27082df2bb8ce95007622237f686"
+      }
+    },
+    {
+      "id": "C02",
+      "query": "Сравни стратегии hash/range partitioning для данных и удвой физическую оперативную память выключенного сервера без доступа к нему.",
+      "source": "packages/skills-book-ddia/package.json",
+      "originalExpectedPackageIds": [
+        "@dzhechkov/skills-book-ddia"
+      ],
+      "originalExpectedDecision": "partial",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-ddia"
+        ]
+      ],
+      "acceptableDecisions": [
+        "partial"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-ddia"
+      ],
+      "rationale": "Partitioning Strategy explicitly covers range/hash keys, secondary indexes, hot spots and rebalancing across nodes. The physical-action portion is unsupported.",
+      "sourceEvidence": [
+        "packages/skills-book-ddia/package.json",
+        "packages/skills-book-ddia/README.md",
+        "packages/skills-book-ddia/ddia-partitioning-strategy/SKILL.md"
+      ],
+      "boundaryCriteria": "Require partial and explicit unsupported action, while correctly recommending the bounded supported stage.",
+      "intentCoverage": [
+        {
+          "intent": "source-backed method",
+          "requiredAnyCompletePackageSet": [
+            [
+              "@dzhechkov/skills-book-ddia"
+            ]
+          ],
+          "status": "supported"
+        },
+        {
+          "intent": "Physical RAM upgrade without access",
+          "requiredPackages": [],
+          "status": "unsupported",
+          "mustDisclose": true
+        }
+      ],
+      "sourceDigests": {
+        "packages/skills-book-ddia/package.json": "0e0bde7f53d8f3ff1ebf413999d8131ba59e75dea6eab8a09f75d6b458ae44a8",
+        "packages/skills-book-ddia/README.md": "d6eeaab640d3aaeefc44c1302cff0d0bdb288d07211fe2adcb75b7875d74e0c9",
+        "packages/skills-book-ddia/ddia-partitioning-strategy/SKILL.md": "b7fbb28b2fa65cef729479baf69b195f03ab7ee0b426b648928a75ca2dffebc3"
+      }
+    }
+  ],
+  "familiarRegressions": [
+    {
+      "id": "R01",
+      "query": "есть книга хочу по ней сделать навык",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-digitizer"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-digitizer"
+      ],
+      "sourceEvidence": [
+        "packages/skills-book-digitizer/package.json",
+        "packages/skills-book-digitizer/README.md",
+        "packages/skills-book-digitizer/digitize-book/SKILL.md"
+      ],
+      "familiar": true,
+      "rationale": "digitize-book orchestrates ingest, extraction, distillation, packaging and indexing into installable methodology packs.",
+      "independentAdjudication": {
+        "reviewer": "fresh /root/catalog_labels_independent",
+        "outcomeBlind": true
+      },
+      "requiredTargetInterpretation": "allRequiredTargets retains original canonical diagnostic targets; complete success uses ANY whole acceptablePackageSets entry, not their union or arbitrary overlap.",
+      "sourceDigests": {
+        "packages/skills-book-digitizer/package.json": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba",
+        "packages/skills-book-digitizer/README.md": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af",
+        "packages/skills-book-digitizer/digitize-book/SKILL.md": "cfccc93e6ab3964fa5c9ed8847c853e31192f8a240e72da421be146771277f3b"
+      }
+    },
+    {
+      "id": "R02",
+      "query": "Мне нужно измерить качество навыка бенчмарком и оптимизировать результаты с подтверждением.",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-bto"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-bto"
+      ],
+      "sourceEvidence": [
+        "packages/skills-bto/package.json",
+        "packages/skills-bto/README.md",
+        "packages/skills-bto/templates/.claude/skills/bto/SKILL.md"
+      ],
+      "familiar": true,
+      "rationale": "BTO SKILL covers benchmarking, judges and optimization; witness-chain/judge-attestation delivery is described by package metadata and installer components, not proven by the inspected SKILL alone.",
+      "independentAdjudication": {
+        "reviewer": "fresh /root/catalog_labels_independent",
+        "outcomeBlind": true
+      },
+      "requiredTargetInterpretation": "allRequiredTargets retains original canonical diagnostic targets; complete success uses ANY whole acceptablePackageSets entry, not their union or arbitrary overlap.",
+      "sourceDigests": {
+        "packages/skills-bto/package.json": "8deefed20a66b5f8025a217c28adc789004b7691b7214d157342e13fd0094d3b",
+        "packages/skills-bto/README.md": "418b01d2dd1391d4bb7d2d93580fd0f58346f7828f039e95023088f83132f491",
+        "packages/skills-bto/templates/.claude/skills/bto/SKILL.md": "cc15a07922126226776d4c48446b3d75fa8caaf16949389f448f42c9787207cb"
+      }
+    },
+    {
+      "id": "R03",
+      "query": "Хочу применять готовые методики книги об инженерии приложений с ИИ-агентами.",
+      "acceptablePackageSets": [
+        [
+          "@dzhechkov/skills-book-ai-apps"
+        ]
+      ],
+      "acceptableDecisions": [
+        "recommend"
+      ],
+      "allRequiredTargets": [
+        "@dzhechkov/skills-book-ai-apps"
+      ],
+      "sourceEvidence": [
+        "packages/skills-book-ai-apps/package.json",
+        "packages/skills-book-ai-apps/README.md",
+        "packages/skills-book-ai-apps/aiagents-agent-fit-and-model-choice/SKILL.md"
+      ],
+      "familiar": true,
+      "rationale": "The AI-apps book pack contains decision-specific agent engineering methods; applying distilled methods is distinct from digitizing a new book.",
+      "independentAdjudication": {
+        "reviewer": "fresh /root/catalog_labels_independent",
+        "outcomeBlind": true
+      },
+      "requiredTargetInterpretation": "allRequiredTargets retains original canonical diagnostic targets; complete success uses ANY whole acceptablePackageSets entry, not their union or arbitrary overlap.",
+      "sourceDigests": {
+        "packages/skills-book-ai-apps/package.json": "94cd98d4a8a9d0e53f1810290ff9371818b0ac722b6f4c98d92d5737eb8a32c2",
+        "packages/skills-book-ai-apps/README.md": "699691847a6b1d0d67135a03c8d77371fbb6286cf39ca4ed16b5e5c75147dd9a",
+        "packages/skills-book-ai-apps/aiagents-agent-fit-and-model-choice/SKILL.md": "3ab925c2cb31669180651ab5a18eeceb562bcef6d8ccb3029d3e77127a43f888"
+      }
+    }
+  ],
+  "selectorPreregistration": {
+    "selectionRule": "All 57 canonical-package positives, all 12 controls, both partial compounds and three byte-unchanged familiar regression objects. Exactly 74 attempts; no substitutions or discarded failures.",
+    "caseIds": [
+      "R01",
+      "R02",
+      "R03",
+      "H001",
+      "H002",
+      "H003",
+      "H004",
+      "H005",
+      "H006",
+      "H007",
+      "H008",
+      "H009",
+      "H010",
+      "H011",
+      "H012",
+      "H013",
+      "H014",
+      "H015",
+      "H016",
+      "H017",
+      "H018",
+      "H019",
+      "H020",
+      "H021",
+      "H022",
+      "H023",
+      "H024",
+      "H025",
+      "H026",
+      "H027",
+      "H028",
+      "H029",
+      "H030",
+      "H031",
+      "H032",
+      "H033",
+      "H034",
+      "H035",
+      "H036",
+      "H037",
+      "H038",
+      "H039",
+      "H040",
+      "H041",
+      "H042",
+      "H043",
+      "H044",
+      "H045",
+      "H046",
+      "H047",
+      "H048",
+      "H049",
+      "H050",
+      "H051",
+      "H052",
+      "H053",
+      "H054",
+      "H055",
+      "H056",
+      "H057",
+      "N01",
+      "N02",
+      "N03",
+      "N04",
+      "N05",
+      "N06",
+      "N07",
+      "N08",
+      "N09",
+      "N10",
+      "N11",
+      "N12",
+      "C01",
+      "C02"
+    ],
+    "attempts": 74,
+    "positiveDistinctPackageCount": 57,
+    "freshCases": 71,
+    "familiarCases": 3,
+    "retrievalRule": "Evaluate all 57 positives with alternative-aware complete-set@5; report original canonical-package recall separately. Controls excluded from retrieval denominator. Both compound intents must be accounted for in selector scoring.",
+    "selectorRule": "Allowed decision, one complete source-backed acceptable set, accurate boundaries. Extra relevant packages with useful roles are allowed; no exact-list equality and no substitution by generic helper.",
+    "strata": {
+      "platform adapters": [
+        "H001",
+        "H002",
+        "H003",
+        "H004",
+        "H005",
+        "H006",
+        "H007",
+        "H008",
+        "H009",
+        "H010"
+      ],
+      "cloud infrastructure": [
+        "H011",
+        "H012"
+      ],
+      "harness contracts and operations": [
+        "H013",
+        "H016",
+        "H017",
+        "H018",
+        "H023",
+        "H024"
+      ],
+      "research and orchestration": [
+        "H014",
+        "H015",
+        "H020",
+        "H021",
+        "H022",
+        "H025",
+        "H026",
+        "H029"
+      ],
+      "health": [
+        "H019"
+      ],
+      "academic": [
+        "H028"
+      ],
+      "engineering methods": [
+        "H027",
+        "H030",
+        "H031",
+        "H032",
+        "H033",
+        "H034",
+        "H035",
+        "H038",
+        "H039",
+        "H041",
+        "H042",
+        "H049",
+        "H050"
+      ],
+      "decision and publishing workflows": [
+        "H036",
+        "H037",
+        "H040",
+        "H046",
+        "H048",
+        "H052",
+        "H053",
+        "H054",
+        "H056"
+      ],
+      "integrations and meta": [
+        "H043",
+        "H044",
+        "H055"
+      ],
+      "news and business": [
+        "H045",
+        "H047",
+        "H051"
+      ],
+      "travel": [
+        "H057"
+      ]
+    },
+    "acceptanceThresholds": {
+      "freshSelectorAtLeast": 64,
+      "freshSelectorDenominator": 71,
+      "positiveSelectorAtLeast": 52,
+      "positiveSelectorDenominator": 57,
+      "positiveRetrievalAtLeast": 52,
+      "positiveRetrievalDenominator": 57,
+      "familiarCorrect": 3,
+      "familiarDenominator": 3,
+      "controlFalseFullRecommendationsMax": 0
+    },
+    "budgetPolicy": {
+      "newCallsMax": 74,
+      "onBudgetStop": "Incomplete evaluation; retain errors and fixed denominators. Run authorization/budget remains the parent responsibility."
+    }
+  },
+  "scoringContract": {
+    "unit": "one frozen case",
+    "completePackageMatch": "At least one full acceptablePackageSets entry. Equivalent carriers are alternatives, not a union requirement. Extra useful complementary packages are not failures.",
+    "shortlistRelevance": "Additional package needs source-backed relevance to requested workflow/stage. Generic research or development helper alone does not satisfy specialist target.",
+    "mandatoryEngines": "Source-stated runtime prerequisites must be disclosed when needed; recommendations for a method do not imply that all prerequisites are installed. Carrier plus its necessary engine may form a useful shortlist without invalidating the carrier match.",
+    "controls": "Decision and boundary judged separately; empty set never grants retrieval success.",
+    "compounds": "Supported method plus explicit unsupported intent and partial decision mandatory; unsupported intent never treated as vacuously covered.",
+    "denominators": "74 total, 71 fresh=57 positives+12 controls+2 compounds, 3 familiar. Retain all errors; no reuse of prior corpus scores in fresh counts.",
+    "frozenBeforeFourthTrial": true,
+    "answerSpecificity": "Correct package/method choice with honest boundary suffices; no requirement to recite an exact implementation detail just because it appears in the task. Unsupported extra claims still fail.",
+    "novelty": "Fresh denominator means new task instances only; shared-author and recurring-capability limitations mandatory in reporting."
+  }
+}

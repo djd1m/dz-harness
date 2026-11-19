@@ -1,0 +1,131 @@
+{
+  "reviewerModel": "gpt-6.1-terra",
+  "reviews": [
+    {
+      "id": "design-thinking-overview-4f2174c6",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/design-thinking; цитаты и хеши источников проверены.",
+      "recordHash": "6b86e08f5fd18ef01db00b826defa627729d730b90bcd729ff4e40aaa322971c",
+      "presentationHash": "f6c349e8e19f6ae431f78ae3c36891fff8542848244bbe022ba4e0f7b9c42826"
+    },
+    {
+      "id": "evidence-wiki-overview-edf3985c",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/evidence-wiki; цитаты и хеши источников проверены.",
+      "recordHash": "016ee6588d738267f8f468803b2b2765f54d57e4afd34545a75b34b120f0eea8",
+      "presentationHash": "0f9353a123c650dd6f09639b3cae259ddd405d5b12e83c179074f857169083bb"
+    },
+    {
+      "id": "health-advisor-overview-0968b6f3",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/health-advisor; цитаты и хеши источников проверены.",
+      "recordHash": "cd2ea2869b426fc89cb5d8c5087d68303afe98b41a7a2ea5283a469b6ef13905",
+      "presentationHash": "c1a58b6c20f1b3632da494f720bd86cf3e87f748627e9c46af00a175cd54d95b"
+    },
+    {
+      "id": "keysarium-overview-e81e1bb8",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/keysarium; цитаты и хеши источников проверены.",
+      "recordHash": "18e088c837dd91635d4194eb4cca5e752aee9067b0c7e9b4d888abfad20c4d20",
+      "presentationHash": "891bf09d06bf6c051c4c770dde048eeed2ff3d5b1c391c554ad1e597204ce1a9"
+    },
+    {
+      "id": "loop-designer-plugin-overview-8608943e",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/loop-designer-plugin; цитаты и хеши источников проверены.",
+      "recordHash": "e1ca784aa6c0125a9dd26b4f5074eb8a95f8c736aac45dbe02fa370bcdc8344f",
+      "presentationHash": "07328c876bb0b45be55a3a8f9e7105260482601b89b2664db6548510db6f8263"
+    },
+    {
+      "id": "p-replicator-overview-0b410b50",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/p-replicator; цитаты и хеши источников проверены.",
+      "recordHash": "5dd6902a02f5c368dec73a9102929a1b3209b1aab5c062e4452cb9e176c78e44",
+      "presentationHash": "113e9ff575398207c4da185b6985041ad40a07d2e48d14e2a9fda4d23c3efc2a"
+    },
+    {
+      "id": "skills-12factor-overview-0b0f0465",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-12factor; цитаты и хеши источников проверены.",
+      "recordHash": "a85c77361c2cb4abcd73b70ac48252f44e92f5ae1ea69dad4860242e63e4a19c",
+      "presentationHash": "d5a510b0609a84b0888a107b69695391302c5b2baf3a254d99812d021cfa1558"
+    },
+    {
+      "id": "skills-academic-overview-74144a5f",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-academic; цитаты и хеши источников проверены.",
+      "recordHash": "c34c1f0da9525ffee02ab6536d943b871bafade1eb348309e481e6bb24bf14c6",
+      "presentationHash": "bb547706a60a41525d2f69517453d194246b314c43dfe0efb1a277677c7477e6"
+    },
+    {
+      "id": "skills-analyst-manual-overview-6758eed2",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-analyst-manual; цитаты и хеши источников проверены.",
+      "recordHash": "29e11833ee9f3dadba08168297bc24bbd65cbcca53ba650746d606591f91b26c",
+      "presentationHash": "90404acebcf8d2f2c49e94152dd515099fe05c58c9ae4235a324b46bc5e72139"
+    },
+    {
+      "id": "skills-book-ai-apps-overview-86b16c2c",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-book-ai-apps; цитаты и хеши источников проверены.",
+      "recordHash": "71771a5d0867045a6a81d38f159ccb574963c35457caa9fc541f6d5cd956ac9b",
+      "presentationHash": "339889d1754acc063feab230bf09dc09670a3728ac854a4760d9308961d32ae3"
+    },
+    {
+      "id": "skills-book-clean-code-overview-554fd912",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-book-clean-code; цитаты и хеши источников проверены.",
+      "recordHash": "fac3417460c38d834532792de3450c308aa17db24e62fc435242095cd6e32f83",
+      "presentationHash": "5027478b4aab3a90ecc98d420d4236d7e96ea56bdbee2c6f34af86e7fb7ccbfe"
+    },
+    {
+      "id": "skills-book-ddia-overview-f34309d8",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-book-ddia; цитаты и хеши источников проверены.",
+      "recordHash": "9d676560634b698c6904a14d80ad3e1aeb46d20d1486ffe64d5916cfac901bb2",
+      "presentationHash": "044d8e03e1123f7cfb54eef203321b7b60053d7912449ff5f18ac2a384767e77"
+    },
+    {
+      "id": "skills-book-digitizer-overview-2d33a2c5",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-book-digitizer; цитаты и хеши источников проверены.",
+      "recordHash": "6ff5c25db95dbeca50ed4f5b500e5ac8eb25ffc6ffc862459e6721d04b827fdc",
+      "presentationHash": "bb9eeadf02382ace24b7c3d051ed07cb1993d67ef5ae6b031b3a24e1a190d879"
+    },
+    {
+      "id": "skills-book-fundamental-software-architecture-overview-dfce55d4",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-book-fundamental-software-architecture; цитаты и хеши источников проверены.",
+      "recordHash": "352dfdec8ddc5bfeffa25e651d66b3a429411ada1bc90c76ba1ab87d7786e05a",
+      "presentationHash": "536d4113e78e888cbeb69be7a1cd544b7d1f4d76b34d6f1dc7898af0e8d20c33"
+    },
+    {
+      "id": "skills-bto-overview-62f441da",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-bto; цитаты и хеши источников проверены.",
+      "recordHash": "c6ba8cdcdabb0f6196ac98ac919fd18e324597a8178dd3795cf329bf786d1680",
+      "presentationHash": "7ec89104acbf16ffaa5b88694adfe37a000a4fd3e4f91c105ed0223b4af4995d"
+    },
+    {
+      "id": "skills-decision-mockups-overview-9144579b",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-decision-mockups; цитаты и хеши источников проверены.",
+      "recordHash": "24da286724b3308d81ba6474aac1f39ae54e4a1635ddf60e028924c0eac5ded3",
+      "presentationHash": "0e914f477aacda2b724a3f97d9a56a00a7db9ba1fce92b6b232812d942786b9c"
+    },
+    {
+      "id": "skills-demo-publisher-overview-ffcfeed3",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-demo-publisher; цитаты и хеши источников проверены.",
+      "recordHash": "307900265f4bf3f792f6fb6bdb507439fb59d93a11674d8dfda51e924ddb813d",
+      "presentationHash": "90802c8b801a57d9760652f06d0ae60299762b66578f40bd7e69cd1e76e979fa"
+    },
+    {
+      "id": "skills-devops-overview-a6cd470c",
+      "verdict": "approved",
+      "reason": "Обзор, назначение, граница и следующий шаг соответствуют README пакета @dzhechkov/skills-devops; цитаты и хеши источников проверены.",
+      "recordHash": "54a90d9b5578f83d8d6b59540e755561df87c530cbe21813e2e05664da4fbd6d",
+      "presentationHash": "8f1f22efddf5d662f06d49d35aaf31dfaed318d89504b66e25d3bb961970d345"
+    }
+  ]
+}

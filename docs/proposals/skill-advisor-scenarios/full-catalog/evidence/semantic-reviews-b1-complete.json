@@ -1,0 +1,551 @@
+{
+  "reviewerModel": "gpt-6.1-terra",
+  "reviews": [
+    {
+      "id": "evidence-wiki-concept-wiki-generator-5d81f0bc",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет выделить концепции из существующих материалов и подготовить страницы, индекс и граф вики. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "2f280d80cdaec1a671e6e31a7c2fe95dd942485e7dfc077d932a9afc87c2ec3e",
+      "presentationHash": "a1f24a8757bc7c9349d9fbb9edb43b3b881dc2b1ff37b2b4c2f2adb3e4ca5d03"
+    },
+    {
+      "id": "keysarium-casarium-f4097dec",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Проведёт по установленному семифазному процессу Keysarium с артефактами фаз и проверками пользователя. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "5ffe4193cdf52bf73dccadedfac7f33f0e1af536ea930ed9f53621d1bbf0908c",
+      "presentationHash": "f0df69e6213d91cdd1dcaa4a5053e6594dd1da8d06d8a51a959c19c89c797339"
+    },
+    {
+      "id": "keysarium-ai-factory-mapper-b03fc0eb",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Подготовит шаги workflow, соответствие сервисам Evolution AI Factory, пробелы, диаграмму и документ. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "8388f4ebbd532fcfac764c69f3cd483bc5a9687af38fad01c16f249776186808",
+      "presentationHash": "4f9542221a9c49159b50aa4b548021818676aeac00e89da66086d39c5b9f3d66"
+    },
+    {
+      "id": "keysarium-analyst-manual-full-cccdd912",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Соединит уточнение задачи, исследование источников и решение проблемы с контрольными точками между фазами. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "9b3eb7e516bc4d7aca5a3bc9da69454ee9cd05295a1b1c543357fc598bb2440b",
+      "presentationHash": "5e3720e08f2bfc51da27257b9a17741ed16b7e191d9360d4c560e3b04f7f55e2"
+    },
+    {
+      "id": "keysarium-edu-site-generator-1f76ed3c",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет превратить материалы в учебное одностраничное приложение с интерактивными примерами и прогрессом. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "a1ce60b4d67f26249671d589b22954521094675585fd7206da2f402a1a11a480",
+      "presentationHash": "bafcb8b16f77173488ac33f0113d1d2c438f23150027cd6548ec4a587e5b81ef"
+    },
+    {
+      "id": "keysarium-explore-c4387a99",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет через вопросы превратить неясный запрос в рабочую спецификацию. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "9ff56c20c4b767b5e0f060e125cd17168eac37532d467aeaff6c2831a3bba4d4",
+      "presentationHash": "4061af271a0c4de61f4285488926b76d517ca1edfa03fcf6b9a000c487e8d88a"
+    },
+    {
+      "id": "keysarium-feature-adr-cfdbc6ed",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Организует адаптивный процесс требований, ADR, планирования, реализации и проверки качества. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "39c59e05d52dd9e4532d883a70812e60f4a9388bd2d36cf1adc05057271080dd",
+      "presentationHash": "ed3101da4cb49a26a6ea42631157c1917ade3a8644acb34e590a6a48982e0c83"
+    },
+    {
+      "id": "keysarium-frontend-design-427ff31c",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет выбрать визуальное направление и реализовать интерфейс в коде с вниманием к типографике и композиции. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "b8300025c0d3e5cf67f71ea7b00f550bc3f8d19c7623b9ebcf17a280cddc329b",
+      "presentationHash": "9dcc1a360cf51ed94fd2b50da98e340f00705526900b5dffc248ecd229ad9941"
+    },
+    {
+      "id": "keysarium-goap-research-ed25519-98a82255",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Организует GOAP-исследование с оценкой источников и опциональными Ed25519-подписями происхождения. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "10a02f7eeeafbb61be67c6e9eb31bfabb135f5abe3f23f7eb1338ed0965e135e",
+      "presentationHash": "4429cd22e6147e4658348c426d2a2b78c0b734759412305a4e0bd68856f9b1af"
+    },
+    {
+      "id": "keysarium-knowledge-extractor-9b316b7e",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Организует извлечение, классификацию и проверку паттернов, команд и правил с размещением в toolkit. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "3fa13b2ac39fd338cdb9b3846cdacf588db2f27dc2e5838f5b5f8dec99cc15b3",
+      "presentationHash": "c92cb504cff4485370ab2cfa5007fc2cccd6f36e71480b19137c145230c2947d"
+    },
+    {
+      "id": "keysarium-presentation-storyteller-0aa6fcc1",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Подготовит план, Markdown-презентацию, ссылки на источники и связный рассказ для слайдов. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "a502a92266be92f490fc187018a8df70bbb1b53b9047d2db6869500b2ea4c739",
+      "presentationHash": "5c2e804390ea8fedb205500b0f44ef296afdbd4952aad8a0f7a1bae397b861fb"
+    },
+    {
+      "id": "keysarium-problem-solver-enhanced-c149a152",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Соединит первые принципы, анализ причин, теорию игр и ТРИЗ для поиска решений сложной задачи. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "1047de0cdc0a6388c19c40a8cee09735d946c54110d2fe82a31835ecd7de1644",
+      "presentationHash": "5bfbacc4629309640c13a53673013f127648f8b7d82da109572cc8cadd5d0f21"
+    },
+    {
+      "id": "keysarium-reverse-engineering-unicorn-d39786eb",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Организует исследование компании, клиентов и рынка с планом запуска и кликабельным CJM-прототипом. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "87a78bc5985b3d025431db6a0fa694d4c1622880edb3e4d40def0ab0bccaf3f4",
+      "presentationHash": "572ac39459d34178bc2a7102e210515e44f64cd8b4272b3e8959328ab8844371"
+    },
+    {
+      "id": "keysarium-transcript-site-generator-14262829",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет превратить транскрипт в адаптивный статический сайт без этапа сборки, подготовленный для GitHub Pages. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "9562176d26f01e6b39e89b2ea5e52fda9a96fd224f68373cd780b3250edeb6ea",
+      "presentationHash": "7df287d1776877ed7070de6178555dd9701d2eec1a407d09ec4d9be1ed7d3920"
+    },
+    {
+      "id": "p-replicator-brutal-honesty-review-33781c43",
+      "verdict": "approved",
+      "reason": "SKILL описывает структурированную прямую критику кода и тестов и исключает первый PR новичка и низкую психологическую безопасность.",
+      "recordHash": "b535c2ed5c1483cc9f66be7b771a51facb449604e639da68c6d95ed10795b257",
+      "presentationHash": "6585a583c455e1c76d7b3069f13546cff1a6959890ea62740d6828e83d8da7c6"
+    },
+    {
+      "id": "p-replicator-cc-toolkit-generator-enhanced-3392730b",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Организует создание CLAUDE.md, агентов, навыков, команд, hooks и правил из SPARC или idea2prd-документов. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "10bdce72dc6f46e2607f8dfcd280571e4e038da587ee9d9f8c77a5235a511945",
+      "presentationHash": "a888b331e271adb4e81f8a1ee7251aed7ae8a2c095e59b84261feccf3c9dafb2"
+    },
+    {
+      "id": "p-replicator-explore-ecc90278",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет через вопросы превратить неясный запрос в рабочую спецификацию. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "0003992f69ff77ac5c0d954410cfedf458f9ed4b4e64f0cf70b617b2adc39d5b",
+      "presentationHash": "c90d2ad19c419611c485a79156b39fdd016d363b66215556cd61ca9ac41fee6d"
+    },
+    {
+      "id": "p-replicator-goap-research-ed25519-c1cf3e67",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Организует GOAP-исследование с оценкой источников и опциональными Ed25519-подписями происхождения. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "b1bbe2b70627d1b631e693a2017bfacf52dd0052d69a6c4ccd7bfb3cba775177",
+      "presentationHash": "6985a71957707ae20a49d67eac5b247b76e9133a1369e920ef85138415f9fd52"
+    },
+    {
+      "id": "p-replicator-knowledge-extractor-35fb9d25",
+      "verdict": "approved",
+      "reason": "SKILL описывает режимы MARKER, QUICK, FULL и AUDIT и отдельную фазу обобщения проектных артефактов.",
+      "recordHash": "04dbf9e8765f64bc92181199099b22822cac0695f5b4af38a9e4023c545833d1",
+      "presentationHash": "7dff7bc2f18b12f5e0d54a160c8af5b749c991d0840221a1dd1b1221e4ba4212"
+    },
+    {
+      "id": "p-replicator-pipeline-forge-9ffd8557",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет превратить методические паттерны в композицию фаз, навыков, агентов и контрольных точек. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "ffbb7c993dd289f028c554031d2a2ba6ec1136423e85a4ab5f77bd3ad9e9e8f9",
+      "presentationHash": "992e5876584a1bd63936f23d5359a2b24fab7cfba9f4c04bc6576443166b0c34"
+    },
+    {
+      "id": "p-replicator-problem-solver-enhanced-614a56db",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Соединит первые принципы, анализ причин, теорию игр и ТРИЗ для поиска решений сложной задачи. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "755b70006a48c736fe8835bbc0913258b6f27825492db3c2e71b6f871fcae708",
+      "presentationHash": "283ec1b4c57bf0098ebb056de1b373b2e0b6ac29cc8e0f88833e46ee74c24f65"
+    },
+    {
+      "id": "p-replicator-requirements-validator-618accfd",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Проверит полноту, ясность и тестируемость требований и поможет подготовить BDD-сценарии. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "ee5213bb9412e6e5d3c5f84aab8028c0f50e6493e79cfd4efaec572e08547400",
+      "presentationHash": "01012f655f0a6724d9c631fcf920c6d500e88349931a7b951aef95a9a91d202c"
+    },
+    {
+      "id": "p-replicator-reverse-engineering-unicorn-130e0f22",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Организует исследование компании, клиентов и рынка с планом запуска и кликабельным CJM-прототипом. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "9b0f25ed19aed8e9b803f371caf62106eb2da5bea2eef0731fbb7178c39e8396",
+      "presentationHash": "05efa12103bd804879bf69b04f9ba0d89609447e5da0b7fe3fb98a8fc079a9f7"
+    },
+    {
+      "id": "p-replicator-sparc-prd-mini-1c38d20c",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Организует модульную подготовку PRD/SPARC-документов с уточнением, исследованием и решением задачи. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "1bdf8d10f60e31f5e31a6d8fa8b3f455ae6bef738de9e7ef2651dcd581e1b238",
+      "presentationHash": "f7bab422cae74f91bd07ad054ee65cf6b6f5eaafede782d287a2df1421bd7465"
+    },
+    {
+      "id": "skills-academic-answer-assessor-bf990c08",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Оценит полноту, глубину и связь ответов студента с замечаниями рецензентов. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "3f15c10fc10a3af68ef474fe340a3ae2af45920e4a2e9b28a72da005621a8503",
+      "presentationHash": "b1a3314acc3a007bed7e7b8f896fa535427beca0530a2bf8a1f602e5436d7d7c"
+    },
+    {
+      "id": "skills-academic-defense-evaluator-ad971909",
+      "verdict": "approved",
+      "reason": "SKILL разбирает транскрипт доклада, структуру, признаки владения материалом и сопоставление с ВКР; это не решение комиссии.",
+      "recordHash": "6ab8e3259899122aa71628b0269965bc8d95fd18b61a116af55da08cb04639ee",
+      "presentationHash": "9089dcfa26e559f9dac30fed1044788cc3cff92ed64ec61956b1a8b978dcfd28"
+    },
+    {
+      "id": "skills-academic-dissertation-review-2e07c7cc",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Разберёт магистерскую работу по структуре, методологии, новизне и практической значимости. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "e66021f7db6b7fa5ec00840cc2d4879f03c9cf3ecf5330bd19ebe45c789879dc",
+      "presentationHash": "36fb2371ad2a7838f8879f6a21cda4464e44af341a98fa4c489a9c6936970138"
+    },
+    {
+      "id": "skills-academic-document-checker-840c59dd",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет проверить полноту пакета, согласованность оформления и соответствие темы документов. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "22fb630c497c94b7bebc1161c2519228799ac87f5e28a9ac4a382917ee52a0ae",
+      "presentationHash": "e06824483389c11e0b7255baca86c6ddfffef0f4450c2048bd9a95e29c37852b"
+    },
+    {
+      "id": "skills-academic-question-generator-346a6e99",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Составит вопросы по пониманию темы, методологии, применению и критическому анализу. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "84f3adde73346605ec2d3cf3b475fed25bf0bd74befcaeb68f74e37db1f9e75e",
+      "presentationHash": "5993459b6f0ec7de8905f8c05d642e40757ba75624dfecaa6ca8f46e9f73a88d"
+    },
+    {
+      "id": "skills-analyst-manual-analyst-manual-full-2bd0f916",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Соединит уточнение задачи, исследование источников и решение проблемы с контрольными точками между фазами. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "8ff1ae7528623fda0e77d9fa7bed6641a34dcedb9f56f660b99dfc2992c6da9d",
+      "presentationHash": "f690c0264a7207e043439b0aa94b51d48e2297bdce0103fde99e61434d71b450"
+    },
+    {
+      "id": "skills-analyst-manual-explore-1b58931d",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет через вопросы превратить неясный запрос в рабочую спецификацию. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "db228ce22567796ac922da79cb3d1e0ade3833673e00922e3caebe88ad9c8cd5",
+      "presentationHash": "bbe77652f9fef9aa27b12f5c9390471ee11c6405ee8ff7b9a214f55e20c2d60a"
+    },
+    {
+      "id": "skills-analyst-manual-goap-research-ed25519-fc460073",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Организует GOAP-исследование с оценкой источников и опциональными Ed25519-подписями происхождения. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "ce6cfd4f1409d1e8c8c3e5d4242d09d95dd61b345555d72e86eff0f8a9ddc7b2",
+      "presentationHash": "fbad812b8a4c756f3b6e251577c20c1757f4ad16298ce3dcc634e3ab371f7897"
+    },
+    {
+      "id": "skills-analyst-manual-problem-solver-enhanced-9ef85c73",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Соединит первые принципы, анализ причин, теорию игр и ТРИЗ для поиска решений сложной задачи. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "790d7d82c4ea1093fac6656e18c3b1ae5119c6b89a4b557f0b0465bcc2279779",
+      "presentationHash": "1b9cd9ee3656df4a2f9cdd262e8cc1e5372ec6a7d6852751516fc19c914eb2b5"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-agent-fit-and-model-choice-54acf0f5",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет сравнить код, workflow, RAG и агента, затем выбрать класс модели и границы первой задачи. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "d79f4dcc425238ccdbc403eb028db629f73d9d8a550119bc0e55115e03cdfadf",
+      "presentationHash": "97dd3cb7dc61aee5fd27f57975ad4d511d25cd16a572fa5587347da2d9d4c0fc"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-agent-security-5298015d",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет составить модель угроз, точки перехвата атак и уровни защиты инструментов и данных агента. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "c63d1402e57ac495f0dd8614c9402dd38009552a585ed1987e42dd5afdc687d5",
+      "presentationHash": "3352ff53c4ac3af8972630cea861411050e49cdc406364392c3f28b36d50ccd8"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-agent-ux-96ff6925",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет выбрать форму общения, синхронность, уведомления и поведение интерфейса при отказах. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "d7796a963429d01a0445ff0a067ee58cf9eae52fb1f835a2bb174aa5b95d80c6",
+      "presentationHash": "d29b28a17c3a7ec4d27acbbc56bd1125646324bdcc9a1adc8fa38c2a0e687176"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-context-engineering-634f1cf0",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет распределить токены, выбрать сжатие истории и место хранения межшагового состояния. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "a7311d3bdeab8e95191ab228f0f36d62501ec354604fd8d7aa509514018a779f",
+      "presentationHash": "4a5e96fd1b9663588153fc77f0801b6cb6b4241c39a199cc7fa6895e540a7a2e"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-evaluation-design-74b4c8dc",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет определить цели, метрики, формат оценочных случаев и проверки компонентов агента. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "aaee796c76d59297b163f1b5d5c1ce83896fd23b35ca7983ebe9348af3447989",
+      "presentationHash": "c7f7eab4e66fc9a21a7da7ccdc1eac7db45c940e9d95d88c4f33cc9fbc976767"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-human-in-the-loop-d8aab295",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет выбрать уровень автономности, сигналы эскалации и состав передачи задачи человеку. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "74cae3b7192a1170942a0c8aaa3670ab9569f2bea052fef9570e42338db2f941",
+      "presentationHash": "699fc4ec7031b6d9b485cb7001c2e448535092ccdc2f82a683d6e471ddede139"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-improvement-loops-4dfa9a67",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет связать обнаружение сбоев, поиск причин, эксперименты и приоритеты улучшений. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "c6073376d91f7734957be65568c6e30a51dba0a9bd2918e7a369572fd8523069",
+      "presentationHash": "5d1d1fe41bc6f017c9e14089f388d8d12ef2f0bf2eee67e86c1bb95b0e8dae98"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-knowledge-and-memory-7b2628b2",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет выбрать механизмы памяти, поиск, RAG или граф знаний и хранилища для разных слоёв. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "d2152ce895e08d47d57251fa223941b0a4ecfa084a3dca3ea76b2243dc1daaf7",
+      "presentationHash": "107568bca80f62d3c4d46fe4e1b3e660dfd0efa07c448e35fe925a8ed2c401a8"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-learning-strategy-bc57e4e9",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет сравнить обучение без изменения весов и fine-tuning с учётом стоимости и места закрепления опыта. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "891ef063b5bd7a9b422a777a4e9aa36ce32c1e957f2ec368a032cabff2737a9c",
+      "presentationHash": "d6e84413ebdf98d6f58e802b254a22ac05348cdf529c77638ebb733ed63660ec"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-multi-agent-infrastructure-fe208d15",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет сравнить транспорт, брокеры, среды исполнения и хранение для уже выбранной многоагентной схемы. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "1515b839f6f04f103f715e85de43a658f49dd67092133e29c009cb9e6b571074",
+      "presentationHash": "859cb5ff513a26c0107233ac8296cb504033ba2288c6a1967e7abe5d132dc8b4"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-observability-and-drift-6971df35",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет выбрать уровни метрик, корреляцию трасс и логов, проверки дрейфа и удаление PII при экспорте. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "6001c5d8f9b1244fc3141170002fc7bbcd4ffb0c4fb0779344dbf9b683a8bbd8",
+      "presentationHash": "0509a43dc1b2b174570754b5de77063dfe20d051e8ddf7e1951a7380bfa9c852"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-orchestration-and-planning-9b416f99",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет выбрать управляющую схему, цепочку или граф шагов и пределы разветвления. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "9acd878c30e994279cb41388b019d6bff6a76c709dbbb543db5fb73976996648",
+      "presentationHash": "33323ea7b4e7418d0a90e0284cae6988aa7ac629867d752af79fb0386808109d"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-org-adoption-and-governance-62082206",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет определить организационный масштаб агента, права, границы памяти и ответственность. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "a7dfc4d8469dc4ab1b350e0735b26d3f8d3eb747549528d3a03cf96123db9eb4",
+      "presentationHash": "806a178dabb29f7236c040fee180987d110457fa8027118803a3fdfa7bbc844f"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-probabilistic-behaviour-checks-7f3a3b6a",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет составить проверки поведенческой согласованности, устойчивости и снижения галлюцинаций. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "021f2e9dc202192ce26a0c3bef27f6ec8f4af90d07c5396f87711177667a2071",
+      "presentationHash": "630731b84498335401dcd0d941cef96cda86ee55d2bec2d26ff226ebcb6cf416"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-release-gates-and-rollout-0c95e14f",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет задать пороги допуска, блокирующие проверки и последовательность расширения живого трафика. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "3fc43f4ff4bfa5c9d28da7f64d53bc5404d95276b13a3379c35dc389d22023f0",
+      "presentationHash": "22f572b19312b3655876b8fb0b15d3af8ef1827470fd1d30d05f2049c1eb78c4"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-single-vs-multi-agent-d0b5f622",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет проверить пределы одного агента и выбрать роли и схему координации при расширении. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "265cf5cc0e13344ccefa89cc03e61387373a2e1464dd004f6eb6d667a49800be",
+      "presentationHash": "84668a42e8dc77390d7fe714622294a94596735918f1813f8121ab333d641062"
+    },
+    {
+      "id": "skills-book-ai-apps-aiagents-tool-design-and-selection-815a9b07",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет описать метаданные, входы, выходы, ошибки и стратегию выбора инструментов. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "8eb224893a620a0a1807e3727c22b4abb7083943c2f1fca9c8fc730b8cee9d35",
+      "presentationHash": "cc393070c1c1007942b1f95a219d49d3f4f4cb129914da67f7eb5f69603b17ef"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-architecture-assembly-3e8c5919",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет спроектировать сборку runtime-графа объектов и отделить связывание зависимостей от домена. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "68785aaa24f6c0727c6be54c7730ce4d94a2a06cc48de709b7b6fcb91ee22630",
+      "presentationHash": "6a7fab15979b74cb5bdffdac5a58d746f006b8a3e1fa225b1c7fac6f913f1d2e"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-concurrency-safety-017ee45c",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет рассмотреть shared-memory, атомарность, locks, очереди и редкие расписания выполнения. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "71a4808ee68a3b409447c4191cdb3e41964350e53af88c7418c45cb7fff2c67f",
+      "presentationHash": "a05a2b8044e983af1870add67b4de461da139527db61f9c90c60ca13ca38d823"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-error-and-boundary-handling-05071555",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет отделить нормальный путь от ошибок, определить контракт вызова и локальную обёртку внешнего клиента. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "218206c950156527e5f2fc69f8dcb018578879c0d7e2745d1c94efcb26417c54",
+      "presentationHash": "d0e9d362b797dd97647d2476ed717010d1bc2e887bad18001d0f4b990b94805b"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-function-contracts-070d7a07",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет уточнить одну операцию функции, сигнатуру, эффекты и необходимый порядок вызовов. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "f1a2ff5b1a200038e12a3ddb49bf9a67f601fa62aa1842eb8db653a9f04b288d",
+      "presentationHash": "d7334344297b80f1c3efe1bbeb6c5bf1810b58eacaa35e8516449818d48ec4b6"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-intent-and-comment-contract-d9b95123",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет выбрать имена и комментарии, сохраняющие намерение и необходимый контекст исходника. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "cded0c4b3d92fb61c52af0b1dd2922f53df6f5cd5bf3dc2964a7808c15333c40",
+      "presentationHash": "be2611c0817d374a1d7f3a8ad8eab88adf1eb841678e7ab61a30206677f965d0"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-legacy-refactoring-loop-c5da49fb",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет сначала зафиксировать наблюдаемое поведение, затем выполнять небольшие проверяемые шаги очистки. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "aac4f6043a244af61a3ea0d43bae7cacaa7fb44175695490ece78052b01edfbd",
+      "presentationHash": "153d4c681e0f2af5d4cf1f1be258f694cd5be30fe81e8465ce25d9acefeb4cd6"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-object-data-ownership-0e3a918f",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет выбрать локального владельца данных, операции и абстракции по принципам Clean Code. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "1232a8d966d55e43bf38427dd24fcebac117dfbb5d47b23ca72091ca01f7ba8e",
+      "presentationHash": "88a70ff28a376e1f4d46025cbb37e9e4d8a3afbf801ab817e9a9ba48d6df0b27"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-source-layout-6c014f11",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет организовать близость определений, порядок чтения файла, отступы и командный формат. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "2b04514e1dc538e547eb5f1a878800fc386a2572599b63044cc65e4b0927b308",
+      "presentationHash": "092f3bd79807f2111af18b18eaaba0ad66e4abded0336f03f19fa955fd950c58"
+    },
+    {
+      "id": "skills-book-clean-code-clean-code-test-suite-feedback-2e83c3ee",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет оценить читаемость, FIRST, изоляцию и повторяющиеся сбои существующего набора по Clean Code. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "687b9178a278b18f6a6f2a11e86a995201587dfffdbecd028dcd834d78d06d3b",
+      "presentationHash": "5fcc0914aa7d4f5d7573ea9a1aca5dbc42a0625baacf11950de143f3173fc491"
+    },
+    {
+      "id": "skills-bto-bto-09ecdb0a",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Организует сборку, benchmark, оценку и оптимизацию навыков, команд, правил и агентных шаблонов. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "b2e1e5d39b7a601e66b1fb7b3201096468ccc75d8a3a9b1bc5958b513e2c20aa",
+      "presentationHash": "17b0f0b7337faed3c20c736e8c9d03d6caae865b8c7ce5a92cc5a31d2d346fc3"
+    },
+    {
+      "id": "skills-demo-publisher-demo-site-publisher-b95747b0",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Проведёт запись JSON-сценариев, монтаж видео и сборку статического сайта с проверкой размеров и публикации. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "f5802de426b7cff2f2a6c002d3bb7e32361ecbb5d07e422c4982a9dc00ca6beb",
+      "presentationHash": "1a7c5e7946ef3045516b8399cd01b73aa80626e768afdb1023c6aae354ded51e"
+    },
+    {
+      "id": "skills-devops-api-design-0c4d943d",
+      "verdict": "approved",
+      "reason": "SKILL создаёт спецификацию API, сравнивает REST и GraphQL и прямо исключает реализацию и тестирование API.",
+      "recordHash": "e7bc7b24bdd99017f1bed7c0a1f527ba2a67cc72932818c8ecf194fda95ed96a",
+      "presentationHash": "8ef1d191c26cf4fbe4d8c784904df6a9450d5b0e3e6fca2958c615ff65c0fb3c"
+    },
+    {
+      "id": "skills-devops-c4-architecture-e660ad01",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Составит представления C4 от контекста до компонентов с границами и связями. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "a738312b2b4d09a17dc8bb85d2b4aeb5734c51af3a3f02ec61f17d9e457d0516",
+      "presentationHash": "452e5c13e690498fc49ac7483069e93b8aa75ad2026e0dbd2e894ab2463c77a6"
+    },
+    {
+      "id": "skills-devops-ci-fix-4748f1fb",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет выделить первичную ошибку в журнале CI и отличить дефект кода от теста или окружения. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "374ed8f496164359980a0fe6d5e59b1f1f992fbd9cd1dbd68a4ca5c6148c6829",
+      "presentationHash": "3ce66596f315fd3386b6998f0bba527faab34269c531b3eae63107f550400696"
+    },
+    {
+      "id": "skills-devops-codeql-fix-6667aa48",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Разберёт конкретное замечание CodeQL или статического анализатора и направит исправление. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "019049e7c90b952596ae864cc42ada6dbb17fd84c43dd6dbbdd5d6a06604611e",
+      "presentationHash": "62c5c44ce0997d6ba1ec5e2692b4900098eaac6e821941058baea55ffc692975"
+    },
+    {
+      "id": "skills-devops-data-pipeline-a40a8637",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет спроектировать ETL/ELT, схему, преобразования, оркестрацию и контроль качества. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "3d289d5169cb9c92bfb031409d6cd9bc2d68ce4951e95d669aa7ce69ad3cad22",
+      "presentationHash": "220eb39bf677893a7e9cf7270c429d6bcd67cfbdbde955c61a002700c4b9f349"
+    },
+    {
+      "id": "skills-devops-database-migration-74c0ac9f",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет разобрать изменение схемы или данных, порядок миграции и возврат к прежнему состоянию. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "6a164a87c4d3f5dc22ca390273a2627abdb406b63539a92a8b597c73ce99d237",
+      "presentationHash": "7686cd3d987445f2b8df3e9464da1d698ae89269cc0f5d0b76c26ab2c4a881a4"
+    },
+    {
+      "id": "skills-devops-database-review-c6ded265",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Проверит изменения схемы, миграции и запросы на проблемы проектирования. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "133ff3f40e05c7a05b6debb4019738220cc0d4fc223102e4b624cb88d3160618",
+      "presentationHash": "2d83214921911697b0bd91ba3ce205692fa2c644217853aa4c840fb53d9e440d"
+    },
+    {
+      "id": "skills-devops-debugging-2c04ece1",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет воспроизвести сбой, локализовать причину и проверить исправление. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "d6f5851de4a5d4aa44cb93b0be989a3b292186ed3d849398ad85688fd53079d1",
+      "presentationHash": "7e811c451ec2fe28fff491f163529ecea65b619f5d6a22e9f1fe65ee1d5a1dd1"
+    },
+    {
+      "id": "skills-devops-deploy-on-cloudru-vm-458aa6e5",
+      "verdict": "approved",
+      "reason": "SKILL описывает анализ репозитория и развёртывание Compose через cloudru-vm, требуя CLI и учётные данные и исключая Kubernetes.",
+      "recordHash": "4e403c39abdaf1de8b0f34980d5ff2312dea64a56975bdebed27a0b173f5c644",
+      "presentationHash": "9bbac9005d280ae587b214c59e0351b3d0b761ddf0362c52160748ecac1bcc7f"
+    },
+    {
+      "id": "skills-devops-docker-compose-1a1fbd1d",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет составить или проверить конфигурацию Compose, связи сервисов и постоянные данные. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "e00498d8b17896012cdad654fb409211dfa9db7460e0a29938ffc4a413b6521a",
+      "presentationHash": "baad871dfc3e87a2fae58124137914554db804ca5729af577896399e03a0725f"
+    },
+    {
+      "id": "skills-devops-frontend-implementation-ba11ce42",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет реализовать frontend-компоненты с учётом соглашений текущего проекта. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "9fdc268a0fd802e3620d71513d50d2fb9c184e66fbe567ce0d4258a8241dbdb7",
+      "presentationHash": "4beb6c18b2ccfd96d4b28b6b610e9efbc4b55111ce6c98843e67952f83897d88"
+    },
+    {
+      "id": "skills-devops-git-conflict-resolve-5b7dc073",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Разберёт намерение обеих сторон и поможет разрешить конфликты merge или rebase. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "708bce946a1e3a66a37c51faa9be4f267c392915804ab498f250cdb730e19656",
+      "presentationHash": "36c883adce273fe197d53391aa212066cc700348055557923682dcc9ad1a1e52"
+    },
+    {
+      "id": "skills-devops-github-actions-e6467f0d",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет спроектировать GitHub Actions с матрицей, кэшем, переиспользованием и безопасной передачей секретов. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "ca205da2e8bb3e5e5aa977a92542beff10de2c1254d3962819ec419086eba106",
+      "presentationHash": "1b415b1c9de776367ee24ce4bd1cbb764e91e94c88401c3db4a46af2fb62878e"
+    },
+    {
+      "id": "skills-devops-graphql-schema-e6086ef0",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет разобрать типы, resolver-контракты, пагинацию, ошибки и безопасность GraphQL. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "3d377dee6499acc3b3042275834de32d9bcc494b4cdd5b4c5956dc69df2823ca",
+      "presentationHash": "57714d97e6c4696ee58557b2865d4a781912e820c7809048f3bcc717034d712e"
+    },
+    {
+      "id": "skills-devops-incident-response-5efb9dba",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Проведёт через оценку инцидента, снижение ущерба, восстановление и последующий разбор. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "e60685192b489d82d2e30ad1f7e35b6cfeaa70295679cef159dfc544037129fd",
+      "presentationHash": "88a42ce3fe0e97be905a1b2ff12a94416f7f4f3d0efab8f4dc948fafeb4f7124"
+    },
+    {
+      "id": "skills-devops-itsm-itil-0e4a9257",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Предложит связанные Markdown-записи, состояния и приоритеты WSJF для сервисного управления. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "f971ae7a414750c3ca78a3b019823cbea63190f8b1ab87eb34d52be64c30a760",
+      "presentationHash": "6012cd2950b5866b8743aadc9def6181ec2ab6380806c910775f5ceebb2d8e02"
+    },
+    {
+      "id": "skills-devops-kubernetes-ce335c87",
+      "verdict": "approved",
+      "reason": "SKILL подтверждает назначение: Поможет проектировать и проверять deployments, сеть, масштабирование и безопасность Kubernetes. Указанные ограничения и следующий шаг соответствуют сценарию.",
+      "recordHash": "15c0f917b78ae6bcb686f168e4a8b2d11f6649e3094fcb262e2c85a6b96a286f",
+      "presentationHash": "8f180e441e5c2cdaed853722fdc632e68d243232d0afebb03aa479364f74dab4"
+    }
+  ]
+}
