@@ -3,6 +3,7 @@ import {ChoiceError} from './choice-error.mjs';
 import {dialogueContract} from './dialogue.mjs';
 import {directlyPhysical} from './action-coverage.mjs';
 import {answerPassages} from './answer-details.mjs';
+import {discoveryQuery} from './discovery-query.mjs';
 
 const maxRequirements=6;
 const passagesPerCandidate=7;
@@ -35,13 +36,19 @@ export function compactRequirements(retrieval) {
 
 function compactPassages(retrieval,sourceContext,requirements) {
  const fallback=answerPassages(retrieval,sourceContext);
+ const discovery = discoveryQuery(retrieval.query);
  return retrieval.candidates.map((candidate,index)=>{
   const ranked=requirements.filter(slot=>!slot.manual).map(({text})=>{
-   const expansions=concepts.filter(([pattern])=>pattern.test(text)).map(([,terms])=>terms);
+   const expansions=[...concepts.filter(([pattern])=>pattern.test(text)).map(([,terms])=>terms),
+    ...[discoveryQuery(retrieval.query)].filter(Boolean)];
    return (sourceContext.rankPassages?.(candidate.id,[text,...expansions])??[]).slice(0,expansions.length?2:1);
   });
   // Reserve at least one passage per matching slot before adding alternatives.
-  const priority=[...ranked.map(list=>list[0]).filter(Boolean),...ranked.map(list=>list[1]).filter(Boolean)];
+  const requiredPassages = ranked.map(list=>list[0]).filter(Boolean);
+  const discoverySlots = Math.min(3, passagesPerCandidate - requiredPassages.length);
+  const discoveryPassages = discovery && candidate.origin === 'discovery-vocabulary'
+   ? sourceContext.rankPassages(candidate.id,[discovery]).slice(0,discoverySlots) : [];
+  const priority=[...requiredPassages,...discoveryPassages,...ranked.map(list=>list[1]).filter(Boolean)];
   const snippets=[...new Set([...priority,...fallback[index].map(p=>p.text)])].slice(0,passagesPerCandidate);
   return snippets.map((text,position)=>({id:`c${index+1}p${position+1}`,text}));
  });
