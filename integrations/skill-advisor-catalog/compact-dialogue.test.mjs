@@ -152,3 +152,61 @@ test('the live adapter returns the checked subset and emits only a fixed recover
  assert.deepEqual(events,[{event:'advisor.partial_recovery',reason:'passage-unissued'}]);
  assert.ok(!JSON.stringify(answer).includes('c2p99'));
 });
+
+test('structured rows preserve provenance, gaps and legacy tuple results',()=>{
+ const retrieval={query:'Проверь pull request',candidates:candidates(review)};
+ const input=contract.input(retrieval),passage=input.cards[0].passages[0].id;
+ const structured={i:'analyze',m:[{r:'r1',p:[passage]}],x:[],ask:null};
+ const result=contract.materialize(retrieval,structured,input);
+ assert.deepEqual(result,contract.materialize(retrieval,{i:'analyze',m:[['r1',passage]]},input));
+ const unavailable=contract.materialize(retrieval,{...structured,m:[{r:'r1',p:[null]}]},input);
+ assert.equal(unavailable.decision,'no-match');
+ const unissued=contract.materialize(retrieval,{...structured,m:[{r:'r1',p:['c1p99']}]},input);
+ assert.deepEqual(unissued.recoveries,['passage-unissued']);
+ assert.deepEqual(unissued.records,[]);
+ const malformed=contract.materialize(retrieval,{...structured,m:[{r:'r1',p:[[passage]]}]},input);
+ assert.deepEqual(malformed.recoveries,['passage-format']);
+ assert.throws(()=>contract.materialize(retrieval,{...structured,m:[{r:'r9',p:[passage]}]},input),/Invalid compact requirement/);
+ assert.throws(()=>contract.materialize(retrieval,{...structured,m:[{r:'r1',p:[passage],url:'https://example.invalid'}]},input),/Invalid compact requirement row/);
+});
+
+test('compact provider requests enforce request-scoped schema and supported endpoint routing',async()=>{
+ const {selectScenarios}=await import('./selector.mjs');
+ const retrieval={query:'Проверь pull request',candidates:candidates(review)};
+ const input=contract.input(retrieval),passage=input.cards[0].passages[0].id;
+ let sent;
+ const result=await selectScenarios(retrieval,{
+  model:'test-model',apiKey:'test-key',contract,
+  fetchImpl:async(url,options)=>{
+   sent=JSON.parse(options.body);
+   return Response.json({choices:[{finish_reason:'stop',message:{content:JSON.stringify({
+    i:'analyze',m:[{r:'r1',p:[passage]}],x:[],ask:null,
+   })}}],usage:{cost:0},model:'test-model'});
+  },
+ });
+ assert.equal(sent.response_format.type,'json_schema');
+ assert.equal(sent.response_format.json_schema.strict,true);
+ assert.deepEqual(sent.provider,{require_parameters:true});
+ assert.equal(sent.temperature,undefined);
+ const schema=sent.response_format.json_schema.schema;
+ assert.equal(schema.additionalProperties,false);
+ assert.deepEqual(schema.properties.m.items.properties.r.enum,['r1']);
+ assert.deepEqual(schema.properties.m.items.properties.p.items.anyOf[0].enum,
+  ['ctx',...input.cards.flatMap(card=>card.passages.map(p=>p.id))]);
+ assert.deepEqual(result.output.records.map(r=>r.id),[review.id]);
+});
+
+test('four issued passages for one requirement fit the existing six-detail answer budget',()=>{
+ const retrieval={query:'Хочу выяснить проблемы клиентов перед запуском сервиса',candidates:candidates(review)};
+ const input=contract.input(retrieval);
+ assert.ok(input.cards[0].passages.length>=4);
+ const references=input.cards[0].passages.slice(0,4).map(p=>p.id);
+ const answer=contract.materialize(retrieval,{i:'analyze',m:[{r:'r1',p:references}],x:[],ask:null},input);
+ assert.equal(answer.decision,'recommend');
+ assert.equal(answer.details.length,4);
+ assert.deepEqual(answer.recoveries,[]);
+ const tooMany=contract.materialize(retrieval,{i:'analyze',m:[{r:'r1',p:Array(7).fill(references[0])}],x:[],ask:null},input);
+ assert.deepEqual(tooMany.recoveries,['passage-format']);
+ const unknown=contract.materialize(retrieval,{i:'analyze',m:[{r:'r1',p:[...references,'c1p99']}],x:[],ask:null},input);
+ assert.deepEqual(unknown.recoveries,['passage-unissued']);
+});

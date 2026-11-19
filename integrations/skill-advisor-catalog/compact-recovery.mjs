@@ -1,5 +1,6 @@
 import {ChoiceError} from './choice-error.mjs';
 import {supportsActionCard} from './action-coverage.mjs';
+import {maxDetails} from './answer-details.mjs';
 
 const aliasPattern=/^c[1-9][0-9]?p[1-9][0-9]?$/u;
 export const recoveryReasons=Object.freeze([
@@ -31,7 +32,7 @@ export function bindCompactRows(retrieval, requirements, mappings, extra, input)
   let recovery=null;
   if (!omitted) {
    if (slot.manual) recovery='manual-scope';
-   else if (aliases.length<1 || aliases.length>3 || aliases.some(alias=>typeof alias!=='string'||!aliasPattern.test(alias))) recovery='passage-format';
+   else if (aliases.length<1 || aliases.length>maxDetails || aliases.some(alias=>typeof alias!=='string'||!aliasPattern.test(alias))) recovery='passage-format';
    else if (new Set(aliases).size!==aliases.length) recovery='passage-duplicate';
    else if (aliases.some(alias=>!passages.has(alias))) recovery='passage-unissued';
    else if (action && aliases.some(alias=>!supportsActionCard(action,passages.get(alias),true))) recovery='card-eligibility';

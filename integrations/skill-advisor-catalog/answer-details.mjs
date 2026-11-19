@@ -2,7 +2,7 @@ import {ChoiceError} from './choice-error.mjs';
 import {actionScenarioIds,directlyPhysical} from './action-coverage.mjs';
 import {stems} from '../../packages/harness-core/dist/stem.js';
 
-const maxDetails = 6;
+export const maxDetails = 6;
 const maxPassages = 12;
 const maxPassageLength = 240;
 const meaningful = text => /\p{L}/u.test(text) && text.length >= 20;

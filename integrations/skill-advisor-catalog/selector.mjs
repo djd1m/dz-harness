@@ -20,10 +20,13 @@ export async function selectScenarios(retrieval, { model, apiKey, fetchImpl = fe
   }
   if (!model || !apiKey) throw Error('Model and provider credential required');
   const input = contract.input(retrieval);
+  const schema = contract.responseSchema?.(input);
   const response = await fetchImpl('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST', signal: AbortSignal.timeout(60000),
     headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ model, temperature: 0, max_tokens: MAX_OUTPUT_TOKENS,
+    body: JSON.stringify({ model, ...(!schema?{temperature:0}:{}), max_tokens: MAX_OUTPUT_TOKENS,
+      ...(schema?{response_format:{type:'json_schema',json_schema:{name:'advisor_choice',strict:true,schema}},
+       provider:{require_parameters:true}}:{}),
       messages: [{ role: 'system', content: contract.instructions },
         { role: 'user', content: JSON.stringify(input) }] }),
   });
