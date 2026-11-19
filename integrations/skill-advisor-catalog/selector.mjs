@@ -12,21 +12,23 @@ export class SelectorError extends Error {
 
 /** Empty search is not a semantic classification. Only blank input bypasses the model. */
 export async function selectScenarios(retrieval, { model, apiKey, fetchImpl = fetch,
-  contract = { instructions: pickerInstructions, input: pickerInput, materialize } }) {
+  contract = { instructions: pickerInstructions, input: pickerInput, materialize }, reasoningEffort }) {
   const preflight = contract.preflight?.(retrieval);
   if (preflight) return {output:preflight,modelCalled:false};
   if (!retrieval.query.trim()) {
     return { output: contract.materialize(retrieval, { decision: 'clarify', intent: 'learn', scenarioIds: [], missingParts: [], clarification: 'task-object' }), modelCalled: false };
   }
   if (!model || !apiKey) throw Error('Model and provider credential required');
+  if (reasoningEffort !== undefined && !['none','minimal','low','medium','high','xhigh','max'].includes(reasoningEffort)) throw Error('Invalid reasoning effort');
   const input = contract.input(retrieval);
   const schema = contract.responseSchema?.(input);
   const response = await fetchImpl('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST', signal: AbortSignal.timeout(60000),
     headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
     body: JSON.stringify({ model, ...(!schema?{temperature:0}:{}), max_tokens: MAX_OUTPUT_TOKENS,
-      ...(schema?{response_format:{type:'json_schema',json_schema:{name:'advisor_choice',strict:true,schema}},
-       provider:{require_parameters:true}}:{}),
+      ...(schema?{response_format:{type:'json_schema',json_schema:{name:'advisor_choice',strict:true,schema}}}:{}),
+      ...(reasoningEffort?{reasoning:{effort:reasoningEffort}}:{}),
+      ...(schema || reasoningEffort?{provider:{require_parameters:true}}:{}),
       messages: [{ role: 'system', content: contract.instructions },
         { role: 'user', content: JSON.stringify(input) }] }),
   });

@@ -74,3 +74,18 @@ test('coverage labels must declare complete sets within the two-scenario limit',
   assert.throws(() => validateLabels(q, [{ ...label, acceptableScenarioSets: [['unknown']] }]), /complete acceptable/);
   assert.doesNotThrow(() => validateLabels(q, [{ ...label, acceptableScenarioSets: [['a', 'b'], ['c']] }]));
 });
+
+
+test('caller can bound reasoning without changing the output ceiling or silently dropping parameters',async()=>{
+ for(const reasoningEffort of [undefined,'low']) {
+  const result=await selectScenarios(retrieval(),{...options,reasoningEffort,fetchImpl:async(_url,init)=>{
+   const body=JSON.parse(init.body);
+   assert.equal(body.max_tokens,1800);
+   if(reasoningEffort) { assert.deepEqual(body.reasoning,{effort:'low'}); assert.equal(body.provider.require_parameters,true); }
+   else assert.equal(Object.hasOwn(body,'reasoning'),false);
+   return reply('no-match');
+  }});
+  assert.equal(result.modelCalled,true);
+ }
+ await assert.rejects(selectScenarios(retrieval(),{...options,reasoningEffort:'unknown',fetchImpl:()=>assert.fail('invalid effort must not call provider')}),/Invalid reasoning effort/);
+});

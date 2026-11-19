@@ -55,7 +55,7 @@ export function liveAnswer(apiKey,{catalog=currentCatalog(),retriever=null,sourc
  const contract=compactDialogueContract(presentation,sourceContext??buildSourceContext(catalog)),courses=read('course-map.json');
  return async query=>{
   const candidates=retriever?await retriever(query):retrieve(catalog,query);
-  const result=await selectScenarios(candidates,{model:'anthropic/claude-haiku-5.5',apiKey,contract}).catch(error=>{
+  const result=await selectScenarios(candidates,{model:'anthropic/claude-haiku-5.5',apiKey,contract,reasoningEffort:'low'}).catch(error=>{
    if(error.choiceReason)onEvent({event:'advisor.invalid_choice',reason:error.choiceReason});
    throw error;
   });

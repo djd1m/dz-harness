@@ -31,7 +31,13 @@ export function createHybridRetriever({catalog,searchUrl,embed,fetchImpl=fetch,o
   const discoveryExpansion = discoveryQuery(query);
   const expansion = discoveryExpansion ?? implementationQuery(query);
   if (expansion) {
-   const discovery = projection.clauseSearch(expansion).find(hit => hit.matches.length >= 3);
+   const hits = projection.clauseSearch(expansion).filter(hit => hit.matches.length >= 3);
+   const first = hits[0];
+   // Prefer a dedicated carrier only for the same skill and identical shipped source.
+   const sourceHash = hit => hit?.record.sources.find(source => source.path.endsWith('/SKILL.md'))?.sha256;
+   const discovery = hits.find(hit => hit.record.skillIds?.length === 1 &&
+    hit.record.skillIds[0] === first?.record.skillIds?.[0] && sourceHash(hit) && sourceHash(hit) === sourceHash(first) &&
+    hit.record.package.name.split('/')[1] === 'skills-' + hit.record.skillIds[0]) ?? first;
    if (discovery) {
     // Keep existing source hits so grouping retains every retrieved quote for this owner.
     raw.unshift({...discovery, origin:discoveryExpansion?'discovery-vocabulary':'implementation-vocabulary'});
