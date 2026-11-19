@@ -10,8 +10,9 @@ import {implementationQuery} from './implementation-query.mjs';
 const maxRequirements=6;
 const passagesPerCandidate=7;
 const clarificationMarker='\nПоследнее уточнение (при противоречии считать актуальным): ';
-const separators=/:\s+|[;\n]+|(?<=[.!?])\s+|,?\s+(?:а(?: также)?|и чтобы|and(?=\s+(?:ensure|keep|include|add|verify|make|provide)\b)|while(?=\s+\p{L}))\s+/iu;
+const separators=/:\s+|[;\n]+|(?<=[.!?])\s+|,?\s+(?:а(?: также)?(?!\s+не(?:\s|$))|и чтобы|and(?=\s+(?:ensure|keep|include|add|verify|make|provide)\b)|while(?=\s+\p{L}))\s+/iu;
 const advisorQuestion=/^(?:с чего начать|where to start|how do I get started|какой (?:навык|пакет)(?: выбрать| подойд[её]т)?|что выбрать|с чего начать|where to start|how do I get started|which (?:skills?|packages?)(?: should I (?:choose|use|pick))?)\s*\??$/iu;
+const advisorFollowup=/^(?:какой\s+(?:навык|скилл|пакет)\s+(?:мне\s+)?(?:использовать|выбрать)(?:\s*,?\s*чтобы\s+(?:это\s+(?:вс[её]\s+)?|вс[её]\s+(?:это\s+)?)(?:закодить|реализовать|написать))?|which\s+(?:skill|package)\s+(?:should\s+I\s+use|to\s+use)(?:\s+to\s+(?:code|implement)\s+(?:all\s+)?(?:this|that|it))?)\s*[?!.]*$/iu;
 const narrowScope=/^(?:только|лишь|only|just)(?![\p{L}-])/iu;
 const concepts=[
  [/(?:именованн\p{L}*\s+том\p{L}*|named volumes?)/iu,'named volume persistent data volumes'],
@@ -34,7 +35,7 @@ export function compactRequirements(retrieval) {
  const [prior,latest]=retrieval.query.split(clarificationMarker);
  const scope=latest===undefined || narrowScope.test(latest.trim()) ? [latest??prior] :
   [...prior.split(/\nПредыдущее уточнение \d+: /u),latest];
- const split=scope.flatMap(text=>text.split(separators)).map(scopeText).filter(text=>text.length>=3&&!advisorQuestion.test(text));
+ const split=scope.flatMap(text=>text.split(separators)).map(scopeText).filter(text=>text.length>=3&&!advisorQuestion.test(text)&&!advisorFollowup.test(text));
  const clauses=[...new Set(split.length?split:[scopeText(latest??prior)])];
  return clauses.map((text,index)=>({id:`r${index+1}`,text,actionId:null,...(directlyPhysical.test(text)?{manual:true}:{})}));
 }

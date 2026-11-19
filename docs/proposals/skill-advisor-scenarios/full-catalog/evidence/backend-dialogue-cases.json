@@ -1,0 +1,52 @@
+[
+  {
+    "id": "D01",
+    "query": "Хочу сделать сайт для службы доставки цветов: каталог, оформление заказа и уведомления. Сами цветы доставляют курьеры.",
+    "expectation": "Useful web implementation guidance; courier delivery is background, not manual work requested."
+  },
+  {
+    "id": "D02",
+    "query": "Хочу сделать сайт для службы доставки цветов: каталог, оформление заказа и уведомления. Сами цветы доставляют курьеры.\nПоследнее уточнение (при противоречии считать актуальным): а если мне нужен бэкенд, а не только фронтенд?",
+    "expectation": "Recommend an applicable implementation workflow or pipeline with backend scope. Do not ask generic priorities or offer only frontend."
+  },
+  {
+    "id": "D03",
+    "query": "Хочу сделать сайт для службы доставки цветов: каталог, оформление заказа и уведомления. Сами цветы доставляют курьеры.\nПредыдущее уточнение 1: а если мне нужен бэкенд, а не только фронтенд?\nПоследнее уточнение (при противоречии считать актуальным): какой скилл мне использовать чтобы это все закодить?",
+    "expectation": "Recommend an applicable implementation workflow/pipeline for the established app and backend; do not repeat a generic clarification."
+  },
+  {
+    "id": "D04",
+    "query": "Build a website for a flower delivery service: a catalog, order checkout and notifications. Couriers deliver the flowers.\nПоследнее уточнение (при противоречии считать актуальным): I need the backend too, not only the frontend. Which skill can implement all this?",
+    "expectation": "Useful end-to-end implementation workflow/pipeline with backend scope, not only frontend or a generic clarification."
+  },
+  {
+    "id": "D05",
+    "query": "Нужно разработать backend API для приложения с базой данных. Какой пакет поможет пройти от требований до реализации и тестов?",
+    "expectation": "Recommend a development workflow/pipeline, explaining implementation and checks rather than replacing it with review only."
+  },
+  {
+    "id": "D06",
+    "query": "Хочу сделать сайт для службы доставки цветов: каталог, оформление заказа и уведомления. Сами цветы доставляют курьеры.\nПредыдущее уточнение 1: а если мне нужен бэкенд, а не только фронтенд?\nПоследнее уточнение (при противоречии считать актуальным): Теперь только фронтенд, без бэкенда.",
+    "expectation": "Honor latest frontend-only scope. Do not insist on building a backend or generic scope clarification."
+  },
+  {
+    "id": "D07",
+    "query": "Хочу сделать сайт для службы доставки цветов: каталог, оформление заказа и уведомления. Сами цветы доставляют курьеры.\nПредыдущее уточнение 1: а если мне нужен бэкенд, а не только фронтенд?\nПоследнее уточнение (при противоречии считать актуальным): Только составить план и архитектуру, код пока не писать.",
+    "expectation": "Useful planning guidance; do not claim implementation is being requested or performed."
+  },
+  {
+    "id": "D08",
+    "query": "Хочу сделать сайт для службы доставки цветов: каталог, оформление заказа и уведомления. Сами цветы доставляют курьеры.\nПредыдущее уточнение 1: Только фронтенд, без бэкенда.\nПоследнее уточнение (при противоречии считать актуальным): Передумал: нужен и бэкенд, хочу реализовать приложение целиком.",
+    "expectation": "Reintroduce backend implementation under newest scope; recommend an applicable workflow."
+  },
+  {
+    "id": "D09",
+    "query": "Нужен курьер, который физически доставит цветы клиентам. Сайт разрабатывать не надо.",
+    "expectation": "Do not claim a software package physically delivers flowers. No invented backend request."
+  },
+  {
+    "id": "D10",
+    "query": "Создай тесты для backend API. Сам API уже реализован, переписывать его не надо.",
+    "expectation": "Useful testing guidance, not a new implementation pipeline as replacement for testing."
+  }
+]

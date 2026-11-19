@@ -1,0 +1,15 @@
+# Backend follow-up correction, 19 November 2026
+
+The owner's flower-delivery website dialogue exposed a missing development-workflow candidate after backend and coding follow-ups. The current client envelope is retained unchanged. An isolated replay of the original release found no feature-adr or p-replicator candidate in any of its three retained shortlists; model outcomes varied (two partial answers and one interrupted completion). These are separate from the user's observed repeated generic clarification.
+
+Reuses the existing hybrid search, vocabulary expansion, approved source projection, bounded package grouping, requirement slots, compact selector and fixed renderer. No new model, embedding, service, index, user tracking or quota policy is introduced.
+
+The fix adds software-development workflow vocabulary for backend/full-stack/API implementation; recognizes anaphoric advisor questions without a separate evidence obligation; keeps contrastive scope together; and prefers a dedicated package only when the exported skill ID AND shipped SKILL.md hash match the existing retrieved candidate. It does not force a package by query keyword or manufacture capability evidence.
+
+Creation, negation and auxiliary-output guards cover the new implementation verbs. A latest explicit creation instruction can supersede an earlier cancellation. Negative controls retain tests-only, backup-only, manual work, frontend-only and no-implementation scopes.
+
+A separate provider failure was observed: 1800 output tokens, 1774 reasoning tokens and finish_reason=length. A bounded low-effort experiment degraded semantic coverage and was rejected. The production model and its existing reasoning configuration remain unchanged; the bounded output ceiling increases from 1800 to 2400 to leave room for both reasoning and the compact answer. Current provider metadata confirms the model's output limit is much higher. Existing cost reservation imports this ceiling; the provider's weekly dollar ceiling and request quotas do not change. Official reference: https://openrouter.ai/docs/guides/best-practices/reasoning-tokens . No automatic retry or budget reset is added.
+
+The attached ten cases retain their original expectations, including the actual client follow-up envelope. Release verification repeats them together with the prior 23 release cases, then independently reviews semantics and the actual UI. Record the final verdict and production evidence in the PR; do not reinterpret preserved earlier failures as successful runs.
+
+The final patch restores the original system instructions verbatim. Counterfactual replay of the same real search traces establishes byte-identical model inputs and instructions for all 23 prior release cases. This proves unchanged candidate/requirement/passage preparation for those traces; it does not assert identical stochastic model outcomes, especially with the separately documented output-cap change. The ten new cases remain independently scored under their original expectations; unresolved broader cases are retained rather than relabelled.
