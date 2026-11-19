@@ -2,6 +2,7 @@ import {ChoiceError} from './choice-error.mjs';
 import { answerContract, renderAnswer } from './answer.mjs';
 import {applyActionCoverage,directlyPhysical} from './action-coverage.mjs';
 import {answerPassages,validateAnswerDetails,validateDetailGaps} from './answer-details.mjs';
+import {unavailableQueryReason,unavailableMessages} from './unavailable-query.mjs';
 
 const questions = Object.freeze({
  'task-object': 'Что именно вы хотите сделать и с чем: с приложением, данными, документами или другим материалом?',
@@ -56,11 +57,13 @@ export function dialogueContract(presentation,sourceContext=null) {
    }
    if(choice.decision==='clarify'?!(Object.hasOwn(questions,choice.clarification)&&!['many-actions','action-list'].includes(choice.clarification)):choice.clarification!==null)throw new ChoiceError('clarification','Invalid clarification target');
    const output=base.materialize(retrieval,choice);
+   const noMatchReason=output.decision==='no-match' ? unavailableQueryReason(retrieval.query) : null;
    const physicalGap = choice.coveredActions.some(action=>action.scenarioId===null&&directlyPhysical.test(action.text));
    const isPhysical = missingCount > 0 && (physicalGap || (choice.limitReason==='physical-action' &&
     (choice.missingParts.some(part=>explicitPhysical.test(part)) || (choice.decision==='no-match' && explicitPhysical.test(retrieval.query)))));
    return {...output,missingParts:[...choice.missingParts],clarification:choice.clarification,
     coveredActions:choice.coveredActions,details,
+    ...(noMatchReason ? {noMatchReason} : {}),
     ...(isPhysical ? {limitReason:'physical-action'} : {})};
   },
  };
@@ -73,6 +76,9 @@ export function renderDialogue(output,presentation,courses){
  if(output.limitReason==='physical-action') {
   const limit = 'Для физической работы нужен исполнитель на месте. Пакеты каталога её не выполняют.';
   answer.lead = output.decision==='no-match' && !output.recoveries?.length ? limit : `${answer.lead} ${limit}`;
+ }
+ if(output.decision==='no-match' && !output.recoveries?.length && Object.hasOwn(unavailableMessages,output.noMatchReason)) {
+  answer.lead=unavailableMessages[output.noMatchReason];
  }
  return {...answer,missingParts:output.missingParts,
   clarificationQuestion:output.clarification?questions[output.clarification]:null};

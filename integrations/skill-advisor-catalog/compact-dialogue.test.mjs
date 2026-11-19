@@ -210,3 +210,18 @@ test('four issued passages for one requirement fit the existing six-detail answe
  const unknown=contract.materialize(retrieval,{i:'analyze',m:[{r:'r1',p:[...references,'c1p99']}],x:[],ask:null},input);
  assert.deepEqual(unknown.recoveries,['passage-unissued']);
 });
+
+test('ordinary length and supplied photos reach the selector as documented parameters',()=>{
+ const cases=[
+  ['Хочу короткий обзор новостей про электромобили за прошлую неделю, со ссылками.',
+   'skills-news','news-digest',/QUICK|short|summary|roundup/iu],
+  ['Хочу красивый сайт-портфолио для своих фотографий, чтобы не выглядел как шаблон.',
+   'skills-taste','design-taste-frontend',/photography|photo|brand assets/iu],
+ ];
+ for(const [query,pkg,skill,expected] of cases){
+  const record=catalog.records.find(r=>r.package.name==='@dzhechkov/'+pkg && r.skillIds?.includes(skill));
+  assert.ok(record);
+  const input=contract.input({query,candidates:candidates(record)});
+  assert.ok(input.cards[0].passages.some(p=>expected.test(p.text)),JSON.stringify(input.cards[0].passages));
+ }
+});

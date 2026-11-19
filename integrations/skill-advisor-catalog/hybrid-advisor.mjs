@@ -6,6 +6,7 @@ export {advisorDocuments};
 import {groupPackageCandidates,rawCandidateLimit} from './package-retrieval.mjs';
 import {retainActionCandidates} from './action-coverage.mjs';
 import {discoveryQuery} from './discovery-query.mjs';
+import {implementationQuery} from './implementation-query.mjs';
 import {liveAnswer} from './preview-server.mjs';
 import {recordHash} from './catalog.mjs';
 import {stems} from '../../packages/harness-core/dist/stem.js';
@@ -27,12 +28,13 @@ export function createHybridRetriever({catalog,searchUrl,embed,fetchImpl=fetch,o
  const identity=advisorIdentity(catalog,projection.documents);
  const group = (query, hits) => {
   const raw = hits.map(hit=>projection.resolve(hit));
-  const expansion = discoveryQuery(query);
+  const discoveryExpansion = discoveryQuery(query);
+  const expansion = discoveryExpansion ?? implementationQuery(query);
   if (expansion) {
    const discovery = projection.clauseSearch(expansion).find(hit => hit.matches.length >= 3);
    if (discovery) {
     // Keep existing source hits so grouping retains every retrieved quote for this owner.
-    raw.unshift({...discovery, origin:'discovery-vocabulary'});
+    raw.unshift({...discovery, origin:discoveryExpansion?'discovery-vocabulary':'implementation-vocabulary'});
    }
   }
   return retainActionCandidates(query,groupPackageCandidates(catalog,raw,query,projection.clauseSearch),raw,projection.clauseSearch);
