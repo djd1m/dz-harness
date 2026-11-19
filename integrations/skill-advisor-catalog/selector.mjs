@@ -2,8 +2,8 @@ import {ChoiceError} from './choice-error.mjs';
 import {readOpenRouterBudgetFailure} from '../hybrid-retrieval/openrouter.mjs';
 import { pickerInput, pickerInstructions, materialize } from './search.mjs';
 
-// The output budget also includes provider reasoning tokens; 400 truncated live JSON.
-export const MAX_OUTPUT_TOKENS = 1800;
+// The output budget also includes provider reasoning tokens; 1800 sometimes left no room for JSON after provider reasoning.
+export const MAX_OUTPUT_TOKENS = 2400;
 export class SelectorError extends Error {
   constructor(code, body, httpStatus) {
     super(code); this.code = code; this.usage = body?.usage; this.actualModel = body?.model; if(Number.isInteger(httpStatus))this.httpStatus=httpStatus;
@@ -12,23 +12,21 @@ export class SelectorError extends Error {
 
 /** Empty search is not a semantic classification. Only blank input bypasses the model. */
 export async function selectScenarios(retrieval, { model, apiKey, fetchImpl = fetch,
-  contract = { instructions: pickerInstructions, input: pickerInput, materialize }, reasoningEffort }) {
+  contract = { instructions: pickerInstructions, input: pickerInput, materialize } }) {
   const preflight = contract.preflight?.(retrieval);
   if (preflight) return {output:preflight,modelCalled:false};
   if (!retrieval.query.trim()) {
     return { output: contract.materialize(retrieval, { decision: 'clarify', intent: 'learn', scenarioIds: [], missingParts: [], clarification: 'task-object' }), modelCalled: false };
   }
   if (!model || !apiKey) throw Error('Model and provider credential required');
-  if (reasoningEffort !== undefined && !['none','minimal','low','medium','high','xhigh','max'].includes(reasoningEffort)) throw Error('Invalid reasoning effort');
   const input = contract.input(retrieval);
   const schema = contract.responseSchema?.(input);
   const response = await fetchImpl('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST', signal: AbortSignal.timeout(60000),
     headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
     body: JSON.stringify({ model, ...(!schema?{temperature:0}:{}), max_tokens: MAX_OUTPUT_TOKENS,
-      ...(schema?{response_format:{type:'json_schema',json_schema:{name:'advisor_choice',strict:true,schema}}}:{}),
-      ...(reasoningEffort?{reasoning:{effort:reasoningEffort}}:{}),
-      ...(schema || reasoningEffort?{provider:{require_parameters:true}}:{}),
+      ...(schema?{response_format:{type:'json_schema',json_schema:{name:'advisor_choice',strict:true,schema}},
+       provider:{require_parameters:true}}:{}),
       messages: [{ role: 'system', content: contract.instructions },
         { role: 'user', content: JSON.stringify(input) }] }),
   });

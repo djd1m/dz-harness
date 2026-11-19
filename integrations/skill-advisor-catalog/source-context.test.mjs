@@ -44,7 +44,7 @@ test('instruction-like captured source stays data and malicious completion canno
  let request;
  const mock=output=>async(url,options)=>{request={url,options,body:JSON.parse(options.body)};return new Response(JSON.stringify({choices:[{finish_reason:'stop',message:output}]}),{status:200});};
  const result=await selectScenarios(retrieval,{model:'fixture-model',apiKey:'fixture-key',contract,fetchImpl:mock({content:JSON.stringify(choice)})});
- assert.equal(request.url,'https://openrouter.ai/api/v1/chat/completions');assert.equal(request.body.max_tokens,MAX_OUTPUT_TOKENS);assert.equal(MAX_OUTPUT_TOKENS,1800);
+ assert.equal(request.url,'https://openrouter.ai/api/v1/chat/completions');assert.equal(request.body.max_tokens,MAX_OUTPUT_TOKENS);assert.equal(MAX_OUTPUT_TOKENS,2400);
  assert.equal(request.body.messages[0].role,'system');assert.equal(request.body.messages[0].content,dialogueInstructions);
  const input=JSON.parse(request.body.messages[1].content);assert.ok(input.candidates[0].passages.some(x=>x.text===text));
  assert.ok(!request.body.messages[1].content.includes('fixture-key'));assert.ok(!request.body.messages[1].content.includes('cookie'));
