@@ -31,9 +31,9 @@
     },
     {
       "id": "SA-005",
-      "description": "Multi-step tasks must include an ordered `pipeline` of two or more recommended names.",
+      "description": "When execution order matters, pipeline contains distinct required recommended names in dependency order; a singleton is valid and omission is valid when no ordering adds information. Conditional optional complements stay outside the pipeline.",
       "path": "pipeline",
-      "condition": "pipeline_for_multistep",
+      "condition": "required_recommendations_in_dependency_order",
       "severity": "warning"
     },
     {

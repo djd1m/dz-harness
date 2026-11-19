@@ -10,6 +10,8 @@ description: >
 trust_tier: 1
 trust_tier_label: "Structured"
 trust_tier_path: "Run /bto-test to promote to Tier 2"
+dependencies:
+  - skill-crystallizer
 ---
 
 # book-skill-distill — verified KUs → agent-behavior skills

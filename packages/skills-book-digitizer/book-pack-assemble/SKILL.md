@@ -79,7 +79,7 @@ Distilled skills + their KUs + routing evals from `book-skill-distill`. `dz benc
    there — install a subset»). At CP4 with `target=copilot`, surface the aggregate instruction-file
    byte count.
 8. **Gate + smoke**: first the **shingling gate** —
-   `node <pack>/scripts/shingling-check.mjs --source <corpus> --output <pack>` (`--shingle 8`).
+   `node <book-pack-assemble-skill-dir>/scripts/shingling-check.mjs --source <corpus> --output <pack>` (`--shingle 8`).
    ANY uncited verbatim run ≥8 words FAILS the pack (IP violation) — fix the offending KU
    (re-paraphrase) and re-run. Cited ≤25-word quotes with a page anchor are exempt. Only once it
    passes: `dz benchmark <pack> --all` (honest L0 grade per skill — never fabricate schemas/evals to

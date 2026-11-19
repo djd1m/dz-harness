@@ -120,6 +120,42 @@
       "upstream_package": "@dzhechkov/skills-decision-mockups",
       "upstream_path": "decision-mockups/",
       "description": "VENDORED MIRROR, not the canon. The skill's home — with its own test suite and the deterministic G0-G14 page gate (references/check_page.py) — is @dzhechkov/skills-decision-mockups; this copy exists so the `meta` preset can keep its promise for anyone who installs only @dzhechkov/skills-meta. Same pattern as goap-research-ed25519 in @dzhechkov/skills-news. HEAL DIRECTION MATTERS: sync with `dz sync-canonical decision-mockups --from packages/@dzhechkov/skills-decision-mockups/decision-mockups`; a bare `dz sync-canonical decision-mockups` resolves the canonical to skills-meta/ and would overwrite the real home from this mirror."
+    },
+    "repo-freshness": {
+      "upstream_type": "adapted-proposal",
+      "upstream_repo": "https://github.com/djd1m/dz-harness",
+      "upstream_pr": "https://github.com/djd1m/dz-harness/pull/39",
+      "upstream_head": "a3a0e23e8891017a084c4d2ba3ed7bcd633c026b",
+      "upstream_path": "docs/proposals/repo-freshness/skills/repo-freshness/",
+      "source_files": {
+        "SKILL.md": "1604084377802b34b7b804f537c65a6d2a070b5b635b3c4c3cc44585a880d93e",
+        "references/evidence.md": "b4914ac578a4f35c8f48be2db756d75f9bf8a43ecbe17e544ef4603950a82de3"
+      },
+      "adopted_files": {
+        "SKILL.md": "fc6a515da2ad64d9e824c762c871aaaa0313d5c3da6fb8b27f8bbf941b4e2758",
+        "references/evidence.md": "b4914ac578a4f35c8f48be2db756d75f9bf8a43ecbe17e544ef4603950a82de3"
+      },
+      "adaptation": "Removed unreleased-candidate metadata from SKILL.md; remaining body and references byte-identical to pinned proposal.",
+      "description": "Canonical adoption of the pinned public proposal with credited source and local frontmatter adaptation."
+    },
+    "repo-assessment": {
+      "upstream_type": "adapted-proposal",
+      "upstream_repo": "https://github.com/djd1m/dz-harness",
+      "upstream_pr": "https://github.com/djd1m/dz-harness/pull/40",
+      "upstream_head": "a87c195d3e1d1e64056fd18ba57fe303229dcb61",
+      "upstream_path": "docs/proposals/repo-assessment/skills/repo-assessment/",
+      "source_files": {
+        "SKILL.md": "efaf63a5e1f573987bbdf618ea4b72dc58c86c050646f25a3e2f2c8b1b82fa37",
+        "references/scoring.md": "8f2241f6febebcd8b8fe1c43b3f72208d75df959e441a402e4cb877ae5e27507",
+        "references/decision.md": "150d782e8a5a7ea775210c199a449c3a10f77454ea56db12cbf9a7c4f5e6b6d5"
+      },
+      "adopted_files": {
+        "SKILL.md": "87a7204bb91651b71c3bce806258adc878da4269f1a6e278dfbcb2c357bb4f84",
+        "references/scoring.md": "8f2241f6febebcd8b8fe1c43b3f72208d75df959e441a402e4cb877ae5e27507",
+        "references/decision.md": "150d782e8a5a7ea775210c199a449c3a10f77454ea56db12cbf9a7c4f5e6b6d5"
+      },
+      "adaptation": "Removed unreleased-candidate metadata from SKILL.md; remaining body and references byte-identical to pinned proposal.",
+      "description": "Canonical adoption of the pinned public proposal with credited source and local frontmatter adaptation."
     }
   }
 }

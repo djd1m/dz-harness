@@ -30,10 +30,10 @@ pdftotext -v && pdfinfo -v   # poppler-utils; on Debian/Ubuntu: apt-get install 
 
 ## Protocol
 
-Run the bundled deterministic script (it lives in this skill's pack under `scripts/`):
+Run the bundled deterministic script (resolve `scripts/` relative to this `SKILL.md`):
 
 ```bash
-node <pack>/scripts/book-ingest.mjs <book.pdf> --out <workspace> \
+node <book-ingest-skill-dir>/scripts/book-ingest.mjs <book.pdf> --out <workspace> \
      --book <slug> --isbn <isbn> [--max-chunk-tokens 70000]
 ```
 

@@ -16,9 +16,7 @@
  * outcome. A pure resolver can be called at the top of the seam and interrogated without side
  * effects; a resolver tangled with the filesystem cannot.
  *
- * DELIBERATELY NOT HERE: dependency closure (an orchestrator pulling its stage skills). That is
- * PR-B. Mixing the two would put a correctness fix and a semantic change in one unreviewable
- * change, and the exit-contract fix is what unblocks the rest.
+ * Dependency closure uses the same provider precedence for every referenced skill.
  */
 /**
  * PRECEDENCE IS ROOT ORDER, and that is a promise, not an implementation detail: the first root in
@@ -52,6 +50,42 @@ export function resolveSelection(select, roots) {
             shadowed.push({ id, chosen: first, alsoIn: providers.slice(1) });
     }
     return { chosen, missing, shadowed, ok: missing.length === 0 };
+}
+/** Resolve required dependencies in dependency-first order, using only winning providers. */
+export function resolveSkillDependencies(selection, roots, readDependencies) {
+    const chosen = [];
+    const shadowed = [...selection.shadowed];
+    const installed = new Set();
+    const visiting = new Set();
+    function visit(provider) {
+        const { id } = provider;
+        if (installed.has(id))
+            return;
+        if (visiting.has(id))
+            throw new Error(`skill dependency cycle: ${[...visiting, id].join(' -> ')}`);
+        visiting.add(id);
+        const dependencies = readDependencies(provider);
+        if (dependencies !== undefined) {
+            if (!Array.isArray(dependencies) || dependencies.some(dep => typeof dep !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(dep))) {
+                throw new Error(`skill '${id}' in ${provider.dir}: dependencies must be a list of lowercase skill IDs`);
+            }
+            const resolved = resolveSelection(dependencies, roots);
+            if (!resolved.ok)
+                throw new Error(`skill '${id}' requires missing skill(s): ${resolved.missing.join(', ')}`);
+            for (const dependency of resolved.chosen)
+                visit(dependency);
+            for (const shadow of resolved.shadowed) {
+                if (!shadowed.some(row => row.id === shadow.id))
+                    shadowed.push(shadow);
+            }
+        }
+        visiting.delete(id);
+        installed.add(id);
+        chosen.push(provider);
+    }
+    for (const provider of selection.chosen)
+        visit(provider);
+    return { ...selection, chosen, shadowed };
 }
 /**
  * The refusal an explicit `--select` owes its caller. Returns null when there is nothing to refuse.

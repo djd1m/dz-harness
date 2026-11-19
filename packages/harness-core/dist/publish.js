@@ -28,6 +28,52 @@ export const REGISTRY_PROBE_INTERVAL_MS = 10_000;
  * row carries `probeOverride: true` — a scripted plan can never read as a verified one.
  */
 export const PUBLISH_PROBE_SCRIPT_ENV = 'DZ_PUBLISH_PROBE_SCRIPT';
+/** Replace only the effective root version string; JSON.parse has already validated the input. */
+function replaceTopLevelVersionToken(json, oldVersion, newVersion) {
+    if (newVersion === oldVersion)
+        return json;
+    const quoted = /"(?:\\.|[^"\\])*"/y;
+    const nesting = [];
+    let versionValue;
+    for (let i = 0; i < json.length;) {
+        const char = json[i];
+        if (char === '"') {
+            quoted.lastIndex = i;
+            const token = quoted.exec(json);
+            if (token === null)
+                throw new Error('package.json: cannot locate a complete JSON string token');
+            if (nesting.length === 1 && nesting[0] === '{') {
+                let colon = quoted.lastIndex;
+                while (/\s/.test(json[colon] ?? ''))
+                    colon++;
+                if (json[colon] === ':' && JSON.parse(token[0]) === 'version') {
+                    let valueStart = colon + 1;
+                    while (/\s/.test(json[valueStart] ?? ''))
+                        valueStart++;
+                    // Reset on every root occurrence: JSON.parse uses the last duplicate key.
+                    versionValue = undefined;
+                    if (json[valueStart] === '"') {
+                        quoted.lastIndex = valueStart;
+                        const value = quoted.exec(json);
+                        if (value !== null)
+                            versionValue = { start: valueStart, end: quoted.lastIndex };
+                    }
+                }
+            }
+            i += token[0].length;
+        }
+        else {
+            if (char === '{' || char === '[')
+                nesting.push(char);
+            else if (char === '}' || char === ']')
+                nesting.pop();
+            i++;
+        }
+    }
+    if (versionValue === undefined)
+        throw new Error('package.json: effective top-level version string token missing');
+    return json.slice(0, versionValue.start) + JSON.stringify(newVersion) + json.slice(versionValue.end);
+}
 /** Is `p` inside `dir`? Used to refuse a signing key that lives in the repository working tree. */
 function isInsideDir(p, dir) {
     const rel = pathRelative(pathResolve(dir), pathResolve(p));
@@ -941,8 +987,9 @@ export function publishPackages(monorepoRoot, opts = {}) {
         let originalReadme;
         const probeLog = [];
         try {
-            // Bump version in package.json
-            writeFileSync(pkgJsonPath, originalPkgJson.replace(`"version": "${oldVersion}"`, `"version": "${newVersion}"`));
+            // The same exact-byte edit feeds staging and the ordinary publish transport.
+            const bumpedPkgJson = replaceTopLevelVersionToken(originalPkgJson, oldVersion, newVersion);
+            writeFileSync(pkgJsonPath, bumpedPkgJson);
             // Keep the package's README version footer in lock-step with the bump, so the version
             // shown on npmjs.com always matches the published package (no more manual off-by-one).
             originalReadme = syncReadmeVersion(pkg.dir, oldVersion, newVersion);
@@ -952,7 +999,7 @@ export function publishPackages(monorepoRoot, opts = {}) {
                 // just ran two lines above. Reuse the SAME preview computed before the dry-run branch: it is a
                 // pure function of the same pre-sync text and the same old/new versions, so it already
                 // describes exactly what the write above just did.
-                results.push({ name: pkg.name, oldVersion, newVersion, status: 'published', claimCheck: claimCheckSummary, readmeSync: readmeSyncSummary });
+                results.push({ name: pkg.name, oldVersion, newVersion, status: newVersion === oldVersion ? 'skipped' : 'staged', claimCheck: claimCheckSummary, readmeSync: readmeSyncSummary });
                 continue;
             }
             // CLI's npm README must name the SAME core version as its packed workspace dependency.
@@ -1390,6 +1437,7 @@ export function publishPackages(monorepoRoot, opts = {}) {
             };
         }),
         published: results.filter((r) => r.status === 'published').length,
+        staged: results.filter((r) => r.status === 'staged').length,
         skipped: results.filter((r) => r.status === 'skipped').length,
         errors: results.filter((r) => r.status === 'error').length,
         dryRun: opts.dryRun === true,

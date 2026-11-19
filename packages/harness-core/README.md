@@ -24,7 +24,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.68`. <!-- dz:version -->
+Current package version: `0.8.70`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. On a visible line, the marker still forces per-package rewriting of every matching version, including an explicit changelog override; keep it off historical records. Fenced examples and supported HTML comment blocks remain literal even when they contain the marker, a footer, an install/JSON pin, a tarball line or a badge. Put current stamps outside these examples.
 
@@ -32,6 +32,10 @@ Site: https://aicoding.space · Source: https://github.com/djd1m/dz-harness/tree
 
 Shared logic for the DZ harness — the engine behind `@dzhechkov/harness-cli`
 and any other consumer.
+
+Explicit CLI skill selection uses the shared resolver to follow required skill IDs and reject
+missing dependencies or cycles before applying a target adapter. Duplicate providers follow
+the original root precedence throughout the dependency graph.
 
 ## Claim-check numeric roles
 
@@ -108,6 +112,10 @@ version or README mutation. Established rows include `newVersion`; unknown regis
 `reason` and no target. The private decisions are retained for mutation, packing and exact-version
 receipt checks. Explicit registry absence keeps the local version (including prereleases); existing
 releases use the existing core comparison and patch policy. Scripted probes carry `probeOverride`.
+
+With `bumpOnly`, a version change on disk returns `status: staged` and increments `staged`.
+An unchanged version is skipped. `published` counts registry-confirmed publications. A version
+write replaces only the effective top-level JSON value, preserving the rest of the manifest.
 
 The observer cannot replace a target, and throwing aborts before mutation. Core rechecks each planned
 package's name/version at entry and before its write, refusing stale inputs and dependent execution.
@@ -357,6 +365,13 @@ cannot supply test titles for amendment confirmation.
 The existing declaration matcher, synchronous API and normalization remain unchanged. This is a
 limited recognizer: no new title decoding, template-expression or regex-literal parsing, aliases,
 or deeper guard support; guards still admit only one nested call level.
+
+Amendment resolution now requires at least one recognized test title in the named file. If none
+is recognized, the row receives `name-absent-in-file` with an explanation; arbitrary text in the
+file body no longer supplies evidence. This deliberately tightens compatibility for unsupported
+declaration formats, including other languages previously accepted by whole-body matching.
+Recognized `it`, `test`, `describe`, modifier and table titles still use the existing normalized
+name match. Recognition does not execute a test or prove that a test is non-vacuous.
 
 ## Shared Markdown masking
 

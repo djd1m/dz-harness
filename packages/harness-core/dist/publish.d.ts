@@ -42,7 +42,7 @@ export interface PublishResult {
     readonly name: string;
     readonly oldVersion: string;
     readonly newVersion: string;
-    readonly status: 'published' | 'skipped' | 'error';
+    readonly status: 'published' | 'staged' | 'skipped' | 'error';
     readonly firstPublish?: boolean;
     readonly probe?: RegistryProbe['kind'];
     /** Present (true) only when `DZ_PUBLISH_PROBE_SCRIPT` answered instead of the registry. */
@@ -148,6 +148,7 @@ export interface ReleaseLineReport {
 export interface PublishReport {
     readonly packages: readonly PublishResult[];
     readonly published: number;
+    readonly staged: number;
     readonly skipped: number;
     readonly errors: number;
     readonly dryRun: boolean;

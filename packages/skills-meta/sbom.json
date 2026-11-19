@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "content": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ]
     },
@@ -1979,7 +1979,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "8baadbadfd51c5a6d7e2808935e0188b26db802be2fb56dca48d6c2686b64f10"
+          "value": "b4b00ba01b145274993b155b4e13b24526f297376e5e5dab7182dc0ab33534fc"
         }
       ]
     },
@@ -2035,6 +2035,56 @@
     },
     {
       "type": "file",
+      "name": "repo-assessment/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "87a7204bb91651b71c3bce806258adc878da4269f1a6e278dfbcb2c357bb4f84"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "repo-assessment/references/decision.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "150d782e8a5a7ea775210c199a449c3a10f77454ea56db12cbf9a7c4f5e6b6d5"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "repo-assessment/references/scoring.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "8f2241f6febebcd8b8fe1c43b3f72208d75df959e441a402e4cb877ae5e27507"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "repo-freshness/SKILL.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fc6a515da2ad64d9e824c762c871aaaa0313d5c3da6fb8b27f8bbf941b4e2758"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "repo-freshness/references/evidence.md",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b4914ac578a4f35c8f48be2db756d75f9bf8a43ecbe17e544ef4603950a82de3"
+        }
+      ]
+    },
+    {
+      "type": "file",
       "name": "session-recap/SKILL.md",
       "hashes": [
         {
@@ -2049,7 +2099,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "80969baa92dbe3019aed833ad1cfa8cc67e5f660be1fd24d77904497d56527b4"
+          "content": "7f2f2192beab7b3b489c4d1c1a8529e56bb24907110eb19bea67fdbdb8afd37f"
         }
       ]
     },
@@ -2059,7 +2109,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "bb9a240ca6b0ce7a9448a98477dc279055dd0ab6c74edbde1a14b3bf75927e56"
+          "content": "b494cfe87e07a0d45ba58a413edfeb8db3b6434eea07622f33d9c5d23e10dbd4"
         }
       ]
     },
@@ -2069,7 +2119,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "4c5f096afeebeb47c42035a18413cb3100ca4c61ec98f0475424c1d77471f445"
+          "content": "41538b43da2c46f4436fb96f09c8c977d5ec2e4fd37a1fe69735d8aa4b88e565"
         }
       ]
     },
@@ -2079,7 +2129,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "b45029e4abdab26d8409c951d162c05b35b058bb66453ca210550b83be5a62f6"
+          "content": "3b1441f26bffabdab0d4d1a798bea1a2b3de89d73aa562c51f9d17a627168d56"
         }
       ]
     },
@@ -2129,7 +2179,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "7daf137e917ec9469b5ec482a959128786ce5d8c5b451c9938ef91917952bc1a"
+          "content": "cc1ddd6875d31ec757866837ce405fa3c62c7fdc034e1580dc1ea32240a1b060"
         }
       ]
     },

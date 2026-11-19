@@ -10,6 +10,13 @@ description: >
 trust_tier: 1
 trust_tier_label: "Structured"
 trust_tier_path: "Run /bto-test to promote to Tier 2"
+dependencies:
+  - book-ingest
+  - book-knowledge-extract
+  - book-skill-distill
+  - book-pack-assemble
+  - book-kb-index
+  - book-brain-register
 ---
 
 # digitize-book — book → installable methodology pack
@@ -34,7 +41,9 @@ agent **apply the book's methodologies** when it hits the decisions the book is 
 
 - `poppler-utils` (`pdftotext`, `pdfinfo`, `pdfimages`) for ingest.
 - For the KB layers: `dz setup --memory agentdb` (installs `agentdb` + `better-sqlite3`).
-- The stage skills of this pack installed (they auto-install together):
+- To install the book workflow, run
+  `dz init --target codex --select digitize-book --no-hooks --no-integrations`.
+  For Claude Code, change the target to `claude-code`. Selection brings:
   `book-ingest`, `book-knowledge-extract`, `book-skill-distill`, `book-pack-assemble`, `book-kb-index`,
   and the optional terminal `book-brain-register` (CP6 promote-to-brain).
 - For CP6 promotion into the durable cross-project brain (`~/.dz/brain/`, `DZ_BRAIN_HOME`): the same

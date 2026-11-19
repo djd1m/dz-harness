@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af"
+        "sha256": "57ca26d13ee6314e05c18d8edfc612809e53bc4c7123bf7764a348f0ddd0a008"
       },
       {
         "path": "book-brain-register/SKILL.md",
@@ -17,7 +17,11 @@
       },
       {
         "path": "book-ingest/SKILL.md",
-        "sha256": "26c0f692f8226e097b36995848d18a8aacf796cdace16ee141e459b93c23640d"
+        "sha256": "9926b6c4c5d9ffbf1afa385f8c4f8e907357faccd5aef67c71ff5c0e4d495133"
+      },
+      {
+        "path": "book-ingest/scripts/book-ingest.mjs",
+        "sha256": "3aaa3ebe1711d03e02579040c7f692fd5443a3c94c20b9833d9cc0a8fb7fda0b"
       },
       {
         "path": "book-kb-index/SKILL.md",
@@ -25,31 +29,35 @@
       },
       {
         "path": "book-knowledge-extract/SKILL.md",
-        "sha256": "92d5fb80d50493147f30f3e819c56e2a12d430673779fa26a8d266159b188d3f"
+        "sha256": "17bc471b739d6e591df5c233bb12697ffd4fb3d919a723100c6e8290d5c1b11f"
       },
       {
         "path": "book-pack-assemble/SKILL.md",
-        "sha256": "28476188f040636f48a8ecb31b2da5b01a44a4cb220e5aa2cb2098767c24faa5"
+        "sha256": "c2d7b98a0d6893a507986c1faa766b98168a5b1df23f7a0ea54317ac5e4f0574"
+      },
+      {
+        "path": "book-pack-assemble/scripts/shingling-check.mjs",
+        "sha256": "0f4ff1fbcba61593b73c4cae036c49f9ca22bd2ea561b00ccb16fd273863a915"
       },
       {
         "path": "book-skill-distill/SKILL.md",
-        "sha256": "36400891f0f2b05fc4fe638ff32bd6e3abc1252b19b1d0314aed80455d95da53"
+        "sha256": "e600ecf3130e7ff1685ceb5935890da0bdeaae933610659a886bf73f23fbb2d3"
       },
       {
         "path": "digitize-book/SKILL.md",
-        "sha256": "cfccc93e6ab3964fa5c9ed8847c853e31192f8a240e72da421be146771277f3b"
+        "sha256": "2b87fbe918bbfe70dae9fb0e20f6a75d4aefff964dfb0a7b2ff5f500bfd3aa48"
       },
       {
         "path": "package.json",
-        "sha256": "6fc85e4d8966e1e132a9d0e489adaaafdc1a7c985f378d973146e822b2074058"
+        "sha256": "9d4c3033a5dfb34f99b90345826bcd9c1d3a352d97f397e61159198e86aac545"
       },
       {
         "path": "scripts/book-ingest.mjs",
-        "sha256": "dc0c0222422077b0d31fc30bad2dd9dab5504c87a3033b4b52053235553910a5"
+        "sha256": "779c90d88f8274e42c0b6a37c191e1cbc8bb98cb818da58e9e95877d839f927f"
       },
       {
         "path": "scripts/shingling-check.mjs",
-        "sha256": "0f4ff1fbcba61593b73c4cae036c49f9ca22bd2ea561b00ccb16fd273863a915"
+        "sha256": "fc87155f612fc02ac5cee17cf74041037e79b0e31836c870bc9a6047482db6e4"
       },
       {
         "path": "source-brain-ingest/SKILL.md",
@@ -61,5 +69,5 @@
       }
     ]
   },
-  "signature": "QlkPpkgXehz5PiDYaq4ocAXysSstT6foPUbFZO3RWVWgKGimJiyHV1UCpuZ+3Q8+xIiecdlBMiREDrhzRnb4CQ=="
+  "signature": "d/hiyXZrbZV2SdLp0Vc+1gQIX43O8HpXNbZlFzYXeZfdTIr2hSAsC9cfaYX8itOUnrA9HnVOnh8+ZHB/hzBADA=="
 }

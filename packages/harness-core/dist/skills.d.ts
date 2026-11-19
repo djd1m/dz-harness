@@ -192,13 +192,11 @@ export declare function getSkillInfo(skillsDir: string, id: string): SkillInfo |
 export type LoadedSkill = CanonicalSkill & {
     readonly skipped?: readonly SkippedEntry[];
 };
+/** Read dependency metadata without walking or loading the skill's assets. */
+export declare function readSkillDependencies(skillsDir: string, id: string): unknown;
 /**
- * Load one `<skillsDir>/<id>/` directory into a {@link CanonicalSkill}: its
- * `SKILL.md` document plus every other file as a bundled asset. Junk entries
- * and broken/cyclic symlinks encountered along the way are named in
- * `.skipped` (feature `skills-walk-symlinks-and-junk`, FR-1/FR-2) — omitted
- * entirely when nothing was skipped, never a silent drop.
- *
+ * Load one skill document and its bundled assets. Junk entries and broken or cyclic
+ * symlinks encountered during the walk are reported in `.skipped`.
  * @throws if the skill directory has no `SKILL.md`.
  */
 export declare function loadSkillFromDir(skillsDir: string, id: string): LoadedSkill;

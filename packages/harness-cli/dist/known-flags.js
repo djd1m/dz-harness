@@ -196,6 +196,7 @@ export const KNOWN_CLI_FLAGS = [
     'no-audit',
     'no-cost',
     'no-decorate',
+    'no-deps',
     'no-dry-run',
     'no-evals',
     'no-ext-diff',

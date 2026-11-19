@@ -517,13 +517,18 @@ function resolveOne(
       detail: `\`${testId}\` normalises to ${needle.length} characters — below the ${MIN_MATCHABLE_ID_LENGTH}-character floor, so a match would prove nothing`,
     };
   }
-  // An existing FILE never stands in for an existing TEST (ADR-002) — and neither does an existing
-  // COMMENT. Matching the whole file body is forgeable with two comment lines whose letters happen to
-  // spell the id, so the basis is the file's TEST TITLES. Falling back to the body when none parse is
-  // stated in the detail rather than done quietly: a silent fallback restores the hole it closes.
+  // An existing file or a mention in its comments cannot establish a named test. Only titles
+  // recognized by the limited extractor supply a match basis.
   const titles = extractTestTitles(body);
-  const basis = titles.length > 0 ? titles.map(normalizeTestId).join('\n') : normalizeTestId(body);
-  const basisNote = titles.length > 0 ? `${titles.length} test title(s)` : 'the whole file body — NO test titles parsed, so this match is weaker';
+  if (titles.length === 0) {
+    return {
+      ...base,
+      verdict: 'name-absent-in-file',
+      detail: `\`${row.file}\` exists but no supported test titles were recognized; the named test \`${testId}\` is not established by this file`,
+    };
+  }
+  const basis = titles.map(normalizeTestId).join('\n');
+  const basisNote = `${titles.length} test title(s)`;
   if (!basis.includes(needle)) {
     return {
       ...base,

@@ -9,7 +9,7 @@
       },
       {
         "path": "README.md",
-        "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+        "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
       },
       {
         "path": "adversarial-verifier/SKILL.md",
@@ -789,7 +789,7 @@
       },
       {
         "path": "package.json",
-        "sha256": "8baadbadfd51c5a6d7e2808935e0188b26db802be2fb56dca48d6c2686b64f10"
+        "sha256": "b4b00ba01b145274993b155b4e13b24526f297376e5e5dab7182dc0ab33534fc"
       },
       {
         "path": "problem-solver-enhanced/SKILL.md",
@@ -812,24 +812,44 @@
         "sha256": "20cf28f6b99e2d1b8778aa27b101ddce6378202a58a8e0b18609ce5015f8d9af"
       },
       {
+        "path": "repo-assessment/SKILL.md",
+        "sha256": "87a7204bb91651b71c3bce806258adc878da4269f1a6e278dfbcb2c357bb4f84"
+      },
+      {
+        "path": "repo-assessment/references/decision.md",
+        "sha256": "150d782e8a5a7ea775210c199a449c3a10f77454ea56db12cbf9a7c4f5e6b6d5"
+      },
+      {
+        "path": "repo-assessment/references/scoring.md",
+        "sha256": "8f2241f6febebcd8b8fe1c43b3f72208d75df959e441a402e4cb877ae5e27507"
+      },
+      {
+        "path": "repo-freshness/SKILL.md",
+        "sha256": "fc6a515da2ad64d9e824c762c871aaaa0313d5c3da6fb8b27f8bbf941b4e2758"
+      },
+      {
+        "path": "repo-freshness/references/evidence.md",
+        "sha256": "b4914ac578a4f35c8f48be2db756d75f9bf8a43ecbe17e544ef4603950a82de3"
+      },
+      {
         "path": "session-recap/SKILL.md",
         "sha256": "034ea8329399faec054bb17457314e2f442abbe5c873b4967fa882c4a7deb504"
       },
       {
         "path": "skill-advisor/SKILL.md",
-        "sha256": "80969baa92dbe3019aed833ad1cfa8cc67e5f660be1fd24d77904497d56527b4"
+        "sha256": "7f2f2192beab7b3b489c4d1c1a8529e56bb24907110eb19bea67fdbdb8afd37f"
       },
       {
         "path": "skill-advisor/evals/basic.md",
-        "sha256": "bb9a240ca6b0ce7a9448a98477dc279055dd0ab6c74edbde1a14b3bf75927e56"
+        "sha256": "b494cfe87e07a0d45ba58a413edfeb8db3b6434eea07622f33d9c5d23e10dbd4"
       },
       {
         "path": "skill-advisor/schemas/output.json",
-        "sha256": "4c5f096afeebeb47c42035a18413cb3100ca4c61ec98f0475424c1d77471f445"
+        "sha256": "41538b43da2c46f4436fb96f09c8c977d5ec2e4fd37a1fe69735d8aa4b88e565"
       },
       {
         "path": "skill-advisor/scripts/validate-config.json",
-        "sha256": "b45029e4abdab26d8409c951d162c05b35b058bb66453ca210550b83be5a62f6"
+        "sha256": "3b1441f26bffabdab0d4d1a798bea1a2b3de89d73aa562c51f9d17a627168d56"
       },
       {
         "path": "skill-crystallizer/SKILL.md",
@@ -849,7 +869,7 @@
       },
       {
         "path": "sources.json",
-        "sha256": "7daf137e917ec9469b5ec482a959128786ce5d8c5b451c9938ef91917952bc1a"
+        "sha256": "cc1ddd6875d31ec757866837ce405fa3c62c7fdc034e1580dc1ea32240a1b060"
       },
       {
         "path": "structured-reasoning/SKILL.md",
@@ -885,5 +905,5 @@
       }
     ]
   },
-  "signature": "zaxJax+kpGJPlDQ3dvxKMbdsA7fzDu24z0HtxnZ0boyPKGllaWnxwQEAjIWF7FSLdRvpYJwesgsragPyo3wJBQ=="
+  "signature": "BtCedkBgURy2A1t1Lqc4T5uzApYGj5dGDSm8Xl4D9yEtX17KNWUwb1DYDdgEdinV6tOyxFa7KQLXT5hZ9mnwCQ=="
 }

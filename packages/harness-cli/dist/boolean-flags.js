@@ -74,6 +74,7 @@ export const BOOLEAN_CLI_FLAGS = new Set([
     'no-cost',
     'no-dry-run',
     'no-evals',
+    'no-deps',
     'no-hooks',
     'no-integrations',
     'no-issue',

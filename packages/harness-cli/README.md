@@ -3,7 +3,7 @@
 `dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair|begin-continuation|begin-final-continuation|begin-post-ci-correction` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The default native ceiling is three; native `--ceiling`, duplicate/unknown options, legacy reconstruction and source collisions refuse. Omitted source retains the bridge reader.
 
 
-Current package version: `0.8.61`. <!-- dz:version -->
+Current package version: `0.8.63`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -100,7 +100,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.68` · `harness-cli v0.8.61`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.70` · `harness-cli v0.8.63`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. On visible lines, the marker retains its whole-line override for per-package synchronization, including explicit changelog overrides, so keep it off historical records. The previous all-protections override is corrected: fenced marker, footer, install/JSON-pin, tarball and badge examples remain literal, as do supported HTML comment blocks. Their visible counterparts still stamp; place current metadata outside examples.
 
@@ -195,9 +195,14 @@ package carrier/layout search; earlier roots win duplicate ids, including with
 
 `dz setup` resolves `--select`, a named preset, or its automatic recommendation before
 writing hooks, memory, configuration, and adapter output. Explicit `--select` overrides
-the preset; missing or empty selections refuse before writes. Later load/apply failures,
-refused integrations, and failed setup steps exit nonzero and may leave partial output.
-An all-skipped rerun succeeds. No provider is installed automatically.
+the preset. In both `init` and `setup`, explicit `--select` installs required skill dependencies
+transitively. Missing skills, malformed dependency lists, and cycles refuse before setup writes.
+Use `--no-deps` with `--select` for exact selection. Presets and `dz bundle` keep their
+existing selection rules. Later apply failures, refused integrations, and failed setup steps
+exit nonzero and may leave partial output.
+An all-skipped rerun succeeds. Selection uses installed sources, including bundled CLI
+providers. It does not fetch missing providers. The CLI includes the book-digitizer pack,
+so `dz init --target codex --select digitize-book --no-hooks --no-integrations` brings the required stages into a new project.
 
 Presets compile skills. To initialize the full companion toolkit's commands/hooks/assets,
 use its separate initializer, such as `npx @dzhechkov/p-replicator init`.
@@ -671,6 +676,7 @@ dz publish --filter skills-devops               # publish specific package
 dz publish                                      # publish all changed packages
 dz publish --yes --mirror-cmd "node scripts/publish-mirror.mjs"  # live publish + required mirror receipt
 dz publish --yes --no-mirror                    # explicit one-run mirror opt-out
+dz publish --bump-only --yes                    # update local versions only; no registry publication
 
 # Export portable, self-contained skill bundles for a generic consumer (e.g. a LangGraph app):
 dz bundle --preset news --out ./dist            # → ./dist/skills/<id>/ (SKILL.md + references/scripts/assets)
@@ -688,8 +694,11 @@ Unknown registry state shows `NOT ESTABLISHED` and its reason without a target a
 rows are marked explicitly. Planned targets remain subject to existing gates, transport and exact
 receipt confirmation; the banner does not promise success. A changed package name/version before
 its core write is refused, with no hidden replan after a conflict. This is a synchronous stale-input
-check, not a lock against external writers. Live `--bump-only` shows a local version plan and never
-publishes. With `--json`, human progress and the banner go to stderr and stdout contains one report.
+check, not a lock against external writers. Live `--bump-only` shows a local version plan and reports
+each changed package as `staged`, with a `staged` count; `published` stays zero. A staged version is
+local to the working tree and is not installable from the registry. The default preview reports
+planned versions without writing package.json or README files. With `--json`, human progress and the
+banner go to stderr and stdout contains one report, including zero counts when no packages match.
 
 When core and CLI release together, `dz publish` stages the CLI README's marked current pair before
 its build, signature and pack. The core version in the npm README agrees with the packed dependency
@@ -2422,8 +2431,8 @@ sets of this section, the root README, the docs site and `DZ_COMMANDS` are pinne
 `test/command-inventory-parity.test.ts`.)*
 
 ```
-dz setup             --target <name> [--preset <name>] [--select id,id,...] [--skills-dir <dir>] [--memory agentdb] [--no-memory] [--no-hooks] [--install-driver] [--force]
-dz init              --target <name> [--preset <name>] [--select id,id,...] [--allow-integrations <sha256:...>] [--no-integrations] [--no-verify] [--force]
+dz setup             --target <name> [--preset <name>] [--select id,id,...] [--no-deps] [--skills-dir <dir>] [--memory agentdb] [--no-memory] [--no-hooks] [--install-driver] [--force]
+dz init              --target <name> [--preset <name>] [--select id,id,...] [--no-deps] [--allow-integrations <sha256:...>] [--no-integrations] [--no-verify] [--force]
 dz integrations-verify --target <name> --component <mcp|hooks> [--project <dir>] [--json]
 dz install           <npm-pkg> [--target <name>] [--project <dir>] [--force]
 dz bundle            [--preset <name> | --select id,...] [--out <dir>] [--skills-dir <dir>] [--force]
@@ -2631,7 +2640,10 @@ measures completed reviews.
 `dz publish --yes` appends a witnessed `{stage:'publish', outcome:'published', packages:{<name>:
 <version>…}, shipSha, taskId:null, note:'dz publish --yes'}` row exactly when at least one package
 actually published (the same gate the mirror epilogue already uses: `!dryRun && published >= 1`) —
-0 published, or a dry-run, appends nothing. `taskId` is a literal `null` here, never looked up: a
+0 published, a staged-only run, or a dry-run appends nothing. Older `stage:'publish'` rows may have
+been written by `--bump-only` before the staged outcome existed. Corroborate an older row with the
+original command record or registry evidence for its package and version before treating it as a
+shipment; preserve the existing ledger bytes. `taskId` is a literal `null` here, never looked up: a
 publish sweeps multiple packages/features in one run, so no single slug's open round owns this row's
 task identity. A writer failure only warns (`⚠ the publish ledger row was not verified on reread…`)
 and never changes the publish exit code.
@@ -6451,6 +6463,15 @@ conforming that feature's `01_requirements.md`/ADR to the exact vocabulary above
 refusal as the honest answer.
 
 ---
+
+## Amendment evidence checks
+
+Current amendment checks require a recognized `it`, `test`, or `describe` title in the named file;
+supported modifier and table forms remain recognized. A file with no recognized titles is
+`name-absent-in-file`, so a per-feature check fails with exit 1 (and `--json` reports `ok:false`);
+`--all` remains a reporting census with exit 0. This deliberately tightens compatibility:
+unsupported declaration formats, including other languages previously accepted because their file
+body contained the name, now fail. Title recognition neither runs the test nor proves non-vacuity.
 
 ## Status
 
