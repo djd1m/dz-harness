@@ -225,3 +225,10 @@ test('ordinary length and supplied photos reach the selector as documented param
   assert.ok(input.cards[0].passages.some(p=>expected.test(p.text)),JSON.stringify(input.cards[0].passages));
  }
 });
+
+test('reuse requirements include primary eligibility and licensing evidence for repository assessment',()=>{
+ const record=catalog.records.find(r=>r.skillIds?.includes('repo-assessment'));
+ assert.ok(record);
+ const input=contract.input({query:'Сравни проекты по требованиям к использованию.',candidates:candidates(record)});
+ assert.ok(input.cards[0].passages.some(p=>/eligibility|license|redistribution|execution environment/iu.test(p.text)),JSON.stringify(input.cards[0].passages));
+});
