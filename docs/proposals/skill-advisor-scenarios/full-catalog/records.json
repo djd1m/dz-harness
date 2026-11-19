@@ -9,7 +9,7 @@
       "outcome": "Библиотечный адаптер преобразует канонический навык в формат AGENTS.md (единый AGENTS.md).",
       "package": {
         "name": "@dzhechkov/adapter-agents-md",
-        "version": "0.1.10",
+        "version": "0.1.11",
         "manifest": "packages/adapter-agents-md/package.json",
         "type": "adapter",
         "description": "AGENTS.md platform adapter - flattens canonical skills into a single root-level AGENTS.md (plain Markdown, no frontmatter; intentionally lossy, merge-not-overwrite)."
@@ -36,7 +36,7 @@
       "sources": [
         {
           "path": "packages/adapter-agents-md/package.json",
-          "sha256": "b2918069ec00953997de5e75d420fc188ef75bc379ec92117a657004cb48580e"
+          "sha256": "5f873248b0d94496ee8eb0f0c70ddeb52990cc5d40cd947415cb8435f88f15e7"
         },
         {
           "path": "packages/adapter-agents-md/README.md",
@@ -62,7 +62,7 @@
       "outcome": "Библиотечный адаптер преобразует канонический навык в формат Claude Code (.claude/skills).",
       "package": {
         "name": "@dzhechkov/adapter-claude",
-        "version": "0.2.10",
+        "version": "0.2.11",
         "manifest": "packages/adapter-claude/package.json",
         "type": "adapter",
         "description": "Claude Code platform adapter - compiles canonical skills into the .claude/skills tree."
@@ -89,7 +89,7 @@
       "sources": [
         {
           "path": "packages/adapter-claude/package.json",
-          "sha256": "780384726a099a107533b453a7052e7238926355aae6e7d0538e86aaaeee9347"
+          "sha256": "5ac35c5f979942385d2d87f231f67a5ea1d74d13d21314f71cb36cd6335d3b84"
         },
         {
           "path": "packages/adapter-claude/README.md",
@@ -115,7 +115,7 @@
       "outcome": "Библиотечный адаптер преобразует канонический навык в формат Codex (.agents/skills).",
       "package": {
         "name": "@dzhechkov/adapter-codex",
-        "version": "0.2.9",
+        "version": "0.2.10",
         "manifest": "packages/adapter-codex/package.json",
         "type": "adapter",
         "description": "OpenAI Codex CLI platform adapter - compiles canonical skills into the .agents/skills tree."
@@ -142,7 +142,7 @@
       "sources": [
         {
           "path": "packages/adapter-codex/package.json",
-          "sha256": "c8400f670a012484847751bbe589d7d1a62271d6399ab325165caca5ebdf3f30"
+          "sha256": "88b67cc445a24051d2831f106c66bd63766ed3fe8042e278faf9495d67ee70cd"
         },
         {
           "path": "packages/adapter-codex/README.md",
@@ -168,7 +168,7 @@
       "outcome": "Библиотечный адаптер преобразует канонический навык в формат GitHub Copilot (.github/instructions).",
       "package": {
         "name": "@dzhechkov/adapter-copilot",
-        "version": "0.1.10",
+        "version": "0.1.11",
         "manifest": "packages/adapter-copilot/package.json",
         "type": "adapter",
         "description": "GitHub Copilot platform adapter - compiles canonical skills into .github/instructions/*.instructions.md (intentionally lossy)."
@@ -195,7 +195,7 @@
       "sources": [
         {
           "path": "packages/adapter-copilot/package.json",
-          "sha256": "a3a2c8ea391175dd727205daed61bcaf26bf26379c953a74b59b8195d0087c7e"
+          "sha256": "76e7b625cb262c111570e9ba60dc013a473178dc58d36653fcae481ba6583a57"
         },
         {
           "path": "packages/adapter-copilot/README.md",
@@ -221,7 +221,7 @@
       "outcome": "Библиотечный адаптер преобразует канонический навык в формат Cursor (.cursor/rules).",
       "package": {
         "name": "@dzhechkov/adapter-cursor",
-        "version": "0.1.10",
+        "version": "0.1.11",
         "manifest": "packages/adapter-cursor/package.json",
         "type": "adapter",
         "description": "Cursor platform adapter - transforms canonical skills into per-skill .cursor/rules/<id>.mdc project rules (Cursor's 3-key frontmatter + body; intentionally transforming, not byte-identical)."
@@ -248,7 +248,7 @@
       "sources": [
         {
           "path": "packages/adapter-cursor/package.json",
-          "sha256": "dc078d92bafcf708f0dc4d63ed8d7d8f237e0510a55ed9032f86f1c0b28b285a"
+          "sha256": "bb303e24ee237c227eb6eeb84c8cef3341ce645d86fadfaa9ece4a0e1431232d"
         },
         {
           "path": "packages/adapter-cursor/README.md",
@@ -274,7 +274,7 @@
       "outcome": "Библиотечный адаптер преобразует канонический навык в формат Gemini (GEMINI.md).",
       "package": {
         "name": "@dzhechkov/adapter-gemini",
-        "version": "0.1.10",
+        "version": "0.1.11",
         "manifest": "packages/adapter-gemini/package.json",
         "type": "adapter",
         "description": "GEMINI.md platform adapter - flattens canonical skills into a single root-level GEMINI.md (plain Markdown, no frontmatter, hierarchical; read by Gemini CLI + Code Assist; intentionally lossy, merge-not-overwrite)."
@@ -301,7 +301,7 @@
       "sources": [
         {
           "path": "packages/adapter-gemini/package.json",
-          "sha256": "6055ee0a3eeaf8046462ee4eb1e8d736ca4a72c21c2d621e0b45b7382ee292a7"
+          "sha256": "29d3d7c850ae4524af78c47041a0c35ee0b0ce13c15c8e01f9b9d37e2277481c"
         },
         {
           "path": "packages/adapter-gemini/README.md",
@@ -327,7 +327,7 @@
       "outcome": "Библиотечный адаптер преобразует канонический навык в формат Hermes (.hermes/skills).",
       "package": {
         "name": "@dzhechkov/adapter-hermes",
-        "version": "0.2.9",
+        "version": "0.2.10",
         "manifest": "packages/adapter-hermes/package.json",
         "type": "adapter",
         "description": "Hermes Agent platform adapter - compiles canonical skills into the .hermes/skills tree."
@@ -354,7 +354,7 @@
       "sources": [
         {
           "path": "packages/adapter-hermes/package.json",
-          "sha256": "04be2a3996b34195c5aeb0606152e343f153247c95037c3d66582015763121b7"
+          "sha256": "ce566ca018e6915e90ddb4d0e40cf447521d42ff8ffc609833ae91d4dbc383ef"
         },
         {
           "path": "packages/adapter-hermes/README.md",
@@ -380,7 +380,7 @@
       "outcome": "Библиотечный адаптер преобразует канонический навык в формат OpenClaude (.openclaude/skills).",
       "package": {
         "name": "@dzhechkov/adapter-openclaude",
-        "version": "0.1.9",
+        "version": "0.1.10",
         "manifest": "packages/adapter-openclaude/package.json",
         "type": "adapter",
         "description": "OpenClaude platform adapter - compiles canonical skills into the .openclaude/skills tree."
@@ -407,7 +407,7 @@
       "sources": [
         {
           "path": "packages/adapter-openclaude/package.json",
-          "sha256": "9d128a27c6423b8027c22109f61adbbead58ac9025f727607c56c8b24ead0dc7"
+          "sha256": "28ae4dfe1769788f2a47d0a04c65ace12009dc104600eb68fbb4bcaa8393a799"
         },
         {
           "path": "packages/adapter-openclaude/README.md",
@@ -433,7 +433,7 @@
       "outcome": "Библиотечный адаптер преобразует канонический навык в формат OpenCode (.opencode/skills).",
       "package": {
         "name": "@dzhechkov/adapter-opencode",
-        "version": "0.2.9",
+        "version": "0.2.10",
         "manifest": "packages/adapter-opencode/package.json",
         "type": "adapter",
         "description": "OpenCode platform adapter - compiles canonical skills into the .opencode/skills tree."
@@ -460,7 +460,7 @@
       "sources": [
         {
           "path": "packages/adapter-opencode/package.json",
-          "sha256": "9ad996237b5eeeaf71772c38402670047dee748cb8f5247050661b42e93b966f"
+          "sha256": "7fabcec225a2a584a18cd85b86dc9976bc235ab6387634ddb439ef5ffe83cce2"
         },
         {
           "path": "packages/adapter-opencode/README.md",
@@ -486,7 +486,7 @@
       "outcome": "Библиотечный адаптер преобразует канонический навык в формат Windsurf (.windsurf/rules).",
       "package": {
         "name": "@dzhechkov/adapter-windsurf",
-        "version": "0.1.10",
+        "version": "0.1.11",
         "manifest": "packages/adapter-windsurf/package.json",
         "type": "adapter",
         "description": "Windsurf platform adapter - transforms canonical skills into per-skill .windsurf/rules/<id>.md workspace rules (Windsurf's trigger/description frontmatter + body; intentionally transforming, not byte-identical)."
@@ -513,7 +513,7 @@
       "sources": [
         {
           "path": "packages/adapter-windsurf/package.json",
-          "sha256": "5ec0edc4dd780e001b51d6f404fa766692aba8df577bd79b168ba784dd6a5373"
+          "sha256": "23e14341a02fece6badae404a3842c36defc041316b99ef8f7afb6ec4b1f32f6"
         },
         {
           "path": "packages/adapter-windsurf/README.md",
@@ -1309,11 +1309,11 @@
       "id": "harness-cli-package-ec6546b1",
       "kind": "package",
       "title": "Установка и проверка навыков через dz",
-      "intent": "Команда dz устанавливает и проверяет навыки и поддерживает несколько агентных платформ.",
-      "outcome": "Команда dz устанавливает и проверяет навыки и поддерживает несколько агентных платформ.",
+      "intent": "Команда dz устанавливает и проверяет навыки для разных агентных платформ; явный выбор при init и setup включает необходимые зависимости.",
+      "outcome": "Команда dz устанавливает и проверяет навыки для разных агентных платформ; явный выбор при init и setup включает необходимые зависимости.",
       "package": {
         "name": "@dzhechkov/harness-cli",
-        "version": "0.8.61",
+        "version": "0.8.63",
         "manifest": "packages/harness-cli/package.json",
         "type": "tool",
         "description": "The dz CLI — install AI skills for Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot. 87 commands, 14 presets, 10 platform targets."
@@ -1324,7 +1324,7 @@
         "Нужен CLI для установки, синхронизации и проверки харнесса"
       ],
       "whenToUse": [
-        "Команда dz устанавливает и проверяет навыки и поддерживает несколько агентных платформ."
+        "Команда dz устанавливает и проверяет навыки для разных агентных платформ; явный выбор при init и setup включает необходимые зависимости."
       ],
       "whenNotToUse": [
         "CLI управляет установкой и проверками; предметные возможности добавляются отдельными пакетами."
@@ -1340,11 +1340,11 @@
       "sources": [
         {
           "path": "packages/harness-cli/package.json",
-          "sha256": "155010cdbe6483d4b79d7c86e1582687ee4f3cf40502cea0fcf51a78afc676c4"
+          "sha256": "4b25c6e085cf34555a5d29fa1a21abefd04ab2e66a0333ff23cb5c39aed71bcc"
         },
         {
           "path": "packages/harness-cli/README.md",
-          "sha256": "94eb694d96b611182b7b11ba6557300d1b54daa37fc2c707c039d7e42d7fbcf7"
+          "sha256": "354f741206de97b90c617726fbbc209cf3e12801424428a3ffcd29d676e6cef8"
         }
       ],
       "evidence": [
@@ -1355,6 +1355,10 @@
         {
           "path": "packages/harness-cli/README.md",
           "quote": "`dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair|begin-continuation|begin-final-continuation|begin-post-ci-correction` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The default native ceiling is three; native `--ceiling`, duplicate/unknown options, legacy reconstruction "
+        },
+        {
+          "path": "packages/harness-cli/README.md",
+          "quote": "In both `init` and `setup`, explicit `--select` installs required skill dependencies\ntransitively. Missing skills, malformed dependency lists, and cycles refuse before setup writes.\nUse `--no-deps` with `--select` for exact selection."
         }
       ]
     },
@@ -1362,11 +1366,11 @@
       "id": "harness-core-package-19287df7",
       "kind": "package",
       "title": "Встраивание операций харнесса в свой инструмент",
-      "intent": "Предоставляет общую логику загрузки навыков, аддитивного применения и операций харнесса.",
-      "outcome": "Предоставляет общую логику загрузки навыков, аддитивного применения и операций харнесса.",
+      "intent": "Предоставляет общую логику загрузки навыков, разрешения их зависимостей, аддитивного применения и операций харнесса.",
+      "outcome": "Предоставляет общую логику загрузки навыков, разрешения их зависимостей, аддитивного применения и операций харнесса.",
       "package": {
         "name": "@dzhechkov/harness-core",
-        "version": "0.8.68",
+        "version": "0.8.70",
         "manifest": "packages/harness-core/package.json",
         "type": "library",
         "description": "Shared harness logic - skill loading, additive apply, and the init/sync/verify/doctor operations."
@@ -1377,7 +1381,7 @@
         "Нужна библиотека операций init, sync, verify и doctor"
       ],
       "whenToUse": [
-        "Предоставляет общую логику загрузки навыков, аддитивного применения и операций харнесса."
+        "Предоставляет общую логику загрузки навыков, разрешения их зависимостей, аддитивного применения и операций харнесса."
       ],
       "whenNotToUse": [
         "Это библиотека для интеграции в программный инструмент; пользовательский CLI поставляется отдельно."
@@ -1393,11 +1397,11 @@
       "sources": [
         {
           "path": "packages/harness-core/package.json",
-          "sha256": "ec72f9dbe5193c1d3dd5b358c39addf0e16ce3e88389bc468c4c83b4de219e55"
+          "sha256": "937ab25fc273f1aa93974dbb43ebe35471a01b859b8330a6ddf6149106c42269"
         },
         {
           "path": "packages/harness-core/README.md",
-          "sha256": "9c618c50f75430a719abcab1fd4c6fb551f4b76395c970cfcedbd24ff6099f51"
+          "sha256": "781325cc09caebec2744a0ff0537c2829e8628e212ac61a8dec60fff0e2fedaa"
         }
       ],
       "evidence": [
@@ -1408,6 +1412,10 @@
         {
           "path": "packages/harness-core/README.md",
           "quote": "`packArtifact` uses `pnpm pack` for packages with a `prepack` lifecycle script. The script still runs, and the signed `package.json` now matches the form that `pnpm publish` ships. Packages without `prepack` retain their existing npm packing path. The publish signature gate remains mandatory."
+        },
+        {
+          "path": "packages/harness-core/README.md",
+          "quote": "Explicit CLI skill selection uses the shared resolver to follow required skill IDs and reject\nmissing dependencies or cycles before applying a target adapter."
         }
       ]
     },
@@ -8659,7 +8667,7 @@
       "outcome": "После индексации проекта добавляет проверенные знания книги в личное межпроектное хранилище через dz brain add.",
       "package": {
         "name": "@dzhechkov/skills-book-digitizer",
-        "version": "0.2.20",
+        "version": "0.2.22",
         "manifest": "packages/skills-book-digitizer/package.json",
         "type": "skill-pack",
         "description": "Canonical book-digitizer skill pack — 8 skills that turn an engineering book/textbook/monograph into an installable skill pack whose skills make AI coders work within the book's methodologies: digitize-book (orchestrator), book-ingest, book-knowledge-extract, book-skill-distill, book-pack-assemble, book-kb-index, book-brain-register (terminal promote-to-brain, CP6), source-brain-ingest (repo/dir sibling)."
@@ -8688,7 +8696,7 @@
       "sources": [
         {
           "path": "packages/skills-book-digitizer/package.json",
-          "sha256": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba"
+          "sha256": "ff91a8786153d1177f4e9affb0882e77e29371613a388afc3401f7a373f74879"
         },
         {
           "id": "book-brain-register",
@@ -8698,7 +8706,7 @@
         },
         {
           "path": "packages/skills-book-digitizer/README.md",
-          "sha256": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af"
+          "sha256": "57ca26d13ee6314e05c18d8edfc612809e53bc4c7123bf7764a348f0ddd0a008"
         }
       ],
       "evidence": [
@@ -8716,7 +8724,7 @@
       "outcome": "Использует Poppler и детерминированное разбиение, записывая качество страниц, хеши и версию корпуса.",
       "package": {
         "name": "@dzhechkov/skills-book-digitizer",
-        "version": "0.2.20",
+        "version": "0.2.22",
         "manifest": "packages/skills-book-digitizer/package.json",
         "type": "skill-pack",
         "description": "Canonical book-digitizer skill pack — 8 skills that turn an engineering book/textbook/monograph into an installable skill pack whose skills make AI coders work within the book's methodologies: digitize-book (orchestrator), book-ingest, book-knowledge-extract, book-skill-distill, book-pack-assemble, book-kb-index, book-brain-register (terminal promote-to-brain, CP6), source-brain-ingest (repo/dir sibling)."
@@ -8745,17 +8753,17 @@
       "sources": [
         {
           "path": "packages/skills-book-digitizer/package.json",
-          "sha256": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba"
+          "sha256": "ff91a8786153d1177f4e9affb0882e77e29371613a388afc3401f7a373f74879"
         },
         {
           "id": "book-ingest",
           "path": "packages/skills-book-digitizer/book-ingest/SKILL.md",
-          "sha256": "26c0f692f8226e097b36995848d18a8aacf796cdace16ee141e459b93c23640d",
+          "sha256": "9926b6c4c5d9ffbf1afa385f8c4f8e907357faccd5aef67c71ff5c0e4d495133",
           "shipped": true
         },
         {
           "path": "packages/skills-book-digitizer/README.md",
-          "sha256": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af"
+          "sha256": "57ca26d13ee6314e05c18d8edfc612809e53bc4c7123bf7764a348f0ddd0a008"
         }
       ],
       "evidence": [
@@ -8773,7 +8781,7 @@
       "outcome": "Индексирует проверенные единицы в проектные лексическое и векторное хранилища с идемпотентным обновлением.",
       "package": {
         "name": "@dzhechkov/skills-book-digitizer",
-        "version": "0.2.20",
+        "version": "0.2.22",
         "manifest": "packages/skills-book-digitizer/package.json",
         "type": "skill-pack",
         "description": "Canonical book-digitizer skill pack — 8 skills that turn an engineering book/textbook/monograph into an installable skill pack whose skills make AI coders work within the book's methodologies: digitize-book (orchestrator), book-ingest, book-knowledge-extract, book-skill-distill, book-pack-assemble, book-kb-index, book-brain-register (terminal promote-to-brain, CP6), source-brain-ingest (repo/dir sibling)."
@@ -8802,7 +8810,7 @@
       "sources": [
         {
           "path": "packages/skills-book-digitizer/package.json",
-          "sha256": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba"
+          "sha256": "ff91a8786153d1177f4e9affb0882e77e29371613a388afc3401f7a373f74879"
         },
         {
           "id": "book-kb-index",
@@ -8812,7 +8820,7 @@
         },
         {
           "path": "packages/skills-book-digitizer/README.md",
-          "sha256": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af"
+          "sha256": "57ca26d13ee6314e05c18d8edfc612809e53bc4c7123bf7764a348f0ddd0a008"
         }
       ],
       "evidence": [
@@ -8830,7 +8838,7 @@
       "outcome": "Создаёт Knowledge Units, объединяет дубли и проверяет поддержку исходными страницами при сохранении точности фактов и формул.",
       "package": {
         "name": "@dzhechkov/skills-book-digitizer",
-        "version": "0.2.20",
+        "version": "0.2.22",
         "manifest": "packages/skills-book-digitizer/package.json",
         "type": "skill-pack",
         "description": "Canonical book-digitizer skill pack — 8 skills that turn an engineering book/textbook/monograph into an installable skill pack whose skills make AI coders work within the book's methodologies: digitize-book (orchestrator), book-ingest, book-knowledge-extract, book-skill-distill, book-pack-assemble, book-kb-index, book-brain-register (terminal promote-to-brain, CP6), source-brain-ingest (repo/dir sibling)."
@@ -8859,17 +8867,17 @@
       "sources": [
         {
           "path": "packages/skills-book-digitizer/package.json",
-          "sha256": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba"
+          "sha256": "ff91a8786153d1177f4e9affb0882e77e29371613a388afc3401f7a373f74879"
         },
         {
           "id": "book-knowledge-extract",
           "path": "packages/skills-book-digitizer/book-knowledge-extract/SKILL.md",
-          "sha256": "92d5fb80d50493147f30f3e819c56e2a12d430673779fa26a8d266159b188d3f",
+          "sha256": "17bc471b739d6e591df5c233bb12697ffd4fb3d919a723100c6e8290d5c1b11f",
           "shipped": true
         },
         {
           "path": "packages/skills-book-digitizer/README.md",
-          "sha256": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af"
+          "sha256": "57ca26d13ee6314e05c18d8edfc612809e53bc4c7123bf7764a348f0ddd0a008"
         }
       ],
       "evidence": [
@@ -8887,7 +8895,7 @@
       "outcome": "Собирает skills-book-пакет, включает локальные источники и evals, проверяет состав архива и установку.",
       "package": {
         "name": "@dzhechkov/skills-book-digitizer",
-        "version": "0.2.20",
+        "version": "0.2.22",
         "manifest": "packages/skills-book-digitizer/package.json",
         "type": "skill-pack",
         "description": "Canonical book-digitizer skill pack — 8 skills that turn an engineering book/textbook/monograph into an installable skill pack whose skills make AI coders work within the book's methodologies: digitize-book (orchestrator), book-ingest, book-knowledge-extract, book-skill-distill, book-pack-assemble, book-kb-index, book-brain-register (terminal promote-to-brain, CP6), source-brain-ingest (repo/dir sibling)."
@@ -8916,17 +8924,17 @@
       "sources": [
         {
           "path": "packages/skills-book-digitizer/package.json",
-          "sha256": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba"
+          "sha256": "ff91a8786153d1177f4e9affb0882e77e29371613a388afc3401f7a373f74879"
         },
         {
           "id": "book-pack-assemble",
           "path": "packages/skills-book-digitizer/book-pack-assemble/SKILL.md",
-          "sha256": "28476188f040636f48a8ecb31b2da5b01a44a4cb220e5aa2cb2098767c24faa5",
+          "sha256": "c2d7b98a0d6893a507986c1faa766b98168a5b1df23f7a0ea54317ac5e4f0574",
           "shipped": true
         },
         {
           "path": "packages/skills-book-digitizer/README.md",
-          "sha256": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af"
+          "sha256": "57ca26d13ee6314e05c18d8edfc612809e53bc4c7123bf7764a348f0ddd0a008"
         }
       ],
       "evidence": [
@@ -8944,7 +8952,7 @@
       "outcome": "Кластеризует проверенные знания в decision-moment SKILL.md с происхождением, routing-evals и связями с источниками.",
       "package": {
         "name": "@dzhechkov/skills-book-digitizer",
-        "version": "0.2.20",
+        "version": "0.2.22",
         "manifest": "packages/skills-book-digitizer/package.json",
         "type": "skill-pack",
         "description": "Canonical book-digitizer skill pack — 8 skills that turn an engineering book/textbook/monograph into an installable skill pack whose skills make AI coders work within the book's methodologies: digitize-book (orchestrator), book-ingest, book-knowledge-extract, book-skill-distill, book-pack-assemble, book-kb-index, book-brain-register (terminal promote-to-brain, CP6), source-brain-ingest (repo/dir sibling)."
@@ -8973,17 +8981,17 @@
       "sources": [
         {
           "path": "packages/skills-book-digitizer/package.json",
-          "sha256": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba"
+          "sha256": "ff91a8786153d1177f4e9affb0882e77e29371613a388afc3401f7a373f74879"
         },
         {
           "id": "book-skill-distill",
           "path": "packages/skills-book-digitizer/book-skill-distill/SKILL.md",
-          "sha256": "36400891f0f2b05fc4fe638ff32bd6e3abc1252b19b1d0314aed80455d95da53",
+          "sha256": "e600ecf3130e7ff1685ceb5935890da0bdeaae933610659a886bf73f23fbb2d3",
           "shipped": true
         },
         {
           "path": "packages/skills-book-digitizer/README.md",
-          "sha256": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af"
+          "sha256": "57ca26d13ee6314e05c18d8edfc612809e53bc4c7123bf7764a348f0ddd0a008"
         }
       ],
       "evidence": [
@@ -9001,7 +9009,7 @@
       "outcome": "Оркестрирует ingest, извлечение, дистилляцию, упаковку и индексацию с возобновлением и контрольными точками.",
       "package": {
         "name": "@dzhechkov/skills-book-digitizer",
-        "version": "0.2.20",
+        "version": "0.2.22",
         "manifest": "packages/skills-book-digitizer/package.json",
         "type": "skill-pack",
         "description": "Canonical book-digitizer skill pack — 8 skills that turn an engineering book/textbook/monograph into an installable skill pack whose skills make AI coders work within the book's methodologies: digitize-book (orchestrator), book-ingest, book-knowledge-extract, book-skill-distill, book-pack-assemble, book-kb-index, book-brain-register (terminal promote-to-brain, CP6), source-brain-ingest (repo/dir sibling)."
@@ -9021,7 +9029,7 @@
       ],
       "prerequisites": [],
       "steps": [
-        "Укажите книгу, доступный PDF и целевые решения агента; проверьте зависимости и согласуйте этапы процесса."
+        "Укажите книгу, доступный PDF и целевые решения; установите digitize-book с этапами, проверьте Poppler и согласуйте контрольные точки."
       ],
       "limitations": [
         "Это управляемая оцифровка законно полученной книги, не пересказ или перепубликация; скан без OCR не подходит."
@@ -9030,23 +9038,27 @@
       "sources": [
         {
           "path": "packages/skills-book-digitizer/package.json",
-          "sha256": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba"
+          "sha256": "ff91a8786153d1177f4e9affb0882e77e29371613a388afc3401f7a373f74879"
         },
         {
           "id": "digitize-book",
           "path": "packages/skills-book-digitizer/digitize-book/SKILL.md",
-          "sha256": "cfccc93e6ab3964fa5c9ed8847c853e31192f8a240e72da421be146771277f3b",
+          "sha256": "2b87fbe918bbfe70dae9fb0e20f6a75d4aefff964dfb0a7b2ff5f500bfd3aa48",
           "shipped": true
         },
         {
           "path": "packages/skills-book-digitizer/README.md",
-          "sha256": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af"
+          "sha256": "57ca26d13ee6314e05c18d8edfc612809e53bc4c7123bf7764a348f0ddd0a008"
         }
       ],
       "evidence": [
         {
           "path": "packages/skills-book-digitizer/digitize-book/SKILL.md",
           "quote": "description: >\n  Orchestrator: turn an engineering book/textbook/monograph (PDF, 100–1000+ pages) into an\n  INSTALLABLE skill pack whose skills make AI coders (Claude Code, Codex, …) work within the\n  book's methodologies at real decision moments — plus a searchable Knowledge Base behind them.\n  Drives the pipeline (ingest → extract → distill → pack → index, then an optional promote-to-brain)\n  through up to 6 human checkpoints, resumable across sessions. Triggers on: \"оцифруй книгу\", \"digitize "
+        },
+        {
+          "path": "packages/skills-book-digitizer/digitize-book/SKILL.md",
+          "quote": "To install the book workflow, run\n  `dz init --target codex --select digitize-book --no-hooks --no-integrations`."
         }
       ]
     },
@@ -9058,7 +9070,7 @@
       "outcome": "Ведёт PDF через корпус, извлечение и проверку знаний, дистилляцию навыков, сборку пакета и индексацию; перенос в межпроектную память — отдельный этап.",
       "package": {
         "name": "@dzhechkov/skills-book-digitizer",
-        "version": "0.2.20",
+        "version": "0.2.22",
         "manifest": "packages/skills-book-digitizer/package.json",
         "type": "skill-pack",
         "description": "Canonical book-digitizer skill pack — 8 skills that turn an engineering book/textbook/monograph into an installable skill pack whose skills make AI coders work within the book's methodologies: digitize-book (orchestrator), book-ingest, book-knowledge-extract, book-skill-distill, book-pack-assemble, book-kb-index, book-brain-register (terminal promote-to-brain, CP6), source-brain-ingest (repo/dir sibling)."
@@ -9076,7 +9088,7 @@
       ],
       "prerequisites": [],
       "steps": [
-        "Укажите книгу и рабочий каталог; начните digitize-book, согласуйте точки контроля и назначение будущих навыков."
+        "Укажите книгу и рабочий каталог; установите digitize-book с необходимыми этапами, затем согласуйте контрольные точки и назначение навыков."
       ],
       "limitations": [
         "Нужны PDF, Poppler и зависимости памяти; процесс имеет человеческие контрольные точки, а распространение и перенос в общий brain требуют отдельных решений."
@@ -9085,11 +9097,11 @@
       "sources": [
         {
           "path": "packages/skills-book-digitizer/package.json",
-          "sha256": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba"
+          "sha256": "ff91a8786153d1177f4e9affb0882e77e29371613a388afc3401f7a373f74879"
         },
         {
           "path": "packages/skills-book-digitizer/README.md",
-          "sha256": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af"
+          "sha256": "57ca26d13ee6314e05c18d8edfc612809e53bc4c7123bf7764a348f0ddd0a008"
         }
       ],
       "evidence": [
@@ -9100,6 +9112,10 @@
         {
           "path": "packages/skills-book-digitizer/README.md",
           "quote": "The core pipeline. Install the orchestrator, then hand it a PDF; it runs `book-ingest → extract →\ndistill → assemble → book-kb-index` through 5 human checkpoints (CP1–CP5), plus an optional CP6\n`book-brain-register` to promote the book into the cross-project brain (scenario 3)."
+        },
+        {
+          "path": "packages/skills-book-digitizer/README.md",
+          "quote": "Selection installs the orchestrator, all book stages\nand the two supporting skills from the meta pack."
         }
       ]
     },
@@ -9111,7 +9127,7 @@
       "outcome": "Обходит исходники, выделяет Knowledge Units и передаёт их в общее личное хранилище с происхождением и лицензией.",
       "package": {
         "name": "@dzhechkov/skills-book-digitizer",
-        "version": "0.2.20",
+        "version": "0.2.22",
         "manifest": "packages/skills-book-digitizer/package.json",
         "type": "skill-pack",
         "description": "Canonical book-digitizer skill pack — 8 skills that turn an engineering book/textbook/monograph into an installable skill pack whose skills make AI coders work within the book's methodologies: digitize-book (orchestrator), book-ingest, book-knowledge-extract, book-skill-distill, book-pack-assemble, book-kb-index, book-brain-register (terminal promote-to-brain, CP6), source-brain-ingest (repo/dir sibling)."
@@ -9140,7 +9156,7 @@
       "sources": [
         {
           "path": "packages/skills-book-digitizer/package.json",
-          "sha256": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba"
+          "sha256": "ff91a8786153d1177f4e9affb0882e77e29371613a388afc3401f7a373f74879"
         },
         {
           "id": "source-brain-ingest",
@@ -9150,7 +9166,7 @@
         },
         {
           "path": "packages/skills-book-digitizer/README.md",
-          "sha256": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af"
+          "sha256": "57ca26d13ee6314e05c18d8edfc612809e53bc4c7123bf7764a348f0ddd0a008"
         }
       ],
       "evidence": [
@@ -14580,10 +14596,10 @@
       "outcome": "Проверяет достижимость, реальный ущерб и защитные механизмы, различая подтверждение, ложное срабатывание и неопределённость.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "adversarial-verifier"
@@ -14609,7 +14625,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "adversarial-verifier",
@@ -14619,7 +14635,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -14637,10 +14653,10 @@
       "outcome": "Запускает AgentShield для поиска секретов, инъекций и рисков конфигурации, выдавая JSON для CI.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "agentshield-scan"
@@ -14666,7 +14682,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "agentshield-scan",
@@ -14676,7 +14692,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -14694,10 +14710,10 @@
       "outcome": "Исследует кодовую базу, проверяет находки и ранжирует исправления и возможности улучшения.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "audit"
@@ -14723,7 +14739,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "audit",
@@ -14733,7 +14749,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -14751,10 +14767,10 @@
       "outcome": "Создаёт минимальную запись MADR в docs/decisions с очередным номером и отметкой needs-oversight.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "capture-adr"
@@ -14780,7 +14796,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "capture-adr",
@@ -14790,7 +14806,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -14808,10 +14824,10 @@
       "outcome": "Выбирает стратегию сокращения, контрольной точки или резюмирования с учётом важности сведений.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "context-window-management"
@@ -14837,7 +14853,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "context-window-management",
@@ -14847,7 +14863,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -14865,10 +14881,10 @@
       "outcome": "Излагает контекст и альтернативы простым языком, используя HTML или компактный текст для явных ответов.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "decision-mockups"
@@ -14894,7 +14910,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "decision-mockups",
@@ -14904,7 +14920,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -14922,10 +14938,10 @@
       "outcome": "Организует исследование пользователей, определение проблемы, гипотезы, прототипы, тесты и пилотную проверку.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "design-thinking"
@@ -14951,7 +14967,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "design-thinking",
@@ -14961,7 +14977,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -14979,10 +14995,10 @@
       "outcome": "Создаёт, проверяет и сравнивает контракт токенов, экспортируя его в Tailwind или W3C DTCG.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "design-tokens"
@@ -15008,7 +15024,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "design-tokens",
@@ -15018,7 +15034,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -15036,10 +15052,10 @@
       "outcome": "Выясняет реальную цель, ограничения, ресурсы и признаки успеха через уточняющие вопросы.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "explore"
@@ -15065,7 +15081,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "explore",
@@ -15075,7 +15091,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -15093,10 +15109,10 @@
       "outcome": "Проверяет исходящие тексты перед публикацией, отмечает риск утечки и предлагает редактуру.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "external-comms-gate"
@@ -15122,7 +15138,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "external-comms-gate",
@@ -15132,7 +15148,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -15150,10 +15166,10 @@
       "outcome": "Выбирает размер процесса, связывает требования, архитектуру, реализацию и инженерные проверки.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "feature-adr"
@@ -15179,7 +15195,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "feature-adr",
@@ -15189,7 +15205,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -15207,10 +15223,10 @@
       "outcome": "Планирует исследование, связывает утверждения с источниками и различает доказательность и криптографическое происхождение.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "goap-research-ed25519"
@@ -15236,7 +15252,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "goap-research-ed25519",
@@ -15246,7 +15262,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -15264,10 +15280,10 @@
       "outcome": "Собирает знания, классифицирует, удаляет дубли, проверяет качество и размещает подходящие артефакты.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "knowledge-extractor"
@@ -15293,7 +15309,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "knowledge-extractor",
@@ -15303,7 +15319,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -15321,10 +15337,10 @@
       "outcome": "Создаёт и проверяет loop-plan/1 с pipeline, barrier, fanout и gate; помогает читать трассу выполнения.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "loop-plan-author"
@@ -15350,7 +15366,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "loop-plan-author",
@@ -15360,7 +15376,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -15378,10 +15394,10 @@
       "outcome": "Использует первые принципы, анализ причин, теорию игр и ТРИЗ для сравнения путей решения сложной задачи.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "problem-solver-enhanced"
@@ -15407,7 +15423,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "problem-solver-enhanced",
@@ -15417,7 +15433,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -15431,14 +15447,14 @@
       "id": "skills-meta-overview-559f6001",
       "kind": "package-overview",
       "title": "Подобрать навыки управления разработкой",
-      "intent": "Канонический набор навыков процесса разработки: помогает выбрать нужный этап и подключить соответствующую методику работы агента.",
-      "outcome": "Канонический набор навыков процесса разработки: помогает выбрать нужный этап и подключить соответствующую методику работы агента.",
+      "intent": "Набор навыков процесса разработки, включая оценку актуальности репозиториев и сравнение компонентов для повторного использования.",
+      "outcome": "Набор навыков процесса разработки, включая оценку актуальности репозиториев и сравнение компонентов для повторного использования.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [],
       "queries": [
@@ -15446,7 +15462,7 @@
         "Хочу собрать процесс работы агента из метанавыков"
       ],
       "whenToUse": [
-        "Канонический набор навыков процесса разработки: помогает выбрать нужный этап и подключить соответствующую методику работы агента."
+        "Набор навыков процесса разработки, включая оценку актуальности репозиториев и сравнение компонентов для повторного использования."
       ],
       "whenNotToUse": [
         "Это набор навыков; reference-протоколы не запускают внешнюю QE-среду и не заменяют независимые проверки или проектные решения."
@@ -15462,17 +15478,21 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
         {
           "path": "packages/skills-meta/README.md",
           "quote": "The **canonical meta-skill pack** — the development-process skills, packaged as\n[Agent Skills](https://agentskills.io) for distribution and cross-platform use."
+        },
+        {
+          "path": "packages/skills-meta/README.md",
+          "quote": "| `repo-freshness` | 2 | Dated, component-specific repository maintenance and release assessment; distinguishes missing access from absent evidence |\n| `repo-assessment` | 3 | Role-specific C/F/M/P/O comparison with evidence, eligibility gates and optional declared preference weights |"
         }
       ]
     },
@@ -15484,10 +15504,10 @@
       "outcome": "Сопоставляет черновик с критериями, вносит предметные правки и проверяет результат до трёх раундов.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "reflection-loop"
@@ -15513,7 +15533,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "reflection-loop",
@@ -15523,13 +15543,127 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
         {
           "path": "packages/skills-meta/reflection-loop/SKILL.md",
           "quote": "description: >\n  Standalone critique-revise cycle extracted as an independent reusable skill. Implements\n  DRAFT -> CRITIQUE -> IDENTIFY -> REVISE -> VERIFY -> DECIDE protocol with domain-specific\n  criteria for code, text, architecture, and research. Max 3 rounds with anti-patterns\n  for infinite loops and cosmetic-only revisions.\n  Triggers on: \"review and improve\", \"critique this\", \"is this good enough\", \"self-review\"."
+        }
+      ]
+    },
+    {
+      "id": "skills-meta-repo-assessment-5ec79793",
+      "kind": "skill",
+      "title": "Сравнение репозиториев для конкретной роли",
+      "intent": "Сравнивает компоненты по соответствию задаче, актуальности, зрелости, распространению и подтверждённости контроля; показывает условия применимости и компромиссы.",
+      "outcome": "Сравнивает компоненты по соответствию задаче, актуальности, зрелости, распространению и подтверждённости контроля; показывает условия применимости и компромиссы.",
+      "package": {
+        "name": "@dzhechkov/skills-meta",
+        "version": "0.9.77",
+        "manifest": "packages/skills-meta/package.json",
+        "type": "skill-pack",
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
+      },
+      "skillIds": [
+        "repo-assessment"
+      ],
+      "queries": [
+        "Сравни проекты как компоненты для моей задачи с учётом ограничений",
+        "Какой репозиторий выбрать с учётом пригодности, поддержки и рисков"
+      ],
+      "whenToUse": [
+        "Сравнивает компоненты по соответствию задаче, актуальности, зрелости, распространению и подтверждённости контроля; показывает условия применимости и компромиссы."
+      ],
+      "whenNotToUse": [
+        "Не является сертификатом безопасности или разрешением на внедрение; недоступные сведения остаются неизвестными."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Укажите задачу, роли компонентов, кандидатов и обязательные ограничения; сопоставьте датированные данные и условия применимости."
+      ],
+      "limitations": [
+        "Не является сертификатом безопасности или разрешением на внедрение; недоступные сведения остаются неизвестными."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-meta/package.json",
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
+        },
+        {
+          "id": "repo-assessment",
+          "path": "packages/skills-meta/repo-assessment/SKILL.md",
+          "sha256": "87a7204bb91651b71c3bce806258adc878da4269f1a6e278dfbcb2c357bb4f84",
+          "shipped": true
+        },
+        {
+          "path": "packages/skills-meta/README.md",
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-meta/repo-assessment/SKILL.md",
+          "quote": "Compare GitHub projects as reusable components for a stated software task using\n  capability fit, freshness, maturity, adoption/popularity and operational assurance."
+        }
+      ]
+    },
+    {
+      "id": "skills-meta-repo-freshness-a379042d",
+      "kind": "skill",
+      "title": "Актуальность компонента и поддержки репозитория",
+      "intent": "Оценивает отдельно свежесть кода компонента, доступного релиза и признаки поддержки на указанную дату.",
+      "outcome": "Оценивает отдельно свежесть кода компонента, доступного релиза и признаки поддержки на указанную дату.",
+      "package": {
+        "name": "@dzhechkov/skills-meta",
+        "version": "0.9.77",
+        "manifest": "packages/skills-meta/package.json",
+        "type": "skill-pack",
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
+      },
+      "skillIds": [
+        "repo-freshness"
+      ],
+      "queries": [
+        "Поддерживается ли нужная версия компонента этого GitHub-репозитория",
+        "Проверь актуальность релиза и признаки сопровождения библиотеки"
+      ],
+      "whenToUse": [
+        "Оценивает отдельно свежесть кода компонента, доступного релиза и признаки поддержки на указанную дату."
+      ],
+      "whenNotToUse": [
+        "Не устанавливает пригодность, безопасность или права использования; отсутствие доступа остаётся неизвестностью."
+      ],
+      "prerequisites": [],
+      "steps": [
+        "Укажите репозиторий, компонент, версию и предполагаемое применение; проверьте датированные источники кода, релизов и поддержки."
+      ],
+      "limitations": [
+        "Не устанавливает пригодность, безопасность или права использования; отсутствие доступа остаётся неизвестностью."
+      ],
+      "courseUrl": null,
+      "sources": [
+        {
+          "path": "packages/skills-meta/package.json",
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
+        },
+        {
+          "id": "repo-freshness",
+          "path": "packages/skills-meta/repo-freshness/SKILL.md",
+          "sha256": "fc6a515da2ad64d9e824c762c871aaaa0313d5c3da6fb8b27f8bbf941b4e2758",
+          "shipped": true
+        },
+        {
+          "path": "packages/skills-meta/README.md",
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
+        }
+      ],
+      "evidence": [
+        {
+          "path": "packages/skills-meta/repo-freshness/SKILL.md",
+          "quote": "Assess whether a GitHub repository and a specific component or release are still\n  maintained and current enough for a stated use."
         }
       ]
     },
@@ -15541,10 +15675,10 @@
       "outcome": "Обновляет известные статусы чтением и выдаёт четыре пункта о цели и ходе текущей сессии.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "session-recap"
@@ -15570,7 +15704,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "session-recap",
@@ -15580,7 +15714,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -15594,14 +15728,14 @@
       "id": "skills-meta-skill-advisor-0e4ec21c",
       "kind": "skill",
       "title": "Подбор навыков под конкретную задачу",
-      "intent": "Читает действующий каталог, ранжирует навыки и наборы, объясняет порядок применения и пробелы.",
-      "outcome": "Читает действующий каталог, ранжирует навыки и наборы, объясняет порядок применения и пробелы.",
+      "intent": "Читает живой каталог и ранжирует навыки и наборы; один навык может покрыть задачу, а обязательные предпосылки упорядочиваются отдельно.",
+      "outcome": "Читает живой каталог и ранжирует навыки и наборы; один навык может покрыть задачу, а обязательные предпосылки упорядочиваются отдельно.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "skill-advisor"
@@ -15611,14 +15745,14 @@
         "Составь порядок применения навыков и команды установки"
       ],
       "whenToUse": [
-        "Читает действующий каталог, ранжирует навыки и наборы, объясняет порядок применения и пробелы."
+        "Читает живой каталог и ранжирует навыки и наборы; один навык может покрыть задачу, а обязательные предпосылки упорядочиваются отдельно."
       ],
       "whenNotToUse": [
         "Не ищет новые внешние источники; неясную задачу сначала нужно уточнить."
       ],
       "prerequisites": [],
       "steps": [
-        "Сформулируйте практический результат и ограничения, затем сопоставьте их с живым каталогом."
+        "Сформулируйте результат и ограничения; уточняйте задачу, если требования не определены, и сопоставьте её с живым каталогом."
       ],
       "limitations": [
         "Не ищет новые внешние источники; неясную задачу сначала нужно уточнить."
@@ -15627,23 +15761,23 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "skill-advisor",
           "path": "packages/skills-meta/skill-advisor/SKILL.md",
-          "sha256": "80969baa92dbe3019aed833ad1cfa8cc67e5f660be1fd24d77904497d56527b4",
+          "sha256": "7f2f2192beab7b3b489c4d1c1a8529e56bb24907110eb19bea67fdbdb8afd37f",
           "shipped": true
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
         {
           "path": "packages/skills-meta/skill-advisor/SKILL.md",
-          "quote": "description: >\n  Recommends WHICH skills, skill-sets, presets, or npx toolkits from the DZ Harness Hub\n  arsenal to solve a user's practical task — with rationale, a suggested pipeline order,\n  install commands, and honest gaps. The semantic, skill-level upgrade over the keyword-only\n  `dz recommend` CLI: retrieves the live catalog at runtime (`dz registry`, `dz recommend`),\n  then improves on it with intent matching, multi-step pipeline composition, and toolkit-vs-skills\n  judgment. Triggers on"
+          "quote": "Choose the **first strong fit**. A single skill such as `feature-adr` can cover requirements,\n   design, implementation, and checks without invented extra steps."
         }
       ]
     },
@@ -15655,10 +15789,10 @@
       "outcome": "Извлекает паттерны из трасс, составляет композиции и помогает ремонтировать слабые навыки с последующей проверкой.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "skill-crystallizer"
@@ -15684,7 +15818,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "skill-crystallizer",
@@ -15694,7 +15828,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -15712,10 +15846,10 @@
       "outcome": "Подбирает стратегию исследования вариантов, последовательного вывода или ограничения избыточного анализа.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "structured-reasoning"
@@ -15741,7 +15875,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "structured-reasoning",
@@ -15751,7 +15885,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [
@@ -15769,10 +15903,10 @@
       "outcome": "Читает граф Understand-Anything и передаёт контекст архитектуры и влияния изменений другим навыкам.",
       "package": {
         "name": "@dzhechkov/skills-meta",
-        "version": "0.9.75",
+        "version": "0.9.77",
         "manifest": "packages/skills-meta/package.json",
         "type": "skill-pack",
-        "description": "Canonical meta-skill pack — 21 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups."
+        "description": "Canonical meta-skill pack — 23 development-process skills: explore, goap-research, problem-solver, design-thinking, feature-adr, knowledge-extractor, understand-anything-bridge, agentshield-scan, skill-crystallizer, structured-reasoning, reflection-loop, session-recap, context-window-management, external-comms-gate, capture-adr, adversarial-verifier, audit, skill-advisor, design-tokens, loop-plan-author, decision-mockups, repo-freshness, repo-assessment."
       },
       "skillIds": [
         "understand-anything-bridge"
@@ -15798,7 +15932,7 @@
       "sources": [
         {
           "path": "packages/skills-meta/package.json",
-          "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+          "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
         },
         {
           "id": "understand-anything-bridge",
@@ -15808,7 +15942,7 @@
         },
         {
           "path": "packages/skills-meta/README.md",
-          "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+          "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
         }
       ],
       "evidence": [

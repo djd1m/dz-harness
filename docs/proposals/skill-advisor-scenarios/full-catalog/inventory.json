@@ -3,17 +3,17 @@
   "packages": [
     {
       "name": "@dzhechkov/adapter-agents-md",
-      "version": "0.1.10",
+      "version": "0.1.11",
       "directory": "packages/adapter-agents-md",
       "private": false,
       "publication": {
-        "version": "0.1.10",
-        "integrity": "sha512-cYPAmTpp3kz/fGBKkM4/3H/U+57N//gGBqGHKovBxjEFo/NgRRzmDa9x4XGGnkF+kQbjH0a53EuT/rAZAbVf2A=="
+        "version": "0.1.11",
+        "integrity": "sha512-ijpQoSZ/8yaOldWvgonNE0rBdCjhsbBpbTbIE3sF99nTD21if3KBahcbVE6Y9ClxDuKHv0ByGCuSm0feOc6pHg=="
       },
       "type": "adapter",
       "manifest": {
         "path": "packages/adapter-agents-md/package.json",
-        "sha256": "b2918069ec00953997de5e75d420fc188ef75bc379ec92117a657004cb48580e"
+        "sha256": "5f873248b0d94496ee8eb0f0c70ddeb52990cc5d40cd947415cb8435f88f15e7"
       },
       "readme": {
         "path": "packages/adapter-agents-md/README.md",
@@ -23,17 +23,17 @@
     },
     {
       "name": "@dzhechkov/adapter-claude",
-      "version": "0.2.10",
+      "version": "0.2.11",
       "directory": "packages/adapter-claude",
       "private": false,
       "publication": {
-        "version": "0.2.10",
-        "integrity": "sha512-KJg7vfAr2u2L9s+UAsQD5Hdsmj4/c49XfsXRwB/VCcYW4qx8ZA5BrUdpjZ37+kWRIBwwGUsdD+68lZhjDv3pow=="
+        "version": "0.2.11",
+        "integrity": "sha512-Uv4+PjGEaUDI3wh2e+2ebBAGSq+l6/oJVYd44E3PSdI+JVu2SzrwDVpznSAc/Qs0gw81t/L31Mtmm/8UlGqT6w=="
       },
       "type": "adapter",
       "manifest": {
         "path": "packages/adapter-claude/package.json",
-        "sha256": "780384726a099a107533b453a7052e7238926355aae6e7d0538e86aaaeee9347"
+        "sha256": "5ac35c5f979942385d2d87f231f67a5ea1d74d13d21314f71cb36cd6335d3b84"
       },
       "readme": {
         "path": "packages/adapter-claude/README.md",
@@ -43,17 +43,17 @@
     },
     {
       "name": "@dzhechkov/adapter-codex",
-      "version": "0.2.9",
+      "version": "0.2.10",
       "directory": "packages/adapter-codex",
       "private": false,
       "publication": {
-        "version": "0.2.9",
-        "integrity": "sha512-9zVwlzlh57NQR12aAduQYmYIuaiZMW1eI+4oHJoyHoAwO2Mik5O5yuVIA7/sB9uG2CLm9ojU7oXD0X2thgd2wg=="
+        "version": "0.2.10",
+        "integrity": "sha512-Twuoc5NYz8jpeq0TaohSNkPVyJwHXcj+70ME+YRUVU90UDoCKTkkZU64OLWb7FJ2T6iMULA3ZdN/0z1BhdNcxw=="
       },
       "type": "adapter",
       "manifest": {
         "path": "packages/adapter-codex/package.json",
-        "sha256": "c8400f670a012484847751bbe589d7d1a62271d6399ab325165caca5ebdf3f30"
+        "sha256": "88b67cc445a24051d2831f106c66bd63766ed3fe8042e278faf9495d67ee70cd"
       },
       "readme": {
         "path": "packages/adapter-codex/README.md",
@@ -63,17 +63,17 @@
     },
     {
       "name": "@dzhechkov/adapter-copilot",
-      "version": "0.1.10",
+      "version": "0.1.11",
       "directory": "packages/adapter-copilot",
       "private": false,
       "publication": {
-        "version": "0.1.10",
-        "integrity": "sha512-p4kcuv3pdUfoc3oEj7Rrtu6pnhneCCQVBMUdPkyDONa8vmnBsYs28ijpDsXr8Zg5sMMcXQ4tZVM/9phDO+p9RA=="
+        "version": "0.1.11",
+        "integrity": "sha512-i7G8mozWJRl9SxAgVj5xfj4NaPcfsB2R8vyoIU6qINWVY+x8hMRD+J9zFUVH5I9lRtj/fGesYq/WDY1bf9BjhQ=="
       },
       "type": "adapter",
       "manifest": {
         "path": "packages/adapter-copilot/package.json",
-        "sha256": "a3a2c8ea391175dd727205daed61bcaf26bf26379c953a74b59b8195d0087c7e"
+        "sha256": "76e7b625cb262c111570e9ba60dc013a473178dc58d36653fcae481ba6583a57"
       },
       "readme": {
         "path": "packages/adapter-copilot/README.md",
@@ -83,17 +83,17 @@
     },
     {
       "name": "@dzhechkov/adapter-cursor",
-      "version": "0.1.10",
+      "version": "0.1.11",
       "directory": "packages/adapter-cursor",
       "private": false,
       "publication": {
-        "version": "0.1.10",
-        "integrity": "sha512-7xSn5DU4Oo0nZvXKnFLf00iJZHz5NfyG/U313D80+1oA86Db9POsAIAmBOvmGgYEuRJgpE07Rt0WrdrfFo/Gxw=="
+        "version": "0.1.11",
+        "integrity": "sha512-gG5fJ6gkgZW/cMCthmAmWMT22JGgSkchKI0ZkcBOX4CNNtlNETEzErZhzJv7jgif+mNnY765mhmfkM/jG4ze0g=="
       },
       "type": "adapter",
       "manifest": {
         "path": "packages/adapter-cursor/package.json",
-        "sha256": "dc078d92bafcf708f0dc4d63ed8d7d8f237e0510a55ed9032f86f1c0b28b285a"
+        "sha256": "bb303e24ee237c227eb6eeb84c8cef3341ce645d86fadfaa9ece4a0e1431232d"
       },
       "readme": {
         "path": "packages/adapter-cursor/README.md",
@@ -103,17 +103,17 @@
     },
     {
       "name": "@dzhechkov/adapter-gemini",
-      "version": "0.1.10",
+      "version": "0.1.11",
       "directory": "packages/adapter-gemini",
       "private": false,
       "publication": {
-        "version": "0.1.10",
-        "integrity": "sha512-+1t6k9Hs/6o/qwAK3pB358+UWBzOARotx16f0kLtK4H5Lt6DU+PwG3TfusMEDr+qTadMHxigrQYNMQF+DFnE6w=="
+        "version": "0.1.11",
+        "integrity": "sha512-04ZZ60SE0oQ8d3z/9Yxa4Y9PzHkxJKHz285OgaE7qR4jbm00agi3XbBPwmdC+c5JEnvwP6JxlnB6VzuZa4hDeg=="
       },
       "type": "adapter",
       "manifest": {
         "path": "packages/adapter-gemini/package.json",
-        "sha256": "6055ee0a3eeaf8046462ee4eb1e8d736ca4a72c21c2d621e0b45b7382ee292a7"
+        "sha256": "29d3d7c850ae4524af78c47041a0c35ee0b0ce13c15c8e01f9b9d37e2277481c"
       },
       "readme": {
         "path": "packages/adapter-gemini/README.md",
@@ -123,17 +123,17 @@
     },
     {
       "name": "@dzhechkov/adapter-hermes",
-      "version": "0.2.9",
+      "version": "0.2.10",
       "directory": "packages/adapter-hermes",
       "private": false,
       "publication": {
-        "version": "0.2.9",
-        "integrity": "sha512-fEmLSl4zjmp5Nbi13lF+uHTJjo1dXRN78HOYywAfs4UCFuh2ZFkuHfudU02K1JSN3TZOipV8aAZ12O1pjh3idQ=="
+        "version": "0.2.10",
+        "integrity": "sha512-ZNBGR32LJCmP9SULp2Sq/8GAGIF3LzUZ3hKUUBa1vLYcC/2QZUhHRCp72q8+ku6eGE3dsoQGfjPI5oajxIcEQg=="
       },
       "type": "adapter",
       "manifest": {
         "path": "packages/adapter-hermes/package.json",
-        "sha256": "04be2a3996b34195c5aeb0606152e343f153247c95037c3d66582015763121b7"
+        "sha256": "ce566ca018e6915e90ddb4d0e40cf447521d42ff8ffc609833ae91d4dbc383ef"
       },
       "readme": {
         "path": "packages/adapter-hermes/README.md",
@@ -143,17 +143,17 @@
     },
     {
       "name": "@dzhechkov/adapter-openclaude",
-      "version": "0.1.9",
+      "version": "0.1.10",
       "directory": "packages/adapter-openclaude",
       "private": false,
       "publication": {
-        "version": "0.1.9",
-        "integrity": "sha512-K7UCgzPcCkeIxkkSz+JNt9g3buJAdv+hPgoWYawJ3B2qFX6w7OrGeQoX024BHXtsvUiDW4/edil+DSeWDIfxGQ=="
+        "version": "0.1.10",
+        "integrity": "sha512-WdMcBhBLdLA39bRRI3xqYZV7WnDwTQ6xxe7DUzJpPze5FnbZmk8MS7clJKyBIRlmaZaqpU0nIks5Si1r0MPJzw=="
       },
       "type": "adapter",
       "manifest": {
         "path": "packages/adapter-openclaude/package.json",
-        "sha256": "9d128a27c6423b8027c22109f61adbbead58ac9025f727607c56c8b24ead0dc7"
+        "sha256": "28ae4dfe1769788f2a47d0a04c65ace12009dc104600eb68fbb4bcaa8393a799"
       },
       "readme": {
         "path": "packages/adapter-openclaude/README.md",
@@ -163,17 +163,17 @@
     },
     {
       "name": "@dzhechkov/adapter-opencode",
-      "version": "0.2.9",
+      "version": "0.2.10",
       "directory": "packages/adapter-opencode",
       "private": false,
       "publication": {
-        "version": "0.2.9",
-        "integrity": "sha512-xd4rNo9DQP17IjkTOafKA5V/O2udwEzbKJpsurfF064G7ZsQXkxdTvB5mjMKN39hHHbiGkd1jwrVX4YLhytmhw=="
+        "version": "0.2.10",
+        "integrity": "sha512-B1u9gNvxR56ZtW65GxhOCnDshWK4hrFx7rJYIaxrS9qvQfxc1vlKYwH6J4+wPd++9sSTwVnoxPwm8UAYTQarxQ=="
       },
       "type": "adapter",
       "manifest": {
         "path": "packages/adapter-opencode/package.json",
-        "sha256": "9ad996237b5eeeaf71772c38402670047dee748cb8f5247050661b42e93b966f"
+        "sha256": "7fabcec225a2a584a18cd85b86dc9976bc235ab6387634ddb439ef5ffe83cce2"
       },
       "readme": {
         "path": "packages/adapter-opencode/README.md",
@@ -183,17 +183,17 @@
     },
     {
       "name": "@dzhechkov/adapter-windsurf",
-      "version": "0.1.10",
+      "version": "0.1.11",
       "directory": "packages/adapter-windsurf",
       "private": false,
       "publication": {
-        "version": "0.1.10",
-        "integrity": "sha512-DlbxLao5rA7n1IPdddOln/wJ/egqSRTELtvqOqWPk41buPPJS9jVgYK1/xlsBIZbPVlw4yjbYGAdHY81jXqmhA=="
+        "version": "0.1.11",
+        "integrity": "sha512-qkGmnQz/uJ4Ou5AN9qdZY1e1hunDHL3+IorRZHQ/WFx2pDFn4ePVSScQvlz5ZvmXPEAVtQ+UuCkIwioz/Jczqg=="
       },
       "type": "adapter",
       "manifest": {
         "path": "packages/adapter-windsurf/package.json",
-        "sha256": "5ec0edc4dd780e001b51d6f404fa766692aba8df577bd79b168ba784dd6a5373"
+        "sha256": "23e14341a02fece6badae404a3842c36defc041316b99ef8f7afb6ec4b1f32f6"
       },
       "readme": {
         "path": "packages/adapter-windsurf/README.md",
@@ -359,41 +359,41 @@
     },
     {
       "name": "@dzhechkov/harness-cli",
-      "version": "0.8.61",
+      "version": "0.8.63",
       "directory": "packages/harness-cli",
       "private": false,
       "publication": {
-        "version": "0.8.61",
-        "integrity": "sha512-YBMaUUGjv63aM1lBikoX/b69tD0SV1i6ue0CYQzJxFhMKbrMObUqWeA5dzJ0CawLn19lO7RGufmm7+HxEvq9hw=="
+        "version": "0.8.63",
+        "integrity": "sha512-JkUw5I6xL31nsuuQlVLdh58tb7Yf18WVq+oKxT37Cvqy/mYodmZlcxw+3sZGty6GL7tanoxBkM0rl11tp9qWAg=="
       },
       "type": "tool",
       "manifest": {
         "path": "packages/harness-cli/package.json",
-        "sha256": "155010cdbe6483d4b79d7c86e1582687ee4f3cf40502cea0fcf51a78afc676c4"
+        "sha256": "4b25c6e085cf34555a5d29fa1a21abefd04ab2e66a0333ff23cb5c39aed71bcc"
       },
       "readme": {
         "path": "packages/harness-cli/README.md",
-        "sha256": "94eb694d96b611182b7b11ba6557300d1b54daa37fc2c707c039d7e42d7fbcf7"
+        "sha256": "354f741206de97b90c617726fbbc209cf3e12801424428a3ffcd29d676e6cef8"
       },
       "skills": []
     },
     {
       "name": "@dzhechkov/harness-core",
-      "version": "0.8.68",
+      "version": "0.8.70",
       "directory": "packages/harness-core",
       "private": false,
       "publication": {
-        "version": "0.8.68",
-        "integrity": "sha512-hMf0241cpNDkmAUw3HVZmTEey8O3vibOUEsFF0MsAJtZ9nz9Q4t+/NDuEC63qtQTt5631s3negleBXRb8OogIw=="
+        "version": "0.8.70",
+        "integrity": "sha512-6yPz323cpV0fyADupmMPXl+qs0wnzGugNzPYniIK5Gvnti+JsElA4eFWkDb7119rziySKTwQ9qwqJHPO5ime0g=="
       },
       "type": "library",
       "manifest": {
         "path": "packages/harness-core/package.json",
-        "sha256": "ec72f9dbe5193c1d3dd5b358c39addf0e16ce3e88389bc468c4c83b4de219e55"
+        "sha256": "937ab25fc273f1aa93974dbb43ebe35471a01b859b8330a6ddf6149106c42269"
       },
       "readme": {
         "path": "packages/harness-core/README.md",
-        "sha256": "9c618c50f75430a719abcab1fd4c6fb551f4b76395c970cfcedbd24ff6099f51"
+        "sha256": "781325cc09caebec2744a0ff0537c2829e8628e212ac61a8dec60fff0e2fedaa"
       },
       "skills": []
     },
@@ -1387,21 +1387,21 @@
     },
     {
       "name": "@dzhechkov/skills-book-digitizer",
-      "version": "0.2.20",
+      "version": "0.2.22",
       "directory": "packages/skills-book-digitizer",
       "private": false,
       "publication": {
-        "version": "0.2.20",
-        "integrity": "sha512-oirHnlISTgYGcQTbhMpHlofAF7CV4VCgRM5u0nAwzqWmuyig0O6cuLeCyTuKfKIgoiAT2Cg9gKc5IFI27IbEWA=="
+        "version": "0.2.22",
+        "integrity": "sha512-rFlh6SjaECSwGC8awlx5I3NpoVKzwFzrpNjJnkU9qs73jMz9ULrYxp/51IcZ6sdaoQVa1dJI3GmAmCY/WJKVmw=="
       },
       "type": "skill-pack",
       "manifest": {
         "path": "packages/skills-book-digitizer/package.json",
-        "sha256": "71743313ce830c32f171037a0eb27ec21724eeafc20e47cbd0fd357c44a1caba"
+        "sha256": "ff91a8786153d1177f4e9affb0882e77e29371613a388afc3401f7a373f74879"
       },
       "readme": {
         "path": "packages/skills-book-digitizer/README.md",
-        "sha256": "0c023a067bb419526a466005479d00ce8845aba415feb542abbe4be9efef02af"
+        "sha256": "57ca26d13ee6314e05c18d8edfc612809e53bc4c7123bf7764a348f0ddd0a008"
       },
       "skills": [
         {
@@ -1413,7 +1413,7 @@
         {
           "id": "book-ingest",
           "path": "packages/skills-book-digitizer/book-ingest/SKILL.md",
-          "sha256": "26c0f692f8226e097b36995848d18a8aacf796cdace16ee141e459b93c23640d",
+          "sha256": "9926b6c4c5d9ffbf1afa385f8c4f8e907357faccd5aef67c71ff5c0e4d495133",
           "shipped": true
         },
         {
@@ -1425,25 +1425,25 @@
         {
           "id": "book-knowledge-extract",
           "path": "packages/skills-book-digitizer/book-knowledge-extract/SKILL.md",
-          "sha256": "92d5fb80d50493147f30f3e819c56e2a12d430673779fa26a8d266159b188d3f",
+          "sha256": "17bc471b739d6e591df5c233bb12697ffd4fb3d919a723100c6e8290d5c1b11f",
           "shipped": true
         },
         {
           "id": "book-pack-assemble",
           "path": "packages/skills-book-digitizer/book-pack-assemble/SKILL.md",
-          "sha256": "28476188f040636f48a8ecb31b2da5b01a44a4cb220e5aa2cb2098767c24faa5",
+          "sha256": "c2d7b98a0d6893a507986c1faa766b98168a5b1df23f7a0ea54317ac5e4f0574",
           "shipped": true
         },
         {
           "id": "book-skill-distill",
           "path": "packages/skills-book-digitizer/book-skill-distill/SKILL.md",
-          "sha256": "36400891f0f2b05fc4fe638ff32bd6e3abc1252b19b1d0314aed80455d95da53",
+          "sha256": "e600ecf3130e7ff1685ceb5935890da0bdeaae933610659a886bf73f23fbb2d3",
           "shipped": true
         },
         {
           "id": "digitize-book",
           "path": "packages/skills-book-digitizer/digitize-book/SKILL.md",
-          "sha256": "cfccc93e6ab3964fa5c9ed8847c853e31192f8a240e72da421be146771277f3b",
+          "sha256": "2b87fbe918bbfe70dae9fb0e20f6a75d4aefff964dfb0a7b2ff5f500bfd3aa48",
           "shipped": true
         },
         {
@@ -2182,21 +2182,21 @@
     },
     {
       "name": "@dzhechkov/skills-meta",
-      "version": "0.9.75",
+      "version": "0.9.77",
       "directory": "packages/skills-meta",
       "private": false,
       "publication": {
-        "version": "0.9.75",
-        "integrity": "sha512-2o4MVIQCQ3cIxvqQKo7bMjGhVooBk69cVdueprj1Hk23ECEQafMDMiEfb/5+qylPEBwE1muo/HUuwEGHUkhyXQ=="
+        "version": "0.9.77",
+        "integrity": "sha512-0X0N+nCfJRg2plZoEr1RZg2eGHBtj3Y0e2w7Pi0oJsOsYAPSPjay7Tvs1NHjqqItj/6flgayWx+9Lh8biwqvKA=="
       },
       "type": "skill-pack",
       "manifest": {
         "path": "packages/skills-meta/package.json",
-        "sha256": "10ce5d37fe29853e34a7db577a8afd7d3b33955d763e17d9288b8d65d95d8229"
+        "sha256": "a529257570beed0ce65b103d13485ef3b284ed5125325c9a5e4f4918055bef77"
       },
       "readme": {
         "path": "packages/skills-meta/README.md",
-        "sha256": "9b7a9d4e14205bcd74815596b89f13a8ab32340b0ed3a0e05cd886d6f8fcdfdc"
+        "sha256": "31936fdbf99005a63505e9aad8d5eeceaa35ac5cd73998128ccb5465099762e5"
       },
       "skills": [
         {
@@ -2296,6 +2296,18 @@
           "shipped": true
         },
         {
+          "id": "repo-assessment",
+          "path": "packages/skills-meta/repo-assessment/SKILL.md",
+          "sha256": "87a7204bb91651b71c3bce806258adc878da4269f1a6e278dfbcb2c357bb4f84",
+          "shipped": true
+        },
+        {
+          "id": "repo-freshness",
+          "path": "packages/skills-meta/repo-freshness/SKILL.md",
+          "sha256": "fc6a515da2ad64d9e824c762c871aaaa0313d5c3da6fb8b27f8bbf941b4e2758",
+          "shipped": true
+        },
+        {
           "id": "session-recap",
           "path": "packages/skills-meta/session-recap/SKILL.md",
           "sha256": "034ea8329399faec054bb17457314e2f442abbe5c873b4967fa882c4a7deb504",
@@ -2304,7 +2316,7 @@
         {
           "id": "skill-advisor",
           "path": "packages/skills-meta/skill-advisor/SKILL.md",
-          "sha256": "80969baa92dbe3019aed833ad1cfa8cc67e5f660be1fd24d77904497d56527b4",
+          "sha256": "7f2f2192beab7b3b489c4d1c1a8529e56bb24907110eb19bea67fdbdb8afd37f",
           "shipped": true
         },
         {
@@ -3053,8 +3065,8 @@
   ],
   "canonical": {
     "packages": 57,
-    "uniqueSkills": 260,
-    "occurrences": 306
+    "uniqueSkills": 262,
+    "occurrences": 308
   },
-  "digest": "8cd511be6b79a3fdbc7b667e357b73530069bd97e2d2298f6dd69f016c899218"
+  "digest": "e5055d19189c4c2ed53ce9df60f0c1cd7cf2a46b5c04425ed6ccdff881718bac"
 }
