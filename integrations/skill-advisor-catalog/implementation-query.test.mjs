@@ -66,6 +66,7 @@ test('backend requests retrieve a development workflow, not only a visual skill'
   const input=compactDialogueContract(new Map(),context).input(result);
   const card=input.cards.find(c=>c.package===pipeline.record.package.name && c.title===pipeline.record.title);
   assert.ok(card.passages.some(p=>/implementation|реализац|development pipeline/iu.test(p.text)),query);
+  assert.ok(card.passages.some(p=>/Code generation|CODE_CHANGES/iu.test(p.text)),query);
  }
 });
 
