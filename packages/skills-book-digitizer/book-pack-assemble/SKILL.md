@@ -80,10 +80,25 @@ Distilled skills + their KUs + routing evals from `book-skill-distill`. `dz benc
    byte count.
 8. **Gate + smoke**: first the **shingling gate** —
    `node <book-pack-assemble-skill-dir>/scripts/shingling-check.mjs --source <corpus> --output <pack>` (`--shingle 8`).
-   ANY uncited verbatim run ≥8 words FAILS the pack (IP violation) — fix the offending KU
+   The gate recursively scans Markdown and closed standalone `.sqlite`/`.sqlite3`/`.db` slices;
+   direct SQLite output also works: `--output brain/<slug>.sqlite`. SQLite needs Python 3 with
+   stdlib `sqlite3` and FTS5. It reads only the canonical FTS5 `book_knowledge` columns
+   `book, ku_id, corpus_version, type, name, problem, content, chapter, pages, metadata`, including
+   nested metadata text. Finish export/checkpoint and close the writer before checking: any
+   `-wal`, `-shm`, or `-journal` sidecar causes exit 2. Symlink inputs, including linked
+   subdirectories, also cause exit 2; they are never followed. If directory collection fails,
+   the requested JSON report is printed to stdout instead of written to an unverified path.
+   The gate opens the slice with
+   `mode=ro&immutable=1` and never repairs or migrates it. Each SQL cell is limited to 1 MiB;
+   the serialized segment result is limited to 16 MiB. Check only a closed export, with no
+   concurrent writer. Exit 0 means no detected copy, 1 means an uncited overlap, and 2 means
+   incomplete coverage or an input/reader error; exit 2 never authorizes shipping.
+   ANY uncited verbatim run ≥8 words FAILS the pack — fix the offending KU
    (re-paraphrase) and re-run. Cited ≤25-word quotes with a page anchor are exempt. Only once it
    passes: `dz benchmark <pack> --all` (honest L0 grade per skill — never fabricate schemas/evals to
    game it) → `dz init --target claude-code --select <skills>` install smoke → **CP4** report.
+   This word overlap check is a bounded mechanical signal, not a legal conclusion or a full
+   copyright review.
 9. **Ship the per-book KB slice inside the pack (ADR §8.1)** — once skills + `references/` are
    assembled, export the book's KUs as a standalone slice:
    `dz brain export --source <slug> --out brain/<slug>.sqlite` (this book's rows only —

@@ -112,6 +112,80 @@ export function findCanonicalDefects(canonicalDir, skill) {
         .sort()
         .map((path) => ({ skill, kind: 'misplaced-enrichment-asset', path, canonical }));
 }
+/** Read every source byte before any destination comparison or mutation. */
+function captureCanonicalSource(canonical, skill) {
+    const files = new Map();
+    const defect = (kind, path) => ({
+        skill, kind, path: path.split(sep).join('/'), canonical,
+    });
+    let sourceStat;
+    try {
+        sourceStat = statSync(canonical);
+    }
+    catch (error) {
+        return { files, defect: defect(error.code === 'ENOENT'
+                ? 'missing-canonical-source' : 'unreadable-canonical-source', '') };
+    }
+    if (!sourceStat.isDirectory())
+        return { files, defect: defect('canonical-source-not-directory', '') };
+    const manifest = join(canonical, SKILL_MANIFEST);
+    let manifestStat;
+    try {
+        manifestStat = statSync(manifest);
+    }
+    catch (error) {
+        return { files, defect: defect(error.code === 'ENOENT'
+                ? 'missing-skill-manifest' : 'unreadable-canonical-source', SKILL_MANIFEST) };
+    }
+    if (!manifestStat.isFile())
+        return { files, defect: defect('skill-manifest-not-file', SKILL_MANIFEST) };
+    let failedPath;
+    const visit = (dir) => {
+        let entries;
+        try {
+            entries = readdirSync(dir);
+        }
+        catch {
+            failedPath = relative(canonical, dir);
+            return;
+        }
+        for (const entry of entries) {
+            if (IGNORED_ENTRIES.has(entry))
+                continue;
+            const path = join(dir, entry);
+            const rel = relative(canonical, path);
+            let st;
+            try {
+                st = statSync(path);
+            }
+            catch {
+                failedPath = rel;
+                return;
+            }
+            if (st.isDirectory())
+                visit(path);
+            else if (st.isFile()) {
+                try {
+                    files.set(rel, readFileSync(path));
+                }
+                catch {
+                    failedPath = rel;
+                    return;
+                }
+            }
+            else {
+                failedPath = rel;
+                return;
+            }
+            if (failedPath !== undefined)
+                return;
+        }
+    };
+    visit(canonical);
+    if (failedPath !== undefined)
+        return { files, defect: defect('unreadable-canonical-source', failedPath) };
+    return { files };
+}
 function comparePeers(copies, exclusions = new Map()) {
     const excluded = (copy, rel) => exclusions.get(copy)?.has(rel.split(sep).join('/')) === true;
     const relFiles = new Set();
@@ -311,10 +385,20 @@ export function syncCanonicalSkill(root, skill, opts = {}) {
         // Bare WRITE with no resolvable canonical → REFUSE. Mutates nothing (`wrote:[]` proves it).
         return { canonical: '', canonicalExists: false, resolvedFrom, copies: allCopies.length, synced: 0, drifted: 0, canonicalDefects: [], wrote: [] };
     }
-    const canonicalDefects = findCanonicalDefects(canonical, skill);
-    const canonFiles = withoutEnrichmentNames(walk(canonical).map((p) => relative(canonical, p))).sort();
     // Every <skill>/ dir except the canonical itself.
     const copies = allCopies.filter((d) => relative(canonical, d) !== '');
+    const captured = captureCanonicalSource(canonical, skill);
+    if (captured.defect) {
+        return { canonical, canonicalExists: false, resolvedFrom, copies: copies.length,
+            synced: 0, drifted: 0, canonicalDefects: [captured.defect], wrote: [] };
+    }
+    const canonFiles = withoutEnrichmentNames([...captured.files.keys()]).sort();
+    const canonicalDefects = [...captured.files.keys()]
+        .map((path) => path.split(sep).join('/'))
+        .filter((path) => TARGET_ENRICHMENT_ASSETS[path] !== undefined && !isEnrichmentAsset(path, canonical))
+        .sort()
+        .map((path) => ({ skill, kind: 'misplaced-enrichment-asset', path, canonical }));
+    const canonicalHashes = new Map(canonFiles.map((f) => [f, createHash('md5').update(captured.files.get(f)).digest('hex')]));
     let drifted = 0;
     let synced = 0;
     const wrote = [];
@@ -329,9 +413,8 @@ export function syncCanonicalSkill(root, skill, opts = {}) {
             if (!canonFiles.includes(f))
                 differs = true;
         for (const f of canonFiles) {
-            const src = join(canonical, f);
             const dst = join(copy, f);
-            if (!existsSync(dst) || md5(src) !== md5(dst))
+            if (!existsSync(dst) || canonicalHashes.get(f) !== md5(dst))
                 differs = true;
         }
         if (!differs)
@@ -344,10 +427,9 @@ export function syncCanonicalSkill(root, skill, opts = {}) {
             if (!canonFiles.includes(f))
                 rmSync(join(copy, f));
         for (const f of canonFiles) {
-            const src = join(canonical, f);
             const dst = join(copy, f);
             mkdirSync(dirname(dst), { recursive: true });
-            writeFileSync(dst, readFileSync(src));
+            writeFileSync(dst, captured.files.get(f));
         }
         synced++;
         wrote.push(copy);

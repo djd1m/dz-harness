@@ -17,8 +17,10 @@
 // AND immediately followed by a page citation, so a borderline copy is flagged rather than silently
 // passed. Exit 0 iff zero violations remain after exemptions, else 1.
 
-import { readFileSync, writeFileSync, statSync, readdirSync } from 'node:fs';
-import { join, relative, extname } from 'node:path';
+import { readFileSync, writeFileSync, statSync, lstatSync, readdirSync, openSync, readSync, closeSync, realpathSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { dirname, join, relative, extname, resolve } from 'node:path';
 
 // ---- args -------------------------------------------------------------------
 const argv = process.argv.slice(2);
@@ -37,21 +39,59 @@ if (!sourceArg || !outputArg || has('help') || has('h')) {
 
 // ---- file collection --------------------------------------------------------
 // A dir is recursed for *.md (SKILL.md + references/*.md + corpus chunks); a file is taken as-is.
-function collect(path) {
-  let st;
-  try { st = statSync(path); }
-  catch { console.error(`shingling-check: path not found: ${path}`); process.exit(2); }
+const sqliteExt = (p) => ['.sqlite', '.sqlite3', '.db'].includes(extname(p).toLowerCase());
+const sqliteHeader = (p) => {
+  const fd = openSync(p, 'r');
+  try { const head = Buffer.alloc(16); return readSync(fd, head, 0, 16, 0) === 16 && head.equals(Buffer.from('SQLite format 3\0')); }
+  finally { closeSync(fd); }
+};
+function collect(path, output = false) {
+  if (lstatSync(path).isSymbolicLink()) throw Error(`symbolic link input unsupported: ${path}`);
+  const st = statSync(path);
   if (st.isFile()) return [path];
+  if (!st.isDirectory()) throw Error(`unsupported input: ${path}`);
   const out = [];
   const walk = (dir) => {
     for (const name of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name < b.name ? -1 : 1)) {
       const p = join(dir, name.name);
       if (name.isDirectory()) walk(p);
-      else if (name.isFile() && extname(name.name).toLowerCase() === '.md') out.push(p);
+      else if (name.isSymbolicLink()) {
+        throw Error(`symbolic link input unsupported: ${p}`);
+      }
+      else if (name.isFile() && (extname(name.name).toLowerCase() === '.md' || (output && sqliteExt(p)))) out.push(p);
     }
   };
   walk(path);
   return out.sort();
+}
+
+function readSqlite(file) {
+  const helper = join(dirname(fileURLToPath(import.meta.url)), 'shingling-sqlite.py');
+  const child = spawnSync('python3', [helper, file], { encoding: 'utf8', timeout: 5000, maxBuffer: 16 * 1024 * 1024 });
+  if (child.error || child.status !== 0) throw Error(`SQLite reader ${file}: ${child.error?.message || child.stderr?.trim() || `exit ${child.status}`}`);
+  let data;
+  try { data = JSON.parse(child.stdout); } catch { throw Error(`SQLite reader ${file}: malformed JSON response`); }
+  if (!data || data.schema !== 'book-sqlite-segments-1' || !Number.isSafeInteger(data.kus) || data.kus < 1 ||
+      !Array.isArray(data.segments) || data.segments.length < 7 * data.kus ||
+      data.segments.some((s) => !s || !Number.isSafeInteger(s.rowid) || s.rowid < 1 || typeof s.ku_id !== 'string' || !s.ku_id ||
+        typeof s.field !== 'string' || !s.field || typeof s.text !== 'string')) {
+    throw Error(`SQLite reader ${file}: incomplete segment protocol`);
+  }
+  const required = ['book', 'ku_id', 'corpus_version', 'type', 'name', 'problem', 'content'];
+  const fields = new Map();
+  for (const segment of data.segments) {
+    if (!(required.includes(segment.field) || segment.field === 'chapter' || segment.field === 'pages' ||
+      segment.field.startsWith('pages[') || segment.field === 'metadata' || segment.field.startsWith('metadata.'))) {
+      throw Error(`SQLite reader ${file}: unknown segment field`);
+    }
+    const row = fields.get(segment.rowid) || { ku_id: segment.ku_id, names: new Set() };
+    if (row.ku_id !== segment.ku_id) throw Error(`SQLite reader ${file}: inconsistent ku_id`);
+    row.names.add(segment.field); fields.set(segment.rowid, row);
+  }
+  if (fields.size !== data.kus || [...fields.values()].some((row) => required.some((name) => !row.names.has(name)))) {
+    throw Error(`SQLite reader ${file}: incomplete KU coverage`);
+  }
+  return data;
 }
 
 // ---- normalization → tokens with original-offset mapping --------------------
@@ -164,93 +204,130 @@ function tableHeaderSets(raw) {
 }
 const setEq = (a, b) => a.size === b.size && [...a].every((x) => b.has(x));
 
-// ---- build SOURCE ----------------------------------------------------------
-const sourceFiles = collect(sourceArg);
-const sourceSet = new Set();
-const sourceTableSets = [];
-for (const f of sourceFiles) {
-  const raw = readFileSync(f, 'utf-8');
-  const stripped = blankAnchors(stripMarkdown(raw));
-  const { tokens } = tokenize(stripped);
-  for (const sh of shinglesOf(tokens)) sourceSet.add(sh);
-  for (const t of tableHeaderSets(raw)) sourceTableSets.push(t);
-}
-
-// ---- scan OUTPUT -----------------------------------------------------------
-const outputFiles = collect(outputArg);
-const violations = [];     // { file, words, text, startTok, endTok }
-const tableWarnings = [];  // { file, header:[...] }
-let outputShingleCount = 0;
-
-for (const f of outputFiles) {
-  const raw = readFileSync(f, 'utf-8');
-  let stripped = stripMarkdown(raw);       // anchors kept — needed as the citation signal
-  stripped = blankCitedQuotes(stripped);   // exemption uses the still-present [с.N] anchors
-  stripped = blankAnchors(stripped);       // now remove any remaining anchors before shingling
-  const tk = tokenize(stripped);
-  const shingles = shinglesOf(tk.tokens);
-  outputShingleCount += shingles.length;
-
-  // mark which output shingles overlap the source, then coalesce consecutive hits into runs.
-  const hit = shingles.map((sh) => sourceSet.has(sh));
-  let i = 0;
-  while (i < hit.length) {
-    if (!hit[i]) { i++; continue; }
-    let j = i;
-    while (j + 1 < hit.length && hit[j + 1]) j++;
-    // shingles [i..j] overlap → token span [i .. j + W - 1] is one contiguous verbatim run
-    const startTok = i, endTok = j + W - 1;
-    violations.push({
-      file: f,
-      words: endTok - startTok + 1,
-      text: reconstruct(tk, startTok, endTok),
-      startTok, endTok,
-    });
-    i = j + 1;
+// ---- build SOURCE and scan OUTPUT -------------------------------------------
+const report = {
+  tool: 'shingling-check', config: { shingle: W, maxQuote: MAX_QUOTE, source: sourceArg, output: outputArg },
+  status: 'error', errors: [], sourceFiles: 0, outputFiles: 0, sourceShingles: 0,
+  outputShingles: 0, outputSqliteFiles: 0, outputKnowledgeUnits: 0, outputSegments: 0,
+  totalViolations: 0, perFile: {}, samples: [], tableWarnings: [], pass: false,
+};
+const rel = (p) => { try { return relative(process.cwd(), p) || p; } catch { return p; } };
+const violations = [];
+const tableWarnings = [];
+let inputs = [];
+let inventoryComplete = false;
+const aliases = (target, path) => {
+  if (resolve(target) === resolve(path)) return true;
+  try {
+    const a = statSync(target), b = statSync(path);
+    return a.isFile() && b.isFile() && a.dev === b.dev && a.ino === b.ino;
+  } catch { return false; }
+};
+const sqliteInputs = (p) => {
+  let isSqlite = sqliteExt(p);
+  if (!isSqlite) { try { isSqlite = sqliteHeader(p); } catch { /* Missing input is checked separately. */ } }
+  if (!isSqlite) return [p];
+  let actual = p;
+  try { actual = realpathSync(p); } catch { /* Missing path remains lexical for alias refusal. */ }
+  return [p, actual, ...[p, actual].flatMap((base) => ['-wal', '-shm', '-journal'].map((suffix) => base + suffix))];
+};
+let alias = Boolean(jsonOut && [sourceArg, outputArg,
+  ...[sourceArg, outputArg].flatMap(sqliteInputs)]
+  .some((p) => aliases(jsonOut, p)));
+try {
+  if (alias) throw Error('--json aliases a source or output input; report refused');
+  const sourceFiles = collect(sourceArg);
+  const outputFiles = collect(outputArg, true);
+  inputs = [...sourceFiles, ...outputFiles];
+  inventoryComplete = true;
+  report.sourceFiles = sourceFiles.length;
+  report.outputFiles = outputFiles.length;
+  if (jsonOut) {
+    const target = resolve(jsonOut);
+    // stat follows symlinks and compares hardlinks by inode. A not-yet-created
+    // report may also be inside an input directory, but cannot alias an input file.
+    alias = inputs.flatMap(sqliteInputs)
+      .some((f) => aliases(target, f));
+    if (alias) throw Error('--json aliases a source or output input; report refused');
   }
+  if (sourceFiles.length === 0 || outputFiles.length === 0) throw Error('empty source or output file set');
+  const sourceSet = new Set();
+  const sourceTableSets = [];
+  for (const f of sourceFiles) {
+    if (sqliteExt(f) || sqliteHeader(f)) throw Error(`SQLite source unsupported: ${f}`);
+    const raw = readFileSync(f, 'utf8');
+    const { tokens } = tokenize(blankAnchors(stripMarkdown(raw)));
+    for (const sh of shinglesOf(tokens)) sourceSet.add(sh);
+    for (const t of tableHeaderSets(raw)) sourceTableSets.push(t);
+  }
+  report.sourceShingles = sourceSet.size;
+  if (sourceSet.size === 0) throw Error('insufficient source: zero shingles');
 
-  // table-copy heuristic
-  for (const oh of tableHeaderSets(raw)) {
-    if (oh.size >= 2 && sourceTableSets.some((sh) => setEq(oh, sh))) {
-      tableWarnings.push({ file: f, header: [...oh] });
+  const scan = (f, raw, identity = {}) => {
+    let stripped = stripMarkdown(raw);
+    stripped = blankCitedQuotes(stripped);
+    stripped = blankAnchors(stripped);
+    const tk = tokenize(stripped);
+    const shingles = shinglesOf(tk.tokens);
+    report.outputShingles += shingles.length;
+    report.outputSegments++;
+    const hit = shingles.map((sh) => sourceSet.has(sh));
+    let i = 0;
+    while (i < hit.length) {
+      if (!hit[i]) { i++; continue; }
+      let j = i;
+      while (j + 1 < hit.length && hit[j + 1]) j++;
+      const startTok = i, endTok = j + W - 1;
+      violations.push({ file: f, words: endTok - startTok + 1,
+        text: reconstruct(tk, startTok, endTok), startTok, endTok, ...identity });
+      i = j + 1;
+    }
+  };
+  for (const f of outputFiles) {
+    if (sqliteExt(f) || sqliteHeader(f)) {
+      const data = readSqlite(f);
+      report.outputSqliteFiles++;
+      report.outputKnowledgeUnits += data.kus;
+      for (const segment of data.segments) scan(f, segment.text,
+        { rowid: segment.rowid, ku_id: segment.ku_id, field: segment.field });
+    } else {
+      const raw = readFileSync(f, 'utf8');
+      scan(f, raw);
+      for (const oh of tableHeaderSets(raw)) {
+        if (oh.size >= 2 && sourceTableSets.some((sh) => setEq(oh, sh))) {
+          tableWarnings.push({ file: f, header: [...oh] });
+        }
+      }
     }
   }
+  if (report.outputSegments === 0) throw Error('empty output segments');
+  report.status = violations.length ? 'violation' : 'clean';
+} catch (error) {
+  report.errors.push(String(error?.message || error));
 }
 
-// ---- report ----------------------------------------------------------------
-const rel = (p) => { try { return relative(process.cwd(), p) || p; } catch { return p; } };
-const perFile = {};
-for (const v of violations) perFile[v.file] = (perFile[v.file] || 0) + 1;
+for (const v of violations) report.perFile[rel(v.file)] = (report.perFile[rel(v.file)] || 0) + 1;
+report.totalViolations = violations.length;
+report.samples = violations.slice(0, 15).map((v) => ({ file: rel(v.file), words: v.words, text: v.text,
+  ...(v.rowid !== undefined ? { rowid: v.rowid, ku_id: v.ku_id, field: v.field } : {}) }));
+report.tableWarnings = tableWarnings.map((t) => ({ file: rel(t.file), header: t.header }));
+report.pass = report.status === 'clean';
 
-const report = {
-  tool: 'shingling-check',
-  config: { shingle: W, maxQuote: MAX_QUOTE, source: sourceArg, output: outputArg },
-  sourceFiles: sourceFiles.length,
-  outputFiles: outputFiles.length,
-  sourceShingles: sourceSet.size,
-  outputShingles: outputShingleCount,
-  totalViolations: violations.length,
-  perFile: Object.fromEntries(Object.entries(perFile).map(([k, v]) => [rel(k), v])),
-  samples: violations.slice(0, 15).map((v) => ({ file: rel(v.file), words: v.words, text: v.text })),
-  tableWarnings: tableWarnings.map((t) => ({ file: rel(t.file), header: t.header })),
-  pass: violations.length === 0,
-};
-
-// human summary
 const line = '─'.repeat(60);
 console.log(line);
 console.log(`shingling-check — verbatim-overlap IP gate (w=${W}, max-quote=${MAX_QUOTE})`);
 console.log(line);
-console.log(`source: ${sourceFiles.length} file(s), ${sourceSet.size} unique ${W}-word shingles`);
-console.log(`output: ${outputFiles.length} file(s), ${outputShingleCount} shingles scanned`);
+console.log(`source: ${report.sourceFiles} file(s), ${report.sourceShingles} unique ${W}-word shingles`);
+console.log(`output: ${report.outputFiles} file(s), ${report.outputShingles} shingles scanned; ${report.outputSqliteFiles} SQLite, ${report.outputKnowledgeUnits} KUs, ${report.outputSegments} segments`);
 console.log(`verbatim runs (violations): ${violations.length}`);
+for (const error of report.errors) console.error(`ERROR — ${error}`);
 if (violations.length) {
   console.log('\nper-file:');
   for (const [f, n] of Object.entries(report.perFile)) console.log(`  ${n}  ${f}`);
-  console.log(`\nsample runs (up to 15):`);
+  console.log('\nsample runs (up to 15):');
   for (const s of report.samples) {
     const snip = s.text.length > 120 ? s.text.slice(0, 117) + '…' : s.text;
-    console.log(`  [${s.words}w] ${rel(s.file)}\n        "${snip}"`);
+    console.log(`  [${s.words}w] ${s.file}${s.rowid !== undefined ? ` rowid=${s.rowid} ku_id=${s.ku_id} field=${s.field}` : ''}\n        "${snip}"`);
   }
 }
 if (tableWarnings.length) {
@@ -258,14 +335,17 @@ if (tableWarnings.length) {
   for (const t of report.tableWarnings.slice(0, 10)) console.log(`  ${t.file}: [${t.header.join(' | ')}]`);
 }
 console.log(line);
-console.log(violations.length === 0
-  ? 'PASS — no uncited verbatim run >= ' + W + ' words.'
-  : `FAIL — ${violations.length} uncited verbatim run(s) >= ${W} words. Paraphrase or cite as a short quote.`);
+if (report.status === 'error') console.log('ERROR — check incomplete; no clean result.');
+else if (report.pass) console.log('PASS — no uncited verbatim run >= ' + W + ' words.');
+else console.log(`FAIL — ${violations.length} uncited verbatim run(s) >= ${W} words. Paraphrase or cite as a short quote.`);
 console.log(line);
-
-if (jsonOut) {
-  writeFileSync(jsonOut, JSON.stringify(report, null, 2));
-  console.log(`report → ${rel(jsonOut)}`);
+// A traversal error leaves unknown members, including aliases outside the requested
+// paths. No report target can be proven safe until both inventories complete.
+if (jsonOut && !alias && inventoryComplete) {
+  try { writeFileSync(jsonOut, JSON.stringify(report, null, 2)); console.log(`report → ${rel(jsonOut)}`); }
+  catch (error) { console.error(`ERROR — cannot write report: ${error.message}`); process.exit(2); }
+} else if (jsonOut) {
+  console.error('ERROR — report file withheld: input inventory incomplete or path aliases input');
+  console.log(JSON.stringify(report));
 }
-
-process.exit(violations.length === 0 ? 0 : 1);
+process.exit(report.status === 'error' ? 2 : report.pass ? 0 : 1);

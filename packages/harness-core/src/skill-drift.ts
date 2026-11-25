@@ -42,7 +42,13 @@ export interface DriftedSkill {
   readonly locations: readonly string[];
 }
 
-export type CanonicalDefectKind = 'misplaced-enrichment-asset';
+export type CanonicalDefectKind =
+  | 'misplaced-enrichment-asset'
+  | 'missing-canonical-source'
+  | 'canonical-source-not-directory'
+  | 'missing-skill-manifest'
+  | 'skill-manifest-not-file'
+  | 'unreadable-canonical-source';
 
 /** A finding in the canonical source, reported without propagating or removing it. */
 export interface CanonicalDefect {
@@ -116,7 +122,7 @@ export interface SyncCanonicalOptions {
 export interface SyncResult {
   /** Resolved canonical dir (abs). Empty `''` in canonical-free peer / refuse modes. */
   readonly canonical: string;
-  /** Whether a canonical source dir was resolved. `false` ⇒ `resolvedFrom === 'none'`. */
+  /** Whether the resolved canonical is a readable skill source. False also covers source refusal. */
   readonly canonicalExists: boolean;
   /** How the canonical resolved: `from` | `skills-meta` | `auto` | `none`. */
   readonly resolvedFrom: CanonicalSource;
@@ -124,7 +130,7 @@ export interface SyncResult {
   readonly copies: number;
   /** # copies overwritten (0 when `check:true`, in peer mode, or when a bare write refuses). */
   readonly synced: number;
-  /** # copies/files that differ (from canonical in resolved modes; between peers in canonical-free mode). */
+  /** # copies/files that differ; zero is unmeasured when source validation refused. */
   readonly drifted: number;
   /** Nonempty in write mode means refusal: `synced: 0`, `wrote: []`. */
   readonly canonicalDefects: readonly CanonicalDefect[];
@@ -219,6 +225,58 @@ export function findCanonicalDefects(canonicalDir: string, skill: string): Canon
     .filter((rel) => TARGET_ENRICHMENT_ASSETS[rel] !== undefined && !isEnrichmentAsset(rel, canonical))
     .sort()
     .map((path) => ({ skill, kind: 'misplaced-enrichment-asset', path, canonical }));
+}
+
+/** Read every source byte before any destination comparison or mutation. */
+function captureCanonicalSource(
+  canonical: string,
+  skill: string,
+): { files: Map<string, Buffer>; defect?: CanonicalDefect } {
+  const files = new Map<string, Buffer>();
+  const defect = (kind: CanonicalDefectKind, path: string): CanonicalDefect => ({
+    skill, kind, path: path.split(sep).join('/'), canonical,
+  });
+
+  let sourceStat;
+  try { sourceStat = statSync(canonical); }
+  catch (error) {
+    return { files, defect: defect((error as NodeJS.ErrnoException).code === 'ENOENT'
+      ? 'missing-canonical-source' : 'unreadable-canonical-source', '') };
+  }
+  if (!sourceStat.isDirectory()) return { files, defect: defect('canonical-source-not-directory', '') };
+
+  const manifest = join(canonical, SKILL_MANIFEST);
+  let manifestStat;
+  try { manifestStat = statSync(manifest); }
+  catch (error) {
+    return { files, defect: defect((error as NodeJS.ErrnoException).code === 'ENOENT'
+      ? 'missing-skill-manifest' : 'unreadable-canonical-source', SKILL_MANIFEST) };
+  }
+  if (!manifestStat.isFile()) return { files, defect: defect('skill-manifest-not-file', SKILL_MANIFEST) };
+
+  let failedPath: string | undefined;
+  const visit = (dir: string): void => {
+    let entries: string[];
+    try { entries = readdirSync(dir); }
+    catch { failedPath = relative(canonical, dir); return; }
+    for (const entry of entries) {
+      if (IGNORED_ENTRIES.has(entry)) continue;
+      const path = join(dir, entry);
+      const rel = relative(canonical, path);
+      let st;
+      try { st = statSync(path); }
+      catch { failedPath = rel; return; }
+      if (st.isDirectory()) visit(path);
+      else if (st.isFile()) {
+        try { files.set(rel, readFileSync(path)); }
+        catch { failedPath = rel; return; }
+      } else { failedPath = rel; return; }
+      if (failedPath !== undefined) return;
+    }
+  };
+  visit(canonical);
+  if (failedPath !== undefined) return { files, defect: defect('unreadable-canonical-source', failedPath) };
+  return { files };
 }
 
 function comparePeers(
@@ -431,11 +489,20 @@ export function syncCanonicalSkill(root: string, skill: string, opts: SyncCanoni
     return { canonical: '', canonicalExists: false, resolvedFrom, copies: allCopies.length, synced: 0, drifted: 0, canonicalDefects: [], wrote: [] };
   }
 
-  const canonicalDefects = findCanonicalDefects(canonical, skill);
-  const canonFiles = withoutEnrichmentNames(walk(canonical).map((p) => relative(canonical, p))).sort();
-
   // Every <skill>/ dir except the canonical itself.
   const copies = allCopies.filter((d) => relative(canonical, d) !== '');
+  const captured = captureCanonicalSource(canonical, skill);
+  if (captured.defect) {
+    return { canonical, canonicalExists: false, resolvedFrom, copies: copies.length,
+      synced: 0, drifted: 0, canonicalDefects: [captured.defect], wrote: [] };
+  }
+  const canonFiles = withoutEnrichmentNames([...captured.files.keys()]).sort();
+  const canonicalDefects: CanonicalDefect[] = [...captured.files.keys()]
+    .map((path) => path.split(sep).join('/'))
+    .filter((path) => TARGET_ENRICHMENT_ASSETS[path] !== undefined && !isEnrichmentAsset(path, canonical))
+    .sort()
+    .map((path) => ({ skill, kind: 'misplaced-enrichment-asset', path, canonical }));
+  const canonicalHashes = new Map(canonFiles.map((f) => [f, createHash('md5').update(captured.files.get(f)!).digest('hex')]));
 
   let drifted = 0;
   let synced = 0;
@@ -450,9 +517,8 @@ export function syncCanonicalSkill(root: string, skill: string, opts: SyncCanoni
     // Extra files in the copy not present in canonical ⇒ drift.
     for (const f of copyFiles) if (!canonFiles.includes(f)) differs = true;
     for (const f of canonFiles) {
-      const src = join(canonical, f);
       const dst = join(copy, f);
-      if (!existsSync(dst) || md5(src) !== md5(dst)) differs = true;
+      if (!existsSync(dst) || canonicalHashes.get(f) !== md5(dst)) differs = true;
     }
     if (!differs) continue;
     drifted++;
@@ -462,10 +528,9 @@ export function syncCanonicalSkill(root: string, skill: string, opts: SyncCanoni
     // Overwrite: remove extra files, then copy every canonical file byte-for-byte.
     for (const f of copyFiles) if (!canonFiles.includes(f)) rmSync(join(copy, f));
     for (const f of canonFiles) {
-      const src = join(canonical, f);
       const dst = join(copy, f);
       mkdirSync(dirname(dst), { recursive: true });
-      writeFileSync(dst, readFileSync(src));
+      writeFileSync(dst, captured.files.get(f)!);
     }
     synced++;
     wrote.push(copy);

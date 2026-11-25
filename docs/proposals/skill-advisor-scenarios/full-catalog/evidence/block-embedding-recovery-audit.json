@@ -1,7 +1,0 @@
-{
-  "attempt": "source-06caa2010fd00206bad1bd9cc406bf8846a2076542930b8d0c46fefe6e1ff892.attempt.json",
-  "revision": "5f3f0f2c160fd00df167539c8a465d6dd42f8ca79a8523917af2e7154a24fcd9",
-  "retainedUnknownReserve": 0.000422068,
-  "reason": "Embedding availability failure; no usable vector result. Keep original fee reservation and authorize exactly one bounded recovery attempt after inspection.",
-  "maxAdditionalAttempts": 1
-}

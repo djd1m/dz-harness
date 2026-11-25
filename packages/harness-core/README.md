@@ -24,7 +24,7 @@ commands. Use `node --test <file>` through the same wrapper for Node tests. Focu
 is supported; it does not prove a complete suite, meaningful tests or authenticated evidence.
 See the repository `.githooks/README.md` for bounds, supported commands and reasoned overrides.
 
-Current package version: `0.8.70`. <!-- dz:version -->
+Current package version: `0.8.71`. <!-- dz:version -->
 
 Joint current metadata requires `<!-- dz:version -->` on a dedicated undated core/CLI line. Both README writers preserve unmarked historical joint pairs; the guard and release-line report skip them. Fenced examples cannot become current joint metadata. `parseReleaseLine` remains structural, while selection requires this explicit opt-in. On a visible line, the marker still forces per-package rewriting of every matching version, including an explicit changelog override; keep it off historical records. Fenced examples and supported HTML comment blocks remain literal even when they contain the marker, a footer, an install/JSON pin, a tarball line or a badge. Put current stamps outside these examples.
 
@@ -2664,6 +2664,15 @@ and `wrote: []` with all copies unchanged; it still reports drift as check mode 
 defects are never healed, propagated, or removed by these commands. A repo with an existing
 misplaced asset can therefore fail the gate immediately; inspect `dz drift-check --json`.
 
+`syncCanonicalSkill` validates a selected `--from`, `skills-meta`, or `--auto` source before
+comparing or changing copies. The source must be a readable directory with a regular `SKILL.md`;
+all source content used for synchronization is read before any copy is changed. If the source is
+missing, is the wrong type, or cannot be read, sync returns a named `canonicalDefects` finding,
+`canonicalExists: false`, `synced: 0`, `wrote: []`, and leaves every copy unchanged. In that
+refusal, `drifted: 0` means comparison was not performed. A check without a selected canonical
+still uses the existing peer comparison. Standalone `findCanonicalDefects` and drift sweep keep
+their misplaced-enrichment detection behavior.
+
 `0.7.6` — **skill-drift discovery stops being a `.claude/skills` gate.** `findSkillDirs` is the one
 seam behind both the `no-skill-drift` HARD rule and `dz sync-canonical`, and it searched `packages/`
 plus a single hardcoded install root. The repo installs into ten targets, five of which emit
@@ -2955,8 +2964,20 @@ dz runs-clean --project /path/to/repo --retention-days 7 --apply
 Only non-main worktrees merged into `main`, clean, and strictly older than the retention
 (default 2 days, measured from their latest commit) qualify. Detached worktrees use their HEAD's
 ancestry. Dirty worktrees stay, with the file count and first five paths printed. Unknown merge
-or commit-age facts stay; unreadable status refuses cleanup. Removal uses Git without force and
-is reported successful only after rereading the worktree list.
+or commit-age facts stay; unreadable status refuses cleanup. Cleanup also inspects metadata at
+standard `features/<direct-child>/.fa-state` locations independently of Git status. Any observed
+state entry, including an empty directory, regular file, or partial state, keeps its worktree.
+An initial uncertain inspection (including symlinks or an exhausted 4096-entry feature inventory)
+exits 1 before removal or registry archiving; state contents are never read. Removal uses Git without force
+and is confirmed only after a successful command, a fresh worktree list omitting the target, and
+an absent worktree path on disk.
+
+`--apply` repeats the state observation immediately before each selected removal. A late state
+entry is retained; a late unknown observation stops further removals and archiving. JSON keeps the
+original `remove`/`keep` plan and adds `applyResults` for attempted candidates, with `removed`,
+`retained`, or `failed` status. Dry-run has an empty `applyResults` array. Earlier outcomes remain
+in error output if a later step fails. This observation cannot exclude a writer after its final
+probe; manual Git removal and custom feature paths are outside this command's protection.
 
 With `--apply`, whole finished or confirmed-dead run histories whose newest event exceeds retention
 move to `.dz/runs/registry.archive.jsonl`; live and inconclusive runs stay in `registry.jsonl`.
@@ -2968,6 +2989,7 @@ name what did happen — `git worktree remove` has no rollback. Direct API write
 
 Core APIs: `settleDeadRuns` and `planRegistryArchive` are pure registry decisions;
 `planWorktreeCleanup` accepts injected `WorktreeFact` values and returns remove/keep decisions;
+an omitted optional `featureState` observation is treated as unknown, not as absence.
 `renderCleanupPlan` renders them. `worktreeRemovalsToApply` selects removals only when apply is true.
 No process is terminated and no branch is deleted.
 

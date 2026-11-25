@@ -1,12 +1,19 @@
 /** Pure cleanup decisions: the CLI gathers facts and executes the explicit apply selection. */
+type FeatureStateObservation = {
+  status: 'absent' | 'present' | 'unknown';
+  paths?: string[];
+  reason?: string;
+};
+
 export type WorktreeFact = {
   path: string; branch: string | null; detached: boolean; isMain: boolean;
   merged: boolean | null; dirtyFiles: string[]; lastCommitTs: number | null;
+  featureState?: FeatureStateObservation;
 };
 export type WorktreeCleanupPlan = {
   now: number;
   remove: WorktreeFact[];
-  keep: { fact: WorktreeFact; reason: 'main' | 'unmerged' | `dirty (${number})` | 'younger than retention' | 'merged-unknown' }[];
+  keep: { fact: WorktreeFact; reason: 'main' | 'unmerged' | `dirty (${number})` | 'younger than retention' | 'merged-unknown' | 'protected-state-present' | 'protected-state-unknown' }[];
 };
 
 export function planWorktreeCleanup(facts: WorktreeFact[], opts: { now: number; retentionMs: number }): WorktreeCleanupPlan {
@@ -15,6 +22,8 @@ export function planWorktreeCleanup(facts: WorktreeFact[], opts: { now: number; 
     let reason: WorktreeCleanupPlan['keep'][number]['reason'] | undefined;
     if (fact.isMain) reason = 'main';
     else if (fact.dirtyFiles.length > 0) reason = `dirty (${fact.dirtyFiles.length})`;
+    else if (fact.featureState?.status === 'present') reason = 'protected-state-present';
+    else if (fact.featureState?.status !== 'absent') reason = 'protected-state-unknown';
     else if (fact.merged === null) reason = 'merged-unknown';
     else if (!fact.merged) reason = 'unmerged';
     else if (fact.lastCommitTs === null || !(opts.now - fact.lastCommitTs > opts.retentionMs)) reason = 'younger than retention';

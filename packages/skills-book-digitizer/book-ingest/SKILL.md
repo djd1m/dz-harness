@@ -2,7 +2,7 @@
 name: book-ingest
 description: >
   Stage 1 of the book digitizer: turn a book PDF into a chunked, page-anchored corpus + a
-  manifest, DETERMINISTICALLY (poppler + heuristics, no LLM). Token-budget chunker, per-page
+  manifest, DETERMINISTICALLY (Poppler bookmarks + text fallback, no LLM). Token-budget chunker, per-page
   quality matrix (empty/low-coherence/math-dense/two-column), figure/table inventory,
   front-matter listed-not-skipped, deterministic corpus_version + per-chunk source_hash and
   watermarks. Triggers on: "ingest this book", "book-ingest", "разбей книгу на главы",
@@ -25,7 +25,7 @@ here** — a book must ingest the same way every time, or resume and idempotency
 ## Prerequisites
 
 ```bash
-pdftotext -v && pdfinfo -v   # poppler-utils; on Debian/Ubuntu: apt-get install poppler-utils
+pdftotext -v && pdfinfo -v && pdftohtml -v   # poppler-utils; on Debian/Ubuntu: apt-get install poppler-utils
 ```
 
 ## Protocol
@@ -39,17 +39,18 @@ node <book-ingest-skill-dir>/scripts/book-ingest.mjs <book.pdf> --out <workspace
 
 What it produces:
 
-- `<workspace>/corpus/NNN-<chunk-slug>.md` — each chunk's text with **`[p.N]` page anchors** before
+- `<workspace>/corpus/<chunk-id>-<sha256>.md` — each chunk's text with **`[p.N]` page anchors** before
   every page (the anchors are what make provenance verifiable downstream).
 - `<workspace>/manifest.json` — the contract for the whole run:
 
 ```jsonc
 {
-  "book": { "slug", "isbn", "title", "pages", "source_file" },
+  "book": { "slug", "isbn", "title", "pages", "source_file", "source_sha256" },
   "structure_type": "chaptered | monolithic",  // "collection" (papers) is a planned enhancement
-  "corpus_version": "<hash of chunk page-ranges + settings>",   // bumps on any re-ingest
+  "corpus_version": "<hash of PDF snapshot, chunk results + extraction profile>",   // bumps on any re-ingest
   "chapters": [{ "num", "title", "pages": [a, b] }],
-  "front_matter": [{ "page", "reason": "empty-text | pre-first-chapter" }],  // LISTED, never dropped
+  "front_matter": [{ "page", "reason": "empty-text | pre-first-chapter" }],  // also covered by 000-prefixed chunks
+  "ingested_settings": { "structure_detection": { "policy", "source", "result", "producer_version", "warning_counts" } },
   "chunks": [{
     "id", "file", "parent_chapter", "pages": [a, b], "token_estimate",
     "figure_table_mentions", "page_flags": { "<page>": ["math_dense", "two_column"] },
@@ -71,9 +72,11 @@ Key design points (all in the script, ADR-001 v2):
 - **Figure/table inventory**: counts «Рис. N.M» / «Таблица N.M» / «Figure/Table» *mentions* (text
   regex) per chunk, so the extract coverage report can flag uncaptured visuals. (`pdfimages` is an
   optional deeper check, not required by the current script.)
-- **Front matter is LISTED**, never silently skipped (the "no silent caps" rule).
-- **Determinism**: `corpus_version` and per-chunk `source_hash` are content hashes — a re-ingest
-  with the same PDF + settings yields identical values (verified on a 640-page book).
+- **Front matter is chunked separately** under `000` identifiers and listed in `front_matter`. Every extracted physical page has one `[p.N]` anchor.
+- **Structure detection** prefers usable top-level PDF bookmarks as physical page boundaries, including when printed page labels differ. Equal starts keep the first title; nested entries never become chapter boundaries. With no usable outline, a failed optional `pdftohtml`, or a page-count mismatch, the script uses its text-heading heuristic and records a stable fallback reason in `ingested_settings.structure_detection`. Check that profile and the chapter ranges at CP1.
+- **Determinism**: the full `book.source_sha256` identifies the private PDF snapshot used by every Poppler call. `corpus_version` also includes chunk results, settings and Poppler version. The same PDF, settings, tools and selected extraction outcome/profile yield byte-identical manifest and chunks.
+
+**Re-ingest and recovery.** Read chunk paths from `manifest.chunks[].file`; filenames include content SHA-256 and can change after a new revision. Ingest holds one exclusive writer lock, stages all chunks, journals the transition, then atomically replaces `manifest.json`. After a successful rerun it removes only old manifest-owned chunks no longer referenced. A failure before manifest replacement leaves the old corpus active. A failure after replacement reports that the new revision is active and cleanup is incomplete; rerun to recover from the journal. A killed process leaves `.book-ingest.lock`; confirm the owner process has stopped, then remove that lock manually and rerun. Never remove a live writer's lock. The guarantee covers completed ingest and process recovery on a trusted local filesystem; concurrent readers during replacement and power loss are outside this contract.
 
 Then relay the manifest summary to the user for **CP1** (structure_type, chapter count, chunk
 count, front-matter pages, quality flags, figure/table total, and the token-cost estimate).
@@ -105,6 +108,5 @@ count, front-matter pages, quality flags, figure/table total, and the token-cost
 
 ## Examples
 
-- «book-ingest ddia.pdf» → 640 p. → 12 chapters, ~19 chunks (oversized chapters auto-split), 24 front-matter pages listed.
-- «Почему пропущены страницы 1–24?» → they're `front_matter` in the manifest (pre-first-chapter),
-  listed not dropped.
+- «book-ingest ddia.pdf» → 640 p. → 12 chapters, ~19 chunks (oversized chapters auto-split), 24 front-matter pages in separate chunks.
+- «Почему пропущены страницы 1–24?» → they're `front_matter` in the manifest and 000-prefixed chunks with physical page anchors.

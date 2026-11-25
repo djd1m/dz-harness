@@ -54,7 +54,7 @@ verified: true | false | partial              # set by the KU-verify pass; disti
 
 ### Map — one agent per chunk (parallelizable, resumable)
 
-For each chunk whose `watermark.extracted == false`: read `corpus/<chunk>.md`, emit KUs in the
+For each entry in the current manifest, including `000` front-matter chunks, whose `watermark.extracted == false`: read its exact `manifest.chunks[].file` path, emit KUs in the
 schema. **Idempotency**: `<seq>` is assigned only within one complete chunk run — write to a temp
 file, then atomically rename + set `watermark.extracted = true` together; on retry, delete partial
 output first. A changed `source_hash` invalidates that chunk's watermark AND all downstream

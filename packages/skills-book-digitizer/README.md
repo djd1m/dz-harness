@@ -19,7 +19,7 @@ methods at the decisions it's about — e.g. DDIA → `ddia-replication-topology
 | Skill | Stage |
 |-------|-------|
 | `digitize-book` | **Orchestrator** — runs the pipeline through up to 6 human checkpoints (CP6 promote-to-brain optional), resumable across sessions |
-| `book-ingest` | PDF → chunked, page-anchored corpus + manifest (deterministic: poppler + heuristics, no LLM) |
+| `book-ingest` | PDF → chunked, page-anchored corpus + manifest (deterministic: Poppler bookmarks + text fallback, no LLM) |
 | `book-knowledge-extract` | corpus → **verified** Knowledge Units (map-reduce, dedup, KU-verify entailment, FACTS-verbatim/PROSE-paraphrase regime) |
 | `book-skill-distill` | verified KUs → **decision-moment** skills (slug-prefixed, routing evals + activation gate, KU→skill traceability) |
 | `book-pack-assemble` | skills → installable pack (`references/` deep-lookup + the per-book `brain/<slug>.sqlite` KB slice shipped inside, **private-by-default** distribution, collision gate, Copilot policy) |
@@ -40,8 +40,8 @@ Selection installs the orchestrator, all book stages
 and the two supporting skills from the meta pack. Open a new session in that project and ask:
 “Use $digitize-book to ingest this PDF and show me the chapters at the first checkpoint.”
 
-Install Poppler (`pdftotext`, `pdfinfo`, `pdfimages`) for PDF ingest. The first checkpoint writes
-a page-anchored corpus and manifest locally. For the later KB stage, set up the AgentDB memory
+Install Poppler (`pdftotext`, `pdfinfo`, `pdftohtml`, `pdfimages`) for PDF ingest. The first checkpoint writes
+a page-anchored corpus and manifest locally. Usable top-level PDF bookmarks set physical chapter ranges; otherwise the text-heading heuristic applies, with the reason recorded in `ingested_settings.structure_detection`. Front matter has its own chunks, and each extracted physical page has a `[p.N]` anchor. The manifest records the full SHA-256 of a private PDF snapshot used for extraction; chunk filenames contain their content hash. Re-running ingest publishes the new manifest after preparing its chunks and removes only obsolete managed chunks. If a run stops during publication, check that its process has ended before manually clearing `.book-ingest.lock`, then rerun to finish journal recovery. After a reported post-commit cleanup error, the new revision is already active. Downstream stages read `manifest.chunks[].file`. These process-recovery guarantees assume a trusted local filesystem and readers that start after ingest completes; they do not cover concurrent readers or power loss. For the later KB stage, set up the AgentDB memory
 backend with `dz setup --target codex --memory agentdb` for a Codex project.
 
 ## Usage scenarios
@@ -252,8 +252,21 @@ Two kinds of guarantee, and the difference matters:
   `sources.json`. The ingest is deterministic. The book KB is a separate namespace (book KUs never
   pollute `dz recommend`). The **word-shingling verbatim-check is now a shipped deterministic gate**
   (`book-pack-assemble/scripts/shingling-check.mjs`) run at pack assembly: any uncited verbatim run ≥8 words fails the
-  pack (cited ≤25-word quotes with a page anchor are exempt) — the paraphrase rule is mechanically
-  enforced, no longer merely agent-enforced.
+  pack (cited ≤25-word quotes with a page anchor are exempt). The gate scans Markdown recursively
+  and reads canonical FTS5 `book_knowledge` SQLite slices structurally, including nested metadata
+  text. For example, run
+  `node book-pack-assemble/scripts/shingling-check.mjs --source corpus/ --output pack/`
+  or use `--output brain/<slug>.sqlite` for a direct slice. Python 3 with stdlib `sqlite3` and FTS5
+  is required when SQLite is present; Markdown-only checks use Node alone. Supported slices have
+  columns `book, ku_id, corpus_version, type, name, problem, content, chapter, pages, metadata`.
+  Export/checkpoint and close the slice first: the read-only immutable reader rejects WAL/SHM/journal
+  sidecars, symlink inputs (including linked subdirectories), invalid schema/JSON/types, cells over
+  1 MiB, and segment results over 16 MiB. On a directory traversal error, the JSON report is
+  printed to stdout and withheld from the requested file path because its aliases cannot be
+  verified.
+  Exit 0 is clean under this word-overlap rule, 1 finds a copy, and 2 means the check could not
+  finish; never treat 2 as a pass. The gate detects bounded text overlap, not semantic copying or
+  legal copyright status.
 - **Protocol (agent-enforced, fail-open — NOT mechanically proven):** KU provenance is
   *agent-verified* (an entailment pass re-reads the cited pages) but not cryptographically proven;
   the FACTS-verbatim / PROSE-paraphrase fidelity regime and the KU→skill traceability are

@@ -20,7 +20,7 @@ import { runCodexRecallProxy, readCodexRecallObserverSnapshot } from '@dzhechkov
 import { OUTSIDE_FILES_REASON } from '@dzhechkov/harness-core';
 import { shortPackageName } from '@dzhechkov/harness-core';
 import { detectMangledText } from '@dzhechkov/harness-core';
-import { appendFileSync, chmodSync, closeSync, constants as fsConstants, copyFileSync, cpSync, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readSync, readdirSync, readlinkSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync, writeSync } from 'node:fs';
+import { appendFileSync, chmodSync, closeSync, constants as fsConstants, copyFileSync, cpSync, existsSync, fstatSync, fsyncSync, lstatSync, mkdirSync, mkdtempSync, openSync, opendirSync, readFileSync, readSync, readdirSync, readlinkSync, realpathSync, renameSync, rmdirSync, rmSync, statSync, symlinkSync, unlinkSync, writeFileSync, writeSync } from 'node:fs';
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep, posix as nodePosixPath } from 'node:path';
 const posixNormalize = nodePosixPath.normalize;
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -12460,6 +12460,14 @@ function cmdSyncCanonical(options, flags, cwd, write) {
     }
     // Always report HOW the canonical resolved (from | skills-meta | auto | none) — no invisible choice.
     write(`resolved: ${r.resolvedFrom}`);
+    if (r.canonicalDefects.some((d) => d.kind !== 'misplaced-enrichment-asset')) {
+        for (const d of r.canonicalDefects) {
+            const location = d.path ? `${relative(root, d.canonical)}/${d.path}` : relative(root, d.canonical);
+            write(`canonical source refused: ${d.kind} at ${location}`);
+        }
+        write('dz sync-canonical: comparison was not performed; nothing was written');
+        return exitCode;
+    }
     for (const d of r.canonicalDefects)
         write(renderCanonicalDefect(d, root));
     if (!check && r.canonicalDefects.length > 0) {
@@ -16855,11 +16863,134 @@ function cmdRuns(options, flags, cwd, write) {
     }
     return registry.status === 'readable' ? 0 : 1;
 }
+/** Inspect only metadata at the standard feature-state locations, never state contents. */
+function observeCleanupFeatureState(worktree) {
+    const unknown = (reason) => ({ status: 'unknown', reason: reason.slice(0, 512) });
+    const missing = (error) => error.code === 'ENOENT';
+    const sameDirectory = (path, observed) => {
+        let fd;
+        let same = false;
+        try {
+            // O_NOFOLLOW checks the final component; each ancestor is checked separately.
+            fd = openSync(path, fsConstants.O_RDONLY | fsConstants.O_DIRECTORY | fsConstants.O_NOFOLLOW);
+            const current = fstatSync(fd);
+            same = current.isDirectory() && current.dev === observed.dev && current.ino === observed.ino;
+        }
+        catch { /* Missing, unsafe, or unreadable identity is inconclusive. */ }
+        if (fd !== undefined) {
+            try {
+                closeSync(fd);
+            }
+            catch {
+                same = false;
+            }
+        }
+        return same;
+    };
+    let rootInfo;
+    try {
+        rootInfo = lstatSync(worktree);
+        if (!rootInfo.isDirectory())
+            return unknown('worktree root is not a directory');
+    }
+    catch (error) {
+        return unknown(`worktree root inspection failed: ${String(error)}`);
+    }
+    const features = join(worktree, 'features');
+    let featuresInfo;
+    try {
+        featuresInfo = lstatSync(features);
+        if (!featuresInfo.isDirectory())
+            return unknown('features is not a directory');
+    }
+    catch (error) {
+        if (!missing(error))
+            return unknown(`features inspection failed: ${String(error)}`);
+        return sameDirectory(worktree, rootInfo)
+            ? { status: 'absent' } : unknown('worktree root changed before features absence');
+    }
+    let directory;
+    let observation = { status: 'absent' };
+    const absentFeatures = [];
+    try {
+        directory = opendirSync(features);
+        let inspected = 0;
+        while (true) {
+            const entry = directory.readSync();
+            if (entry === null)
+                break;
+            if (++inspected > 4096) {
+                observation = unknown('features exceeds 4096 direct entries');
+                break;
+            }
+            const feature = join(features, entry.name);
+            let featureInfo;
+            try {
+                featureInfo = lstatSync(feature);
+            }
+            catch (error) {
+                observation = unknown(`feature entry inspection failed: ${String(error)}`);
+                break;
+            }
+            if (featureInfo.isSymbolicLink()) {
+                observation = unknown(`feature entry is a symlink: ${entry.name}`);
+                break;
+            }
+            // Ordinary files in features cannot contain a standard .fa-state child.
+            if (!featureInfo.isDirectory())
+                continue;
+            const state = join(feature, '.fa-state');
+            let stateInfo;
+            try {
+                stateInfo = lstatSync(state);
+            }
+            catch (error) {
+                if (missing(error)) {
+                    absentFeatures.push({ path: feature, info: featureInfo });
+                    continue;
+                }
+                observation = unknown(`state entry inspection failed: ${String(error)}`);
+                break;
+            }
+            if (stateInfo.isSymbolicLink()) {
+                observation = unknown(`state entry is a symlink: ${entry.name}`);
+                break;
+            }
+            if (stateInfo.isDirectory() || stateInfo.isFile()) {
+                observation = { status: 'present', paths: [join('features', entry.name, '.fa-state')] };
+            }
+            else
+                observation = unknown(`state entry has an unexpected type: ${entry.name}`);
+            break;
+        }
+    }
+    catch (error) {
+        observation = unknown(`features inventory failed: ${String(error)}`);
+    }
+    try {
+        directory?.closeSync();
+    }
+    catch (error) {
+        observation = unknown(`features inventory close failed: ${String(error)}`);
+    }
+    if (observation.status === 'absent') {
+        if (!sameDirectory(worktree, rootInfo) || !sameDirectory(features, featuresInfo))
+            return unknown('worktree or features directory changed during inventory');
+        for (const feature of absentFeatures) {
+            if (!sameDirectory(feature.path, feature.info))
+                return unknown(`feature directory changed before state absence: ${feature.path}`);
+        }
+    }
+    return observation;
+}
 /** Git effects are injected; the core owns eligibility and the explicit apply boundary. */
 export function cmdRunsClean(options, flags, cwd, write, exec = execSync) {
     const root = resolve(options.get('project') ?? cwd);
     const json = flags.has('json');
+    const applied = flags.has('apply');
     const messages = [];
+    const applyResults = [];
+    let plan;
     const say = (line) => { messages.push(line); if (!json)
         write(line); };
     try {
@@ -16913,6 +17044,14 @@ export function cmdRunsClean(options, flags, cwd, write, exec = execSync) {
         };
         const trees = list();
         const facts = trees.map((tree, index) => {
+            const base = { path: tree.path, branch: tree.branch?.replace(/^refs\/heads\//, '') ?? null,
+                detached: tree.detached, isMain: index === 0 || tree.branch === 'refs/heads/main' };
+            const featureState = observeCleanupFeatureState(tree.path);
+            // A missing or unsafe worktree path must be reported as an unknown observation;
+            // Git status can itself fail on that path before producing any cleanup facts.
+            if (featureState.status === 'unknown')
+                return { ...base, featureState,
+                    merged: null, dirtyFiles: [], lastCommitTs: null };
             // Any unreadable status aborts before removal; unknown cleanliness is never clean.
             const dirtyFiles = git('git status --short --untracked-files=all', tree.path).split('\n').filter(Boolean)
                 .map(line => unquote(line.slice(3)));
@@ -16932,31 +17071,64 @@ export function cmdRunsClean(options, flags, cwd, write, exec = execSync) {
                     lastCommitTs = Number(raw) * 1000;
             }
             catch { /* unknown age keeps the worktree */ }
-            return { path: tree.path, branch: tree.branch?.replace(/^refs\/heads\//, '') ?? null,
-                detached: tree.detached, isMain: index === 0 || tree.branch === 'refs/heads/main', merged, dirtyFiles, lastCommitTs };
+            return { ...base, merged, dirtyFiles, lastCommitTs, featureState };
         });
-        const plan = planWorktreeCleanup(facts, { now, retentionMs });
+        plan = planWorktreeCleanup(facts, { now, retentionMs });
         for (const line of renderCleanupPlan(plan))
             say(line);
+        const initialUnknown = facts.filter(fact => fact.featureState?.status === 'unknown');
+        if (initialUnknown.length) {
+            const reason = ('feature-state inspection unknown: ' + initialUnknown.slice(0, 5)
+                .map(fact => `${fact.path} (${fact.featureState?.reason ?? 'unknown'})`).join(', ')).slice(0, 512);
+            say('runs-clean refused: ' + reason);
+            if (json)
+                write(JSON.stringify({ ...plan, applied, applyResults, messages, ok: false, reason }));
+            return 1;
+        }
         let code = 0;
-        for (const fact of worktreeRemovalsToApply(plan, flags.has('apply'))) {
-            let failure;
+        for (const fact of worktreeRemovalsToApply(plan, applied)) {
+            const featureState = observeCleanupFeatureState(fact.path);
+            if (featureState.status === 'present') {
+                applyResults.push({ path: fact.path, status: 'retained', reason: 'protected-state-present', featureState });
+                say(`keep ${fact.path} — protected-state-present (apply recheck)`);
+                continue;
+            }
+            if (featureState.status === 'unknown') {
+                const reason = 'protected-state-unknown (apply recheck)';
+                applyResults.push({ path: fact.path, status: 'failed', reason, featureState });
+                say(`NOT removed ${fact.path} — ${reason}`);
+                if (json)
+                    write(JSON.stringify({ ...plan, applied, applyResults, messages, ok: false, reason }));
+                return 1;
+            }
             try {
                 git(`git worktree remove ${shellQuote(fact.path)}`);
             }
             catch (error) {
-                failure = String(error);
+                const reason = `Git removal failed: ${String(error)}`;
+                applyResults.push({ path: fact.path, status: 'failed', reason, featureState });
+                say(`NOT removed ${fact.path} — ${reason}`);
+                code = 1;
+                continue;
             }
             try {
-                if (!list().some(tree => tree.path === fact.path))
-                    say(`removed ${fact.path} (confirmed)`);
-                else {
-                    say(`NOT removed ${fact.path}` + (failure ? ` — ${failure}` : ''));
-                    code = 1;
+                if (list().some(tree => tree.path === fact.path))
+                    throw new Error('still listed by Git');
+                try {
+                    lstatSync(fact.path);
+                    throw new Error('worktree path remains on disk');
                 }
+                catch (error) {
+                    if (error.code !== 'ENOENT')
+                        throw error;
+                }
+                applyResults.push({ path: fact.path, status: 'removed', reason: 'confirmed', featureState });
+                say(`removed ${fact.path} (confirmed)`);
             }
             catch (error) {
-                say(`NOT removed ${fact.path} — confirmation unavailable: ${String(error)}`);
+                const reason = `confirmation unavailable: ${String(error)}`;
+                applyResults.push({ path: fact.path, status: 'failed', reason, featureState });
+                say(`NOT removed ${fact.path} — ${reason}`);
                 code = 1;
             }
         }
@@ -16965,7 +17137,7 @@ export function cmdRunsClean(options, flags, cwd, write, exec = execSync) {
             if (registry.status === 'inconclusive')
                 throw new Error(registry.reason);
             const archivePlan = planRegistryArchive(registry, { now, retentionMs, probe: probePid });
-            if (flags.has('apply') && archivePlan.archive.length > 0) {
+            if (applied && archivePlan.archive.length > 0) {
                 const dir = join(root, '.dz', 'runs');
                 const encode = (events) => events.map(ev => JSON.stringify(ev) + '\n').join('');
                 const temp = join(dir, `registry.${randomBytes(8).toString('hex')}.tmp`);
@@ -16981,18 +17153,18 @@ export function cmdRunsClean(options, flags, cwd, write, exec = execSync) {
             }
             return archivePlan;
         };
-        const archive = flags.has('apply')
+        const archive = applied
             ? withDirLockSync(join(root, '.dz', 'runs'), 'run-registry-archive', archiveRegistry)
             : archiveRegistry();
-        say(`${flags.has('apply') ? 'archived' : 'archive'} ${archive.archive.length} registry event(s)`);
+        say(`${applied ? 'archived' : 'archive'} ${archive.archive.length} registry event(s)`);
         if (json)
-            write(JSON.stringify({ ...plan, applied: flags.has('apply'), archive, messages, ok: code === 0 }));
+            write(JSON.stringify({ ...plan, applied, applyResults, archive, messages, ok: code === 0 }));
         return code;
     }
     catch (error) {
         const reason = String(error);
         if (json)
-            write(JSON.stringify({ ok: false, reason, messages }));
+            write(JSON.stringify({ ...plan, applied, applyResults, ok: false, reason, messages }));
         else
             write('runs-clean refused: ' + reason);
         return 1;

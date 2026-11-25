@@ -34,7 +34,7 @@ export interface DriftedSkill {
     /** Absolute paths of every copy — lets a human / `--json` consumer jump to the drifted dirs. */
     readonly locations: readonly string[];
 }
-export type CanonicalDefectKind = 'misplaced-enrichment-asset';
+export type CanonicalDefectKind = 'misplaced-enrichment-asset' | 'missing-canonical-source' | 'canonical-source-not-directory' | 'missing-skill-manifest' | 'skill-manifest-not-file' | 'unreadable-canonical-source';
 /** A finding in the canonical source, reported without propagating or removing it. */
 export interface CanonicalDefect {
     readonly skill: string;
@@ -102,7 +102,7 @@ export interface SyncCanonicalOptions {
 export interface SyncResult {
     /** Resolved canonical dir (abs). Empty `''` in canonical-free peer / refuse modes. */
     readonly canonical: string;
-    /** Whether a canonical source dir was resolved. `false` ⇒ `resolvedFrom === 'none'`. */
+    /** Whether the resolved canonical is a readable skill source. False also covers source refusal. */
     readonly canonicalExists: boolean;
     /** How the canonical resolved: `from` | `skills-meta` | `auto` | `none`. */
     readonly resolvedFrom: CanonicalSource;
@@ -110,7 +110,7 @@ export interface SyncResult {
     readonly copies: number;
     /** # copies overwritten (0 when `check:true`, in peer mode, or when a bare write refuses). */
     readonly synced: number;
-    /** # copies/files that differ (from canonical in resolved modes; between peers in canonical-free mode). */
+    /** # copies/files that differ; zero is unmeasured when source validation refused. */
     readonly drifted: number;
     /** Nonempty in write mode means refusal: `synced: 0`, `wrote: []`. */
     readonly canonicalDefects: readonly CanonicalDefect[];

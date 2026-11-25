@@ -3,7 +3,7 @@
 `dz qe-rounds --source native` reports durable native QE history without writing. Explicit `--action prepare|evaluate|begin-repair|begin-continuation|begin-final-continuation|begin-post-ci-correction` invokes the exact installed skills-meta helper from the CLI module, checks core/helper capabilities and uses the existing receipt schema. Prepare and begin-repair require `--reviewers <json>`. The default native ceiling is three; native `--ceiling`, duplicate/unknown options, legacy reconstruction and source collisions refuse. Omitted source retains the bridge reader.
 
 
-Current package version: `0.8.63`. <!-- dz:version -->
+Current package version: `0.8.64`. <!-- dz:version -->
 
 The **`dz`** CLI — the main entry point to the DZ Harness Hub. Install AI skills for **Claude Code, Codex, OpenCode, Hermes, OpenClaude, GitHub Copilot** from a single command.
 
@@ -100,7 +100,7 @@ Each launch creates one snapshot; remove selected old snapshot files yourself wh
 Live backpressure waits for writable callbacks. Explicit termination cancels pending writes; after
 child exit a stalled output sink has a two-second final drain window before cancellation.
 
-Current package versions: `harness-core v0.8.70` · `harness-cli v0.8.63`. <!-- dz:version -->
+Current package versions: `harness-core v0.8.71` · `harness-cli v0.8.64`. <!-- dz:version -->
 
 Joint current status requires `<!-- dz:version -->` on a dedicated undated line. Unmarked historical pairs remain immutable to version sync and are skipped by the current-version guard; fenced examples cannot supply current joint metadata. On visible lines, the marker retains its whole-line override for per-package synchronization, including explicit changelog overrides, so keep it off historical records. The previous all-protections override is corrected: fenced marker, footer, install/JSON-pin, tarball and badge examples remain literal, as do supported HTML comment blocks. Their visible counterparts still stamp; place current metadata outside examples.
 
@@ -3962,6 +3962,7 @@ cannot prove it wrote. Foreign entries are preserved byte-for-byte by every oper
 
 - `dz drift-check` — the **detector + CI gate**. Finds every skill that lives in ≥2 **package** locations and reports which copies **byte-differ**. Exit **1** if any *unexpected* drift, canonical defect, or blocking signature finding, **0** if clean. By default it compares published-package copies only; the `.claude/skills/<skill>` dogfood copies legitimately lag, so add `--all` to include them in a raw audit.
 - `dz sync-canonical <skill>` — the **healer**. Treats `skills-meta/<skill>` (or `--from <dir>`) as canonical and overwrites every other copy, proving byte-identity. `--check` reports drift and canonical defects and writes **nothing** (exit 1 on either finding) — the CI-safe dry-run. A canonical defect also refuses write mode with exit **1**, `synced: 0`, and `wrote: []`; all copies stay unchanged. It always prints how the canonical resolved: `resolved: from | skills-meta | auto | none`.
+  - A selected source must be a readable directory with a regular `SKILL.md`. If it is missing, has the wrong type, or contains unreadable content, text and JSON modes return exit **1** with a named source defect. Write, `--check`, and `--dry-run` leave all copies unchanged. Text says comparison was not performed; JSON reports `canonicalExists: false` and `drifted: 0` as an unmeasured comparison, while retaining the selected path and `resolvedFrom`. A valid source still heals copies normally.
   - **No `skills-meta` home + no `--from`?** (A shared skill may have its canonical source in a domain pack.) `--check` still works: it runs a **canonical-free** comparison — are the copies byte-identical to **each other**? — and exits **0** if they all match / **1** if any differ (this used to dead-end at exit 2). A bare **write** in that state **refuses** (exit 2, writes nothing) rather than guess a canonical — a wrong guess would silently destroy the good copy. Pass **`--auto`** to opt in to auto-picking the **most-complete** copy as canonical; it prints a **loud warning naming the pick and the exact overwrite list** before healing (completeness ≠ correctness — review the diff).
 
 **Drift baseline.** `drift-check` reads **`.dz/drift-allowlist.json`** — a documented baseline of skills whose drift is *accepted* (intentional forks like `knowledge-extractor`, or a package that owns the primary vs a registry snapshot). For copy drift it fails only on **new** drift in any other shared skill. To accept a drift, add the skill name + a **reason** to that file; to re-arm the gate, heal it (`dz sync-canonical`) and remove the entry. Canonical defects are not allowlisted: a repo whose `skills-meta` already contains a misplaced asset can fail the gate immediately.
@@ -6969,8 +6970,20 @@ dz runs-clean --project /path/to/repo --retention-days 7 --apply
 Only non-main worktrees merged into `main`, clean, and strictly older than the retention
 (default 2 days, measured from their latest commit) qualify. Detached worktrees use their HEAD's
 ancestry. Dirty worktrees stay, with the file count and first five paths printed. Unknown merge
-or commit-age facts stay; unreadable status refuses cleanup. Removal uses Git without force and
-is reported successful only after rereading the worktree list.
+or commit-age facts stay; unreadable status refuses cleanup. Cleanup also inspects metadata at
+standard `features/<direct-child>/.fa-state` locations independently of Git status. Any observed
+state entry, including an empty directory, regular file, or partial state, keeps its worktree.
+An initial uncertain inspection (including symlinks or an exhausted 4096-entry feature inventory)
+exits 1 before removal or registry archiving; state contents are never read. Removal uses Git without force
+and is confirmed only after a successful command, a fresh worktree list omitting the target, and
+an absent worktree path on disk.
+
+`--apply` repeats the state observation immediately before each selected removal. A late state
+entry is retained; a late unknown observation stops further removals and archiving. JSON keeps the
+original `remove`/`keep` plan and adds `applyResults` for attempted candidates, with `removed`,
+`retained`, or `failed` status. Dry-run has an empty `applyResults` array. Earlier outcomes remain
+in error output if a later step fails. This observation cannot exclude a writer after its final
+probe; manual Git removal and custom feature paths are outside this command's protection.
 
 With `--apply`, whole finished or confirmed-dead run histories whose newest event exceeds retention
 move to `.dz/runs/registry.archive.jsonl`; live and inconclusive runs stay in `registry.jsonl`.

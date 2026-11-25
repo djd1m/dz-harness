@@ -1,16 +1,18 @@
 #!/usr/bin/env node
 // book-ingest — deterministic PDF → chunked corpus + manifest (ADR-001 v2, book-knowledge-digitizer).
-// NO LLM: poppler (pdfinfo/pdftotext/pdfimages) + heuristics only, so ingest is reproducible.
+// NO LLM: Poppler text plus bounded PDF bookmarks, with text-heading fallback.
 //   node book-ingest.mjs <book.pdf> --out <dir> [--book <slug>] [--isbn <isbn>] [--max-chunk-tokens N]
 // Emits <out>/corpus/NN-<slug>.md (with [p.N] page anchors) + <out>/manifest.json.
 // Design: token-budget chunker (not structure-only), per-page quality matrix, figure/table
 // inventory, front-matter listed-not-skipped, corpus_version + per-chunk source_hash/watermarks.
 
 import { execFile } from 'node:child_process';
-import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { join, basename } from 'node:path';
 import { createHash } from 'node:crypto';
 import { promisify } from 'node:util';
+import { beginPublication, publishCorpus, endPublication, contentPath } from './corpus-publication.mjs';
+import { extractPdfOutline } from './pdf-outline.mjs';
 
 // ---- args -------------------------------------------------------------------
 const argv = process.argv.slice(2);
@@ -21,6 +23,10 @@ const outDir = opt('out', join(process.cwd(), 'book-corpus'));
 const MAX_CHUNK_TOKENS = parseInt(opt('max-chunk-tokens', '70000'), 10);
 const CHUNK_BUDGET = MAX_CHUNK_TOKENS * 0.8; // QE P3: safety margin so estimator error can't overflow the extract agent
 const slugify = (s) => s.toLowerCase().normalize('NFKD').replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+const normalizeTitle = (s) => String(s).replace(/[\t\n\r]/g, ' ').replace(/[\p{Cc}\p{Cf}]/gu, '')
+  .replace(/\s+/gu, ' ').trim();
+const safeHeaderTitle = (s) => normalizeTitle(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;').replace(/([\\[\]_*~`!])/g, '\\$1');
 
 // ---- poppler helpers --------------------------------------------------------
 // `strict` rethrows on a non-zero exit (used for the PRIMARY extraction — QE P2: a poppler crash
@@ -118,7 +124,7 @@ function detectChapters(pages) {
     // Sanity: a good title is a short-ish noun phrase. Reject long/garbled captures (extraction
     // reading-order sometimes surfaces a body line first) → fall back to the bare "Глава N".
     const good = name && name.length <= 70 && !/^\d/.test(name) && (name.match(/\s/g) || []).length <= 8;
-    chapters.push({ num, startPage: i + 1, title: good ? `Глава ${num}. ${name}` : `Глава ${num}` });
+    chapters.push({ num, startPage: i + 1, title: normalizeTitle(good ? `Глава ${num}. ${name}` : `Глава ${num}`) });
   });
   // de-dup consecutive same-number hits (running headers); keep first occurrence per number
   const seen = new Set(); const uniq = [];
@@ -157,12 +163,14 @@ function chunkPages(pages, startPage, endPage) {
 }
 
 // ---- main -------------------------------------------------------------------
-const info = await pdfInfo(pdf);
-if (!info.pages) { console.error('pdfinfo: 0 pages (encrypted? not a PDF?)'); process.exit(1); }
+const tx = await beginPublication(outDir, pdf);
+try {
+const info = await pdfInfo(tx.snapshot);
+if (!info.pages) throw new Error('pdfinfo: 0 pages (encrypted? not a PDF?)');
 const bookSlug = opt('book', slugify(info.title || basename(pdf, '.pdf')));
 const isbn = opt('isbn', '');
-const pages = await pagesOf(pdf, false);
-const layoutPages = await pagesOf(pdf, true);
+const pages = await pagesOf(tx.snapshot, false);
+const layoutPages = await pagesOf(tx.snapshot, true);
 // QE P2: only trust the two-column signal when the -layout run aligns page-for-page.
 const layoutAligned = layoutPages.length === pages.length;
 CPT = charsPerToken(pages.join(''));
@@ -170,11 +178,22 @@ const quality = pages.map((t, i) => pageQuality(t, layoutPages[i], layoutAligned
 
 // QE P2: fail LOUD instead of writing a green manifest for an empty/broken extraction.
 const emptyShare = quality.filter((q) => q.flags.includes('empty')).length / Math.max(1, pages.length);
-if (pages.length === 0) { console.error('ERROR: 0 pages of text extracted. Encrypted or no text layer? Run OCR (pdftoppm + tesseract) and re-ingest.'); process.exit(1); }
-if (info.encrypted && info.encrypted !== 'no' && emptyShare > 0.5) { console.error(`ERROR: PDF is encrypted (${info.encrypted}) and ${Math.round(emptyShare * 100)}% pages have no text — decrypt or OCR first.`); process.exit(1); }
-if (emptyShare > 0.9) { console.error(`ERROR: ${Math.round(emptyShare * 100)}% of pages have no extractable text — this looks like a scanned book. OCR (pdftoppm + tesseract) and re-ingest.`); process.exit(1); }
+if (pages.length === 0) throw new Error('0 pages of text extracted. Encrypted or no text layer? Run OCR (pdftoppm + tesseract) and re-ingest.');
+if (info.encrypted && info.encrypted !== 'no' && emptyShare > 0.5) throw new Error(`PDF is encrypted (${info.encrypted}) and ${Math.round(emptyShare * 100)}% pages have no text — decrypt or OCR first.`);
+if (emptyShare > 0.9) throw new Error(`${Math.round(emptyShare * 100)}% of pages have no extractable text — this looks like a scanned book. OCR (pdftoppm + tesseract) and re-ingest.`);
 
-const chapters = detectChapters(pages);
+const outline = await extractPdfOutline(tx.snapshot, pages.length, info.pages);
+const chapters = outline.roots
+  ? outline.roots.map((root, i, all) => ({ num: i + 1, title: normalizeTitle(root.title),
+    startPage: root.page, endPage: i + 1 < all.length ? all[i + 1].page - 1 : pages.length }))
+  : detectChapters(pages);
+const structureDetection = {
+  policy: 'pdf-outline-v1',
+  source: outline.roots ? 'pdf-outline' : 'text-heuristic',
+  result: outline.roots ? 'accepted' : `fallback:${outline.reason}`,
+  producer_version: outline.producerVersion,
+  warning_counts: { fallbacks: outline.roots ? 0 : 1, ...outline.counts },
+};
 const structureType = chapters.length >= 3 ? 'chaptered' : (chapters.length ? 'monolithic' : 'monolithic');
 const firstContentPage = chapters.length ? chapters[0].startPage : 1;
 
@@ -186,13 +205,15 @@ for (let p = 1; p < firstContentPage; p++) {
 }
 
 // build chunks
-mkdirSync(join(outDir, 'corpus'), { recursive: true });
-const ranges = chapters.length
+const frontRanges = frontMatter.length ? chunkPages(pages, 1, firstContentPage - 1) : [];
+const ranges = [...frontRanges.map((r) => ({ r, chapter: { num: 0, title: 'Front matter' }, isFrontMatter: true })),
+  ...(chapters.length
   ? chapters.flatMap((c) => chunkPages(pages, c.startPage, c.endPage).map((r) => ({ r, chapter: c })))
-  : chunkPages(pages, firstContentPage, pages.length).map((r) => ({ r, chapter: { num: 1, title: bookSlug, startPage: firstContentPage, endPage: pages.length } }));
+  : chunkPages(pages, firstContentPage, pages.length).map((r) => ({ r, chapter: { num: 1, title: bookSlug, startPage: firstContentPage, endPage: pages.length } })))];
 
 const manifestChunks = [];
-ranges.forEach(({ r, chapter }, i) => {
+const contents = [];
+ranges.forEach(({ r, chapter, isFrontMatter }, i) => {
   const [a, b] = r;
   let body = '';
   let figTab = 0;
@@ -201,12 +222,13 @@ ranges.forEach(({ r, chapter }, i) => {
     body += `\n\n[p.${p}]\n${pt}`;
     figTab += (pt.match(FIG_TAB_RE) || []).length;
   }
-  const seq = String(i + 1).padStart(3, '0');
+  const seq = isFrontMatter ? `000${String(i + 1).padStart(2, '0')}` : String(i + 1 - frontRanges.length).padStart(3, '0');
   const chunkSlug = `${seq}-${slugify(chapter.title || `chapter-${chapter.num}`)}`;
-  const file = join('corpus', `${chunkSlug}.md`);
-  const header = `# ${chapter.title || `Chapter ${chapter.num}`}  [pp.${a}-${b}]\n`;
+  const header = `# ${safeHeaderTitle(chapter.title || `Chapter ${chapter.num}`)}  [pp.${a}-${b}]\n`;
   const content = header + body;
-  writeFileSync(join(outDir, file), content);
+  const bytes = Buffer.from(content);
+  const file = contentPath(chunkSlug, bytes);
+  contents.push([file, bytes]);
   const pageFlags = {};
   for (let p = a; p <= b; p++) if (quality[p - 1].flags.length) pageFlags[p] = quality[p - 1].flags;
   manifestChunks.push({
@@ -225,16 +247,16 @@ ranges.forEach(({ r, chapter }, i) => {
 
 const poppler = await popplerVersion();
 const corpusVersion = createHash('sha256')
-  .update(JSON.stringify(manifestChunks.map((c) => [c.pages, c.source_hash])) + `|maxchunk=${MAX_CHUNK_TOKENS}|poppler=${poppler}`)
+  .update(JSON.stringify(manifestChunks.map((c) => [c.pages, c.source_hash])) + `|pdf=${tx.sourceSha256}|maxchunk=${MAX_CHUNK_TOKENS}|poppler=${poppler}|structure=${JSON.stringify(structureDetection)}`)
   .digest('hex').slice(0, 16);
 
 const flagCounts = quality.flatMap((q) => q.flags).reduce((m, f) => ((m[f] = (m[f] || 0) + 1), m), {});
 const manifest = {
-  book: { slug: bookSlug, isbn, title: info.title || basename(pdf), pages: info.pages, source_file: basename(pdf) },
+  book: { slug: bookSlug, isbn, title: info.title || basename(pdf), pages: info.pages, source_file: basename(pdf), source_sha256: tx.sourceSha256 },
   structure_type: structureType,
   structure_note: chapters.length ? null : 'no chapter markers detected — single monolithic chunk-set; confirm scope at CP1',
   corpus_version: corpusVersion,
-  ingested_settings: { max_chunk_tokens: MAX_CHUNK_TOKENS, chunk_budget: Math.round(CHUNK_BUDGET), chars_per_token: +CPT.toFixed(2), poppler_version: poppler },
+  ingested_settings: { max_chunk_tokens: MAX_CHUNK_TOKENS, chunk_budget: Math.round(CHUNK_BUDGET), chars_per_token: +CPT.toFixed(2), poppler_version: poppler, structure_detection: structureDetection },
   chapters: chapters.map((c) => ({ num: c.num, title: c.title, pages: [c.startPage, c.endPage] })),
   front_matter: frontMatter,               // listed for CP1 confirmation — never silently skipped
   chunks: manifestChunks,
@@ -248,7 +270,7 @@ const manifest = {
   },
   phase_state: { extracted: 0, reduced: false, distilled: false, packed: false },
 };
-writeFileSync(join(outDir, 'manifest.json'), JSON.stringify(manifest, null, 2));
+publishCorpus(tx, manifest, contents);
 
 // human summary to stdout (the skill relays this at CP1)
 console.log(`book-ingest: "${manifest.book.title}"`);
@@ -257,3 +279,5 @@ console.log(`  front matter: ${frontMatter.length} pages listed (not dropped)`);
 console.log(`  quality flags: ${Object.entries(flagCounts).map(([k, v]) => `${k}=${v}`).join(' ') || 'none'}`);
 console.log(`  figure/table mentions: ${manifest.page_quality_summary.total_figure_table_mentions}`);
 console.log(`  → ${join(outDir, 'manifest.json')}`);
+
+} finally { endPublication(tx); }

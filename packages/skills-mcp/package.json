@@ -2,6 +2,7 @@
   "name": "@dzhechkov/skills-mcp",
   "version": "0.3.12",
   "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
     "test": "node --test tests/agentdb-skill-honesty.test.js tests/comfyui-onboarding.test.js"
   },
   "description": "Canonical MCP skill pack — 16 agentic skills wrapping top Model Context Protocol servers for search, email, productivity, analytics, and project management.",

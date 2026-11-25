@@ -28,6 +28,7 @@
     "sbom.json"
   ],
   "scripts": {
+    "prepublishOnly": "node ../../../scripts/prepublish-gate.mjs",
     "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -35,7 +36,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@dzhechkov/core": "0.2.31"
+    "@dzhechkov/core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.6.0",

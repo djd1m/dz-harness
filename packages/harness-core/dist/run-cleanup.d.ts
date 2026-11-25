@@ -1,4 +1,9 @@
 /** Pure cleanup decisions: the CLI gathers facts and executes the explicit apply selection. */
+type FeatureStateObservation = {
+    status: 'absent' | 'present' | 'unknown';
+    paths?: string[];
+    reason?: string;
+};
 export type WorktreeFact = {
     path: string;
     branch: string | null;
@@ -7,13 +12,14 @@ export type WorktreeFact = {
     merged: boolean | null;
     dirtyFiles: string[];
     lastCommitTs: number | null;
+    featureState?: FeatureStateObservation;
 };
 export type WorktreeCleanupPlan = {
     now: number;
     remove: WorktreeFact[];
     keep: {
         fact: WorktreeFact;
-        reason: 'main' | 'unmerged' | `dirty (${number})` | 'younger than retention' | 'merged-unknown';
+        reason: 'main' | 'unmerged' | `dirty (${number})` | 'younger than retention' | 'merged-unknown' | 'protected-state-present' | 'protected-state-unknown';
     }[];
 };
 export declare function planWorktreeCleanup(facts: WorktreeFact[], opts: {
@@ -23,4 +29,5 @@ export declare function planWorktreeCleanup(facts: WorktreeFact[], opts: {
 /** The apply boundary is independently mutable while all filesystem work stays in the CLI. */
 export declare function worktreeRemovalsToApply(plan: WorktreeCleanupPlan, apply: boolean): WorktreeFact[];
 export declare function renderCleanupPlan(plan: WorktreeCleanupPlan): string[];
+export {};
 //# sourceMappingURL=run-cleanup.d.ts.map

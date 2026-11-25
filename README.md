@@ -42,8 +42,8 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/core` | 0.2.31 |
 | `@dzhechkov/design-thinking` | 1.0.15 |
 | `@dzhechkov/evidence-wiki` | 0.2.7 |
-| `@dzhechkov/harness-cli` | 0.8.63 |
-| `@dzhechkov/harness-core` | 0.8.70 |
+| `@dzhechkov/harness-cli` | 0.8.64 |
+| `@dzhechkov/harness-core` | 0.8.71 |
 | `@dzhechkov/harness-presets` | 0.5.26 |
 | `@dzhechkov/health-advisor` | 1.10.9 |
 | `@dzhechkov/keysarium` | 1.7.21 |
@@ -59,7 +59,7 @@ Issues and questions: use this repository's issue tracker.
 | `@dzhechkov/skills-book-ai-apps` | 0.2.11 |
 | `@dzhechkov/skills-book-clean-code` | 0.1.2 |
 | `@dzhechkov/skills-book-ddia` | 0.1.6 |
-| `@dzhechkov/skills-book-digitizer` | 0.2.22 |
+| `@dzhechkov/skills-book-digitizer` | 0.2.23 |
 | `@dzhechkov/skills-book-fundamental-software-architecture` | 0.1.4 |
 | `@dzhechkov/skills-bto` | 1.4.7 |
 | `@dzhechkov/skills-decision-mockups` | 0.2.0 |

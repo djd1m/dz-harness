@@ -6,6 +6,10 @@ export function planWorktreeCleanup(facts, opts) {
             reason = 'main';
         else if (fact.dirtyFiles.length > 0)
             reason = `dirty (${fact.dirtyFiles.length})`;
+        else if (fact.featureState?.status === 'present')
+            reason = 'protected-state-present';
+        else if (fact.featureState?.status !== 'absent')
+            reason = 'protected-state-unknown';
         else if (fact.merged === null)
             reason = 'merged-unknown';
         else if (!fact.merged)

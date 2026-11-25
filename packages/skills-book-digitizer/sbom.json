@@ -25,7 +25,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "57ca26d13ee6314e05c18d8edfc612809e53bc4c7123bf7764a348f0ddd0a008"
+          "content": "cf2ce45019218433886a1921fd79fab29f97504f602ea32e2bd4cbb5a46ddc6b"
         }
       ]
     },
@@ -45,7 +45,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "9926b6c4c5d9ffbf1afa385f8c4f8e907357faccd5aef67c71ff5c0e4d495133"
+          "content": "1df44cd20535c9aea5493f050d036ba340d7612dd8a63dd4031f626b3de5f2dc"
         }
       ]
     },
@@ -55,7 +55,27 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "3aaa3ebe1711d03e02579040c7f692fd5443a3c94c20b9833d9cc0a8fb7fda0b"
+          "content": "484f8798f39dfa77af4b4f675b7f1f45e282e02f4b32ad7b9e322564c5b9c7ab"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "book-ingest/scripts/corpus-publication.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "bbdad5612ffdd0d0092089f8f1f4973258623d39f6ddac659b6af628e20ee5e9"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "book-ingest/scripts/pdf-outline.mjs",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "1947cc09ecc51106acb5b7b052c9187c9d8ab7e82f19c784d8ba90040e0dfa67"
         }
       ]
     },
@@ -75,7 +95,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "17bc471b739d6e591df5c233bb12697ffd4fb3d919a723100c6e8290d5c1b11f"
+          "content": "2321fa1192ea08e5b395562427d5e9eede8ea76af664918365cf80497b878ca2"
         }
       ]
     },
@@ -85,7 +105,7 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "c2d7b98a0d6893a507986c1faa766b98168a5b1df23f7a0ea54317ac5e4f0574"
+          "content": "b483a9ddf388c8c2b6c3527753e7157fa2f1bea0f47b6dff64babfcf75086f50"
         }
       ]
     },
@@ -95,7 +115,17 @@
       "hashes": [
         {
           "alg": "SHA-256",
-          "content": "0f4ff1fbcba61593b73c4cae036c49f9ca22bd2ea561b00ccb16fd273863a915"
+          "content": "8f7fe8d05c8f08984e6761afea1345fd2e88ef482b46f63d3522ee8375ff0fce"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "name": "book-pack-assemble/scripts/shingling-sqlite.py",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d09d785e4a6ef40b507afd4daab7049865417c35bbae9f151c29fe9d18f99197"
         }
       ]
     },
@@ -129,7 +159,7 @@
         },
         {
           "name": "dz:canonical-json-sha256-v2",
-          "value": "9d4c3033a5dfb34f99b90345826bcd9c1d3a352d97f397e61159198e86aac545"
+          "value": "dc22b7305b9c265d13755edf4d5b325d37793429f64777ac555c45f91e5f586d"
         }
       ]
     },
